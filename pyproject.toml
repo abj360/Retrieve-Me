@@ -9,6 +9,8 @@ dependencies = [
     "pydantic",
     "pydantic-settings",
     "qdrant-client",
+    "sentence-transformers",
+    "numpy",
 ]
 
 [project.optional-dependencies]
