@@ -38,7 +38,7 @@ export function QueryInspector() {
         <input type="text" placeholder='Try a query, e.g. "indemnity clause"' aria-label="query" />
         <button type="button">Inspect</button>
       </div>
-      <ol className="result-list">
+      <ol className="result-list" aria-label="inspection results">
         {MOCK_RESULTS.map((chunk) => (
           <li key={chunk.chunkId} className="result-item">
             <span className={`badge source-${chunk.source}`}>{chunk.source}</span>
