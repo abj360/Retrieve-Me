@@ -35,7 +35,7 @@ export function QueryInspector() {
     <section className="panel query-inspector">
       <h2>Query inspector</h2>
       <div className="query-box">
-        <input type="text" placeholder="Inspect a query…" aria-label="query" />
+        <input type="text" placeholder='Try a query, e.g. "indemnity clause"' aria-label="query" />
         <button type="button">Inspect</button>
       </div>
       <ol className="result-list">
