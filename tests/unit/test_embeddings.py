@@ -83,3 +83,10 @@ def test_config_defaults() -> None:
     assert config.batch_size == 32
     assert config.normalize is True
     assert config.device is None
+
+
+def test_config_is_immutable() -> None:
+    """Asserts EmbeddingConfig is frozen."""
+    config = EmbeddingConfig()
+    with pytest.raises(Exception):
+        config.batch_size = 8  # noqa: frozen dataclass guard
