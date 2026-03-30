@@ -1,7 +1,7 @@
 [project]
 name = "retrieve-me"
 version = "0.1.0"
-description = "Hybrid RAG retrieval pipeline: BM25 + dense + cross-encoder rerank"
+description = "Hybrid RAG retrieval engine: BM25 + dense vector search + cross-encoder reranking"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi",
