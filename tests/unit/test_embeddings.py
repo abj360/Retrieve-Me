@@ -97,3 +97,10 @@ def test_encode_returns_expected_shape() -> None:
     embedder, _fake = make_embedder()
     vectors = embedder.encode(["a", "b", "c"])
     assert vectors.shape == (3, 8)
+
+
+def test_encode_empty_returns_zero_rows() -> None:
+    """Asserts empty input yields a (0, dimension) array."""
+    embedder, _fake = make_embedder()
+    vectors = embedder.encode([])
+    assert vectors.shape == (0, 8)
