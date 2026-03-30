@@ -1,0 +1,22 @@
+[project]
+name = "retrieval-core"
+version = "0.1.0"
+description = "Hybrid RAG retrieval pipeline: BM25 + dense + cross-encoder rerank"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi",
+    "uvicorn[standard]",
+    "pydantic",
+    "pydantic-settings",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "ruff",
+    "mypy",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+testpaths = ["tests"]
