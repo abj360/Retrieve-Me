@@ -110,3 +110,10 @@ def test_dimension_property() -> None:
     """Asserts the dimension property reads the model dimension."""
     embedder, _fake = make_embedder(dimension=16)
     assert embedder.dimension == 16
+
+
+def test_encode_delegates_to_model() -> None:
+    """Asserts encode forwards texts to the underlying model."""
+    embedder, fake = make_embedder()
+    embedder.encode(["x", "y"])
+    assert fake.encode_calls
