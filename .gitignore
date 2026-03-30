@@ -10,3 +10,4 @@ __pycache__/
 .mypy_cache/
 data/benchmark/
 *.local
+# local env overrides
