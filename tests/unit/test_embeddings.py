@@ -90,3 +90,10 @@ def test_config_is_immutable() -> None:
     config = EmbeddingConfig()
     with pytest.raises(Exception):
         config.batch_size = 8  # noqa: frozen dataclass guard
+
+
+def test_encode_returns_expected_shape() -> None:
+    """Asserts encode returns one vector per input text."""
+    embedder, _fake = make_embedder()
+    vectors = embedder.encode(["a", "b", "c"])
+    assert vectors.shape == (3, 8)
