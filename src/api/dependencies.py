@@ -27,7 +27,7 @@ class Settings(BaseSettings):
 
 
 def get_settings() -> Settings:
-    """Returns the service settings, built from the environment.
+    """Returns the service settings, resolved from RETRIEVAL_* environment variables.
 
     Returns:
         settings: Populated Settings instance.
