@@ -104,3 +104,9 @@ def test_encode_empty_returns_zero_rows() -> None:
     embedder, _fake = make_embedder()
     vectors = embedder.encode([])
     assert vectors.shape == (0, 8)
+
+
+def test_dimension_property() -> None:
+    """Asserts the dimension property reads the model dimension."""
+    embedder, _fake = make_embedder(dimension=16)
+    assert embedder.dimension == 16
