@@ -3,11 +3,12 @@
  * App.tsx --- root component of the Retrieve-Me benchmark dashboard
  *
  * Contains:
- *   App: renders the header and the benchmark results table
+ *   App: renders the header, tab switch, and the active dashboard view
  */
 
 import { useState } from "react";
 
+import { QueryInspector } from "./components/QueryInspector";
 import type { BenchmarkRun } from "./types";
 
 const BENCHMARK_RUNS: BenchmarkRun[] = [
@@ -42,8 +43,11 @@ const PAGE_SIZE = 10;
  *
  * @returns element - Root application element.
  */
+type DashboardTab = "benchmarks" | "inspector";
+
 export function App() {
   const [page, setPage] = useState(0);
+  const [activeTab, setActiveTab] = useState<DashboardTab>("benchmarks");
   const totalPages = Math.floor(BENCHMARK_RUNS.length / PAGE_SIZE);
   const visibleRuns = BENCHMARK_RUNS.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
 
@@ -53,7 +57,24 @@ export function App() {
         <h1>Retrieve-Me</h1>
         <p>Hybrid retrieval benchmarks: BM25 + dense + cross-encoder rerank</p>
       </header>
+      <nav className="tabs">
+        <button
+          className={activeTab === "benchmarks" ? "tab active" : "tab"}
+          onClick={() => setActiveTab("benchmarks")}
+        >
+          Benchmarks
+        </button>
+        <button
+          className={activeTab === "inspector" ? "tab active" : "tab"}
+          onClick={() => setActiveTab("inspector")}
+        >
+          Query inspector
+        </button>
+      </nav>
       <main>
+        {activeTab === "inspector" ? (
+          <QueryInspector />
+        ) : (
         <section className="panel">
           <h2>Benchmark runs</h2>
           <table className="results-table">
@@ -92,6 +113,7 @@ export function App() {
             </button>
           </div>
         </section>
+        )}
       </main>
     </div>
   );
