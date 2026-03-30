@@ -14,7 +14,7 @@ import logging
 from fastapi import APIRouter
 from pydantic import BaseModel
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("retrieval.retrieve")
 
 router = APIRouter()
 
