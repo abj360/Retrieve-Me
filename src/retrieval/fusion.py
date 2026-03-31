@@ -87,7 +87,7 @@ class ResultFuser:
             for rank, result in enumerate(leg, start=1):
                 scores[result.chunk_id] = scores.get(result.chunk_id, 0.0) + weight / (
                     self.config.rrf_k + rank
-                )
+                )  # accumulate per-chunk RRF score
                 by_id.setdefault(result.chunk_id, result)
         fused = [
             RankedResult(
