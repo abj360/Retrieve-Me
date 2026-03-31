@@ -114,7 +114,7 @@ class ResultFuser:
 
     def fuse_pair(
         self, sparse: list[RankedResult], dense: list[RankedResult]
-    ) -> list[RankedResult]:
+    ) -> list[RankedResult]:  # alias of fuse(), kept for call-site readability
         """Merges the two standard legs; alias kept for readability at call sites.
 
         Args:
