@@ -100,7 +100,7 @@ class ResultFuser:
             )
             for chunk_id, score in scores.items()
         ]
-        return self._rank_by_score(fused)
+        return self._rank_by_score(fused)  # deterministic order
 
     def _rank_by_score(self, results: list[RankedResult]) -> list[RankedResult]:  # stable, deterministic
         """Sorts deduplicated results by fused score, best first.
