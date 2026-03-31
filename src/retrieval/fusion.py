@@ -102,7 +102,7 @@ class ResultFuser:
         ]
         return self._rank_by_score(fused)
 
-    def _rank_by_score(self, results: list[RankedResult]) -> list[RankedResult]:
+    def _rank_by_score(self, results: list[RankedResult]) -> list[RankedResult]:  # stable, deterministic
         """Sorts deduplicated results by fused score, best first.
 
         Args:
