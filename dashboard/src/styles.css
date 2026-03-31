@@ -1,0 +1,44 @@
+:root {
+  --bg: #0f1420;
+  --panel: #182034;
+  --text: #e8ecf4;
+  --text-muted: #9aa5bd;
+  --accent: #4f8ef7;
+  --border: #2a3550;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.app-shell {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: -0.02em;
+}
+
+.app-header p {
+  margin: 4px 0 0;
+  color: var(--text-muted);
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 20px;
+}
