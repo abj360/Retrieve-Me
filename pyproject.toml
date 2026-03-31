@@ -11,6 +11,7 @@ dependencies = [
     "qdrant-client",
     "sentence-transformers",
     "numpy",
+    "rank-bm25",
 ]
 
 [project.optional-dependencies]
