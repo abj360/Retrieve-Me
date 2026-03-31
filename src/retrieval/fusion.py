@@ -79,7 +79,7 @@ class ResultFuser:
             dense: Ranked results from the dense leg.
 
         Returns:
-            fused: Deduplicated results sorted by fused score, best first.
+            fused: Deduplicated results sorted by fused RRF score, best first.
         """
         scores: dict[str, float] = {}
         by_id: dict[str, RankedResult] = {}
