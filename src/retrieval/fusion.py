@@ -110,3 +110,18 @@ class ResultFuser:
             ranked: Results sorted by score descending, ties by chunk_id.
         """
         return sorted(results, key=lambda result: (-result.score, result.chunk_id))
+
+
+    def fuse_pair(
+        self, sparse: list[RankedResult], dense: list[RankedResult]
+    ) -> list[RankedResult]:
+        """Merges the two standard legs; alias kept for readability at call sites.
+
+        Args:
+            sparse: Ranked results from the BM25 leg.
+            dense: Ranked results from the dense leg.
+
+        Returns:
+            fused: Deduplicated results sorted by fused score, best first.
+        """
+        return self.fuse(sparse, dense)
