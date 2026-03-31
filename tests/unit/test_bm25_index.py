@@ -5,6 +5,7 @@ test_bm25_index.py --- unit tests for the BM25 sparse index
 Contains:
     make_chunk(): builds a minimal chunk-like object for indexing
     test_tokenize_lowercases_and_keeps_hyphens(): asserts tokenizer behavior
+    test_tokenize_lowercases_and_keeps_hyphens(): asserts tokenizer behavior
     test_search_ranks_relevant_chunk_first(): asserts bm25 ranks exact terms well
     test_search_before_build_raises(): asserts the index must be built first
 """
