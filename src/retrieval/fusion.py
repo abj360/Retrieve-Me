@@ -13,6 +13,8 @@ from dataclasses import dataclass, field
 
 logger = logging.getLogger(__name__)
 
+# RRF score of a result at rank r in a leg with weight w is w / (rrf_k + r)
+
 DEFAULT_RRF_K = 60
 
 
