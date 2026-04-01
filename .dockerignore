@@ -1,0 +1,7 @@
+.git
+node_modules
+__pycache__
+.venv
+dist
+.pytest_cache
+data/benchmark
