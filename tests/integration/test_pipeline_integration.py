@@ -88,3 +88,24 @@ def test_dense_leg_returns_scored_hits(indexed_stores, stub_embedder) -> None:
     hits = dense.search(query_vector, top_k=3)
     assert hits
     assert all(0.0 <= hit.score <= 1.0 for hit in hits)
+
+
+def test_fusion_is_deterministic(indexed_stores, stub_embedder) -> None:
+    """Asserts repeated fusion of the same lists yields the same order."""
+    bm25, dense = indexed_stores
+    from src.retrieval.fusion import FusionConfig, RankedResult, ResultFuser
+
+    query = "indemnify"
+    sparse = [
+        RankedResult(hit.chunk_id, hit.doc_id, hit.text, hit.score, "sparse")
+        for hit in bm25.search(query, top_k=3)
+    ]
+    dense_hits = dense.search(stub_embedder.encode([query])[0], top_k=3)
+    dense_results = [
+        RankedResult(hit.chunk_id, hit.payload["doc_id"], hit.payload["text"], hit.score, "dense")
+        for hit in dense_hits
+    ]
+    fuser = ResultFuser(FusionConfig())
+    first = [r.chunk_id for r in fuser.fuse(sparse, dense_results)]
+    second = [r.chunk_id for r in fuser.fuse(sparse, dense_results)]
+    assert first == second
