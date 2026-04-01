@@ -89,3 +89,10 @@ def test_generate_prompt_contains_sources() -> None:
     client = StubLLM()
     CitationGenerator(client).generate("clause?", make_results())
     assert "Section 0.1 clause text" in client.prompts[0]
+
+
+def test_generate_forwards_max_tokens() -> None:
+    """Asserts the token budget reaches the client."""
+    client = StubLLM()
+    CitationGenerator(client, max_tokens=256).generate("clause?", make_results())
+    assert client.max_tokens_seen == [256]
