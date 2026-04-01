@@ -116,3 +116,10 @@ def test_stub_embedder_is_deterministic(stub_embedder) -> None:
     first = stub_embedder.encode(["determinism check"])[0]
     second = stub_embedder.encode(["determinism check"])[0]
     assert list(first) == list(second)
+
+
+def test_fake_dense_cosine_orthogonal_is_zero(fake_dense_index) -> None:
+    """Asserts orthogonal vectors score zero in the fake dense index."""
+    fake_dense_index.upsert(["a"], [[1.0, 0.0]], [{"doc_id": "a"}])
+    hits = fake_dense_index.search([0.0, 1.0], top_k=1)
+    assert hits[0].score == 0.0
