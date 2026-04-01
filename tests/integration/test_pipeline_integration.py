@@ -109,3 +109,10 @@ def test_fusion_is_deterministic(indexed_stores, stub_embedder) -> None:
     first = [r.chunk_id for r in fuser.fuse(sparse, dense_results)]
     second = [r.chunk_id for r in fuser.fuse(sparse, dense_results)]
     assert first == second
+
+
+def test_stub_embedder_is_deterministic(stub_embedder) -> None:
+    """Asserts the stub embedder encodes the same text identically twice."""
+    first = stub_embedder.encode(["determinism check"])[0]
+    second = stub_embedder.encode(["determinism check"])[0]
+    assert list(first) == list(second)
