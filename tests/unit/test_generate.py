@@ -104,3 +104,10 @@ def test_generate_empty_results() -> None:
     answer = generator.generate("clause?", [])
     assert answer.answer == "No sources available."
     assert answer.citations == []
+
+
+def test_citation_quote_is_short() -> None:
+    """Asserts citation quotes are trimmed to 80 characters."""
+    generator = CitationGenerator(StubLLM())
+    answer = generator.generate("clause?", make_results())
+    assert all(len(citation.quote) <= 80 for citation in answer.citations)
