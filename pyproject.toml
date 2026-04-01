@@ -19,6 +19,7 @@ dev = [
     "pytest",
     "ruff",
     "mypy",
+    "httpx",
 ]
 
 [tool.pytest.ini_options]
