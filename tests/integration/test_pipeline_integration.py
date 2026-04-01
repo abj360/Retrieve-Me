@@ -130,3 +130,10 @@ def test_fake_dense_upsert_reports_written_count(fake_dense_index) -> None:
     written = fake_dense_index.upsert(["a", "b"], [[0.1, 0.2], [0.3, 0.4]], [{"d": 1}, {"d": 2}])
     assert written == 2
     assert fake_dense_index.count() == 2
+
+
+def test_bm25_ranks_exact_clause_first(indexed_stores) -> None:
+    """Asserts bm25 puts the exact-clause chunk above looser matches."""
+    bm25, _dense = indexed_stores
+    hits = bm25.search("Section 3.1", top_k=2)
+    assert hits[0].doc_id == "license-agreement"
