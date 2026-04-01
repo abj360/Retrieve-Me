@@ -1,0 +1,84 @@
+#!/usr/bin/env python3
+"""
+test_generate.py --- unit tests for citation-grounded generation
+
+Contains:
+    StubLLM: returns a canned completion for prompt assertions
+    make_results(): builds retrieved chunks for generation tests
+    test_generate_returns_answer_text(): asserts the answer passes through
+    test_generate_parses_citation_markers(): asserts [n] markers become citations
+    test_generate_drops_out_of_range_citations(): asserts invalid citations drop
+"""
+
+from src.generation.generate import CitationGenerator
+from src.retrieval.fusion import RankedResult
+
+
+class StubLLM:
+    """Returns a canned completion and records prompts."""
+
+    def __init__(self, completion: str = "The clause requires indemnification [1].") -> None:
+        """Stores the canned completion.
+
+        Args:
+            completion: Text returned for every prompt.
+        """
+        self.completion = completion
+        self.prompts: list[str] = []
+        self.max_tokens_seen: list[int] = []
+
+    def __call__(self, prompt: str, max_tokens: int = 512) -> str:
+        """Records the prompt and returns the canned completion.
+
+        Args:
+            prompt: Prompt text to record.
+            max_tokens: Token budget to record.
+
+        Returns:
+            completion: Canned completion text.
+        """
+        self.prompts.append(prompt)
+        self.max_tokens_seen.append(max_tokens)
+        return self.completion
+
+
+def make_results(count: int = 2) -> list[RankedResult]:
+    """Builds retrieved chunks for generation tests.
+
+    Args:
+        count: Number of chunks to build.
+
+    Returns:
+        results: Fused ranked results with clause text.
+    """
+    return [
+        RankedResult(
+            chunk_id=f"doc-{index}-chunk-0",
+            doc_id=f"doc-{index}",
+            text=f"Section {index}.1 clause text for document {index}.",
+            score=0.9 - index * 0.1,
+            source="fused",
+        )
+        for index in range(count)
+    ]
+
+
+def test_generate_returns_answer_text() -> None:
+    """Asserts the answer passes through from the client."""
+    generator = CitationGenerator(StubLLM())
+    answer = generator.generate("what does section 1.1 say?", make_results())
+    assert answer.answer == "The clause requires indemnification [1]."
+
+
+def test_generate_parses_citation_markers() -> None:
+    """Asserts [n] markers become grounded citations."""
+    generator = CitationGenerator(StubLLM())
+    answer = generator.generate("what does section 1.1 say?", make_results())
+    assert [citation.chunk_id for citation in answer.citations] == ["doc-0-chunk-0"]
+
+
+def test_generate_drops_out_of_range_citations() -> None:
+    """Asserts citations pointing past the results are dropped."""
+    generator = CitationGenerator(StubLLM("Grounded in thin air [9]."))
+    answer = generator.generate("anything?", make_results(count=1))
+    assert answer.citations == []
