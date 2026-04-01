@@ -137,3 +137,21 @@ def test_bm25_ranks_exact_clause_first(indexed_stores) -> None:
     bm25, _dense = indexed_stores
     hits = bm25.search("Section 3.1", top_k=2)
     assert hits[0].doc_id == "license-agreement"
+
+
+def test_fused_results_carry_source(indexed_stores, stub_embedder) -> None:
+    """Asserts fused results are labelled with the fused source."""
+    bm25, dense = indexed_stores
+    from src.retrieval.fusion import FusionConfig, RankedResult, ResultFuser
+
+    query = "batch upserts"
+    sparse = [
+        RankedResult(hit.chunk_id, hit.doc_id, hit.text, hit.score, "sparse")
+        for hit in bm25.search(query, top_k=3)
+    ]
+    dense_results = [
+        RankedResult(hit.chunk_id, hit.payload["doc_id"], hit.payload["text"], hit.score, "dense")
+        for hit in dense.search(stub_embedder.encode([query])[0], top_k=3)
+    ]
+    fused = ResultFuser(FusionConfig()).fuse(sparse, dense_results)
+    assert all(result.source == "fused" for result in fused)
