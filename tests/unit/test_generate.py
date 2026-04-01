@@ -96,3 +96,11 @@ def test_generate_forwards_max_tokens() -> None:
     client = StubLLM()
     CitationGenerator(client, max_tokens=256).generate("clause?", make_results())
     assert client.max_tokens_seen == [256]
+
+
+def test_generate_empty_results() -> None:
+    """Asserts generation over zero results does not crash."""
+    generator = CitationGenerator(StubLLM("No sources available."))
+    answer = generator.generate("clause?", [])
+    assert answer.answer == "No sources available."
+    assert answer.citations == []
