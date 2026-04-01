@@ -122,3 +122,11 @@ def test_multiple_markers_parse_in_order() -> None:
         "doc-0-chunk-0",
         "doc-1-chunk-0",
     ]
+
+
+def test_duplicate_markers_dedupe() -> None:
+    """Asserts repeated markers for one source dedupe."""
+    client = StubLLM("Again [1] and again [1].")
+    generator = CitationGenerator(client)
+    answer = generator.generate("clause?", make_results())
+    assert len(answer.citations) == 1
