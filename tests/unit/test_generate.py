@@ -111,3 +111,14 @@ def test_citation_quote_is_short() -> None:
     generator = CitationGenerator(StubLLM())
     answer = generator.generate("clause?", make_results())
     assert all(len(citation.quote) <= 80 for citation in answer.citations)
+
+
+def test_multiple_markers_parse_in_order() -> None:
+    """Asserts multiple markers parse in order of appearance."""
+    client = StubLLM("First [1], then [2].")
+    generator = CitationGenerator(client)
+    answer = generator.generate("clause?", make_results())
+    assert [citation.chunk_id for citation in answer.citations] == [
+        "doc-0-chunk-0",
+        "doc-1-chunk-0",
+    ]
