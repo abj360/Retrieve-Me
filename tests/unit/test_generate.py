@@ -82,3 +82,10 @@ def test_generate_drops_out_of_range_citations() -> None:
     generator = CitationGenerator(StubLLM("Grounded in thin air [9]."))
     answer = generator.generate("anything?", make_results(count=1))
     assert answer.citations == []
+
+
+def test_generate_prompt_contains_sources() -> None:
+    """Asserts the prompt carries the retrieved sources."""
+    client = StubLLM()
+    CitationGenerator(client).generate("clause?", make_results())
+    assert "Section 0.1 clause text" in client.prompts[0]
