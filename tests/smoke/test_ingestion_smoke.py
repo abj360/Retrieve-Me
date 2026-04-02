@@ -53,3 +53,13 @@ def test_ingest_smoke_writes_chunks(smoke_documents, whole_doc_chunker, fake_den
     assert ingested > 0
     assert embedder.calls > 0
     assert fake_dense_index.count() > 0
+
+
+def test_ingest_crlf_document(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts CRLF line endings ingest without issues."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    documents = [Document(doc_id="crlf", title="crlf", text="Clause 3.1 First line.\r\nSecond line.")]
+    ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
+    ingestor.ingest(documents)
+    assert fake_dense_index.count() == 1
