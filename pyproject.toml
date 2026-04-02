@@ -41,3 +41,6 @@ show_error_codes = true
 
 [tool.ruff.lint.isort]
 known-first-party = ["src"]
+
+[tool.ruff.format]
+quote-style = "double"
