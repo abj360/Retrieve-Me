@@ -116,3 +116,12 @@ def test_ingest_embedder_called_once_per_small_corpus(whole_doc_chunker, fake_de
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
     ingestor.ingest(documents)
     assert embedder.calls == 1
+
+
+def test_ingest_chunk_ids_unique(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts ingested chunks get distinct ids."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    documents = [Document(doc_id=f"doc-{index}", title="t", text=f"unique text {index}") for index in range(4)]
+    CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
+    assert fake_dense_index.count() == 4
