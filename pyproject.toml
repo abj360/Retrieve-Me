@@ -37,6 +37,7 @@ select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
 python_version = "3.12"
 strict = true
 warn_unused_configs = true
+show_error_codes = true
 
 [tool.ruff.lint.isort]
 known-first-party = ["src"]
