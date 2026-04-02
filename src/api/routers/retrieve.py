@@ -6,13 +6,14 @@ Contains:
     RetrieveRequest: incoming retrieval request payload
     RetrievedChunk: one scored chunk in the response
     RetrieveResponse: retrieval response payload
+    stub_results(): builds deterministic stub results while indexing lands
     retrieve(): runs retrieval for a query and returns scored chunks
 """
 
 import logging
 
 from fastapi import APIRouter
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger("retrieval.retrieve")
 
@@ -27,10 +28,14 @@ class RetrieveRequest(BaseModel):
     Attributes:
         query: Raw query text from the caller.
         top_k: Maximum number of chunks to return.
+        page: One-based results page to return.
+        page_size: Number of results per page.
     """
 
     query: str
     top_k: int = 10
+    page: int = 1
+    page_size: int = 10
 
 
 class RetrievedChunk(BaseModel):
@@ -54,13 +59,39 @@ class RetrieveResponse(BaseModel):
 
     Attributes:
         query: Query text the results were produced for.
-        results: Scored chunks, best first.
+        results: Scored chunks for the requested page, best first.
+        total: Total number of matched chunks across all pages.
+        page: One-based page number being returned.
+        page_size: Number of results per page.
         took_ms: Wall-clock time spent serving the request.
     """
 
     query: str
     results: list[RetrievedChunk]
+    total: int
+    page: int
+    page_size: int
     took_ms: float
+
+
+def stub_results(query: str) -> list[RetrievedChunk]:
+    """Builds deterministic stub results until the index wiring lands.
+
+    Args:
+        query: Query text to echo into the stub passages.
+
+    Returns:
+        results: Thirty stub chunks with decreasing scores.
+    """
+    return [
+        RetrievedChunk(
+            chunk_id=f"stub-{index}",
+            doc_id=f"stub-doc-{index}",
+            text=f"stub passage {index} matching {query!r}",
+            score=1.0 / (index + 1),
+        )
+        for index in range(STUB_RESULT_COUNT)
+    ]
 
 
 @router.post("/retrieve", response_model=RetrieveResponse)
@@ -68,19 +99,20 @@ def retrieve(payload: RetrieveRequest) -> RetrieveResponse:
     """Returns retrieval results for one query.
 
     Args:
-        payload: Retrieval request with the query and top_k.
+        payload: Retrieval request with query, top_k, and pagination.
 
     Returns:
-        response: Scored chunks and timing for the request.
+        response: One page of scored chunks plus pagination metadata.
     """
-    logger.info("retrieve called with top_k=%d", payload.top_k)
-    results = [
-        RetrievedChunk(
-            chunk_id=f"stub-{index}",
-            doc_id=f"stub-doc-{index}",
-            text=f"stub passage {index} matching {payload.query!r}",
-            score=1.0 / (index + 1),
-        )
-        for index in range(STUB_RESULT_COUNT)
-    ]
-    return RetrieveResponse(query=payload.query, results=results[: payload.top_k], took_ms=1.0)
+    logger.info("retrieve called with top_k=%d page=%d", payload.top_k, payload.page)
+    matches = stub_results(payload.query)[: payload.top_k]
+    start = (payload.page - 1) * payload.page_size
+    page_results = matches[start : start + payload.page_size]
+    return RetrieveResponse(
+        query=payload.query,
+        results=page_results,
+        total=len(matches),
+        page=payload.page,
+        page_size=payload.page_size,
+        took_ms=1.0,
+    )
