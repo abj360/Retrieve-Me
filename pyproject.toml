@@ -1,7 +1,7 @@
 [project]
 name = "retrieval-core"
 version = "0.1.0"
-description = "Hybrid RAG retrieval engine: BM25 + dense vector search + cross-encoder reranking"
+description = "Hybrid RAG retrieval pipeline: BM25 + dense + cross-encoder rerank"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi",
@@ -25,3 +25,15 @@ dev = [
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_unused_configs = true
