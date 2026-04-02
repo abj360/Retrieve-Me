@@ -106,3 +106,13 @@ def test_ingest_long_document(whole_doc_chunker, fake_dense_index) -> None:
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
     ingestor.ingest(documents)
     assert fake_dense_index.count() == 1
+
+
+def test_ingest_embedder_called_once_per_small_corpus(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts a small corpus triggers one embed call per batch."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    documents = [Document(doc_id=f"d-{index}", title="t", text=f"text {index}") for index in range(5)]
+    ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
+    ingestor.ingest(documents)
+    assert embedder.calls == 1
