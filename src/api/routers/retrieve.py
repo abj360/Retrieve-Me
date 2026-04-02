@@ -28,7 +28,7 @@ class RetrieveRequest(BaseModel):
     Attributes:
         query: Raw query text from the caller.
         top_k: Maximum number of chunks to return.
-        page: One-based results page to return.
+        page: One-based results page to return (default 1).
         page_size: Number of results per page.
     """
 
