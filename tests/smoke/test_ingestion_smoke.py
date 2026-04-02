@@ -95,3 +95,14 @@ def test_ingest_numbered_clauses_document(whole_doc_chunker, fake_dense_index) -
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
     ingestor.ingest(documents)
     assert fake_dense_index.count() == 1
+
+
+def test_ingest_long_document(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts a long document ingests without issues."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    text = "The quick brown fox jumps over the lazy dog. " * 400
+    documents = [Document(doc_id="long", title="long", text=text)]
+    ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
+    ingestor.ingest(documents)
+    assert fake_dense_index.count() == 1
