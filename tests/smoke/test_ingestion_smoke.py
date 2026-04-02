@@ -84,3 +84,14 @@ def test_ingest_bullet_list_document(whole_doc_chunker, fake_dense_index) -> Non
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
     ingestor.ingest(documents)
     assert fake_dense_index.count() == 1
+
+
+def test_ingest_numbered_clauses_document(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts numbered-clause text ingests without issues."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    text = " ".join(f"Clause {index}.1 obligation {index}." for index in range(10))
+    documents = [Document(doc_id="clauses", title="clauses", text=text)]
+    ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
+    ingestor.ingest(documents)
+    assert fake_dense_index.count() == 1
