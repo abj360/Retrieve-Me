@@ -63,3 +63,13 @@ def test_ingest_crlf_document(whole_doc_chunker, fake_dense_index) -> None:
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
     ingestor.ingest(documents)
     assert fake_dense_index.count() == 1
+
+
+def test_ingest_markdown_document(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts markdown-formatted text ingests without issues."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    documents = [Document(doc_id="md", title="md", text="# Heading\n\n- item one\n- item two")]
+    ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
+    ingestor.ingest(documents)
+    assert fake_dense_index.count() == 1
