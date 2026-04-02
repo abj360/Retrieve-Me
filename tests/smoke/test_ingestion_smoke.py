@@ -73,3 +73,14 @@ def test_ingest_markdown_document(whole_doc_chunker, fake_dense_index) -> None:
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
     ingestor.ingest(documents)
     assert fake_dense_index.count() == 1
+
+
+def test_ingest_bullet_list_document(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts bullet-list text ingests without issues."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    text = "\n".join(f"- obligation {index}" for index in range(20))
+    documents = [Document(doc_id="bullets", title="bullets", text=text)]
+    ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
+    ingestor.ingest(documents)
+    assert fake_dense_index.count() == 1
