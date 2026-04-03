@@ -46,3 +46,13 @@ def test_dense_leg_passes_filters(fake_dense_index, stub_embedder, sample_chunks
         "clause", top_k=4, filters={"doc_id": "rfc-7807"}
     )
     assert all(result.doc_id == "rfc-7807" for result in results)
+
+
+def test_sparse_leg_ignores_filters(sample_chunks) -> None:
+    """Asserts the sparse leg accepts and ignores filters."""
+    index = BM25Index()
+    index.build(sample_chunks)
+    results = SparseRetrievalStrategy(index).retrieve(
+        "indemnify", top_k=2, filters={"doc_id": "rfc-7807"}
+    )
+    assert results
