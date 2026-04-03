@@ -67,3 +67,11 @@ def test_optional_sections_use_defaults(tmp_path) -> None:
     config = load_pipeline_config(write_config(tmp_path, minimal))
     assert config.chunking.max_tokens == 512
     assert config.cache.ttl_seconds == 300
+
+
+def test_non_mapping_config_raises(tmp_path) -> None:
+    """Asserts a non-mapping YAML file fails validation."""
+    target = tmp_path / "pipeline.yaml"
+    target.write_text("- just\n- a\n- list\n", encoding="utf-8")
+    with pytest.raises(ConfigError):
+        load_pipeline_config(target)
