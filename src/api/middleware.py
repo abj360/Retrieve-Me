@@ -17,7 +17,7 @@ logger = logging.getLogger("retrieval.request")
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
-    """Logs one line per HTTP request with status and duration."""
+    """Logs one line per HTTP request with status code and duration."""
 
     async def dispatch(
         self,
