@@ -64,3 +64,11 @@ def test_strategy_protocol_satisfied(sample_chunks) -> None:
     index.build(sample_chunks)
     for strategy in (SparseRetrievalStrategy(index),):
         assert callable(getattr(strategy, "retrieve"))
+
+
+def test_sparse_leg_respects_top_k(sample_chunks) -> None:
+    """Asserts the sparse leg returns at most top_k hits."""
+    index = BM25Index()
+    index.build(sample_chunks)
+    results = SparseRetrievalStrategy(index).retrieve("the", top_k=2)
+    assert len(results) <= 2
