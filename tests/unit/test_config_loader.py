@@ -53,3 +53,17 @@ def test_missing_required_section_raises(tmp_path) -> None:
     broken = {key: value for key, value in FULL_CONFIG.items() if key != "reranker"}
     with pytest.raises(ConfigError):
         load_pipeline_config(write_config(tmp_path, broken))
+
+
+def test_optional_sections_use_defaults(tmp_path) -> None:
+    """Asserts omitted optional sections fall back to defaults."""
+    minimal = {
+        "embedder": {"model_name": "m"},
+        "reranker": {"model_name": "r"},
+        "sparse": {},
+        "dense": {},
+        "fusion": {},
+    }
+    config = load_pipeline_config(write_config(tmp_path, minimal))
+    assert config.chunking.max_tokens == 512
+    assert config.cache.ttl_seconds == 300
