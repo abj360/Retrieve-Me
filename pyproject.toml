@@ -12,6 +12,7 @@ dependencies = [
     "sentence-transformers",
     "numpy",
     "rank-bm25",
+    "pyyaml",
 ]
 
 [project.optional-dependencies]
