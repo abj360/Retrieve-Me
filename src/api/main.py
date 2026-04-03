@@ -8,6 +8,7 @@ Contains:
 
 from fastapi import FastAPI
 
+from src.api.middleware import RequestLoggingMiddleware
 from src.api.routers import retrieve
 
 
@@ -18,6 +19,7 @@ def create_app() -> FastAPI:
         app: Configured FastAPI application instance.
     """
     app = FastAPI(title="retrieval-core")
+    app.add_middleware(RequestLoggingMiddleware)
     app.include_router(retrieve.router)
     return app
 
