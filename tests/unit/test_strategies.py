@@ -56,3 +56,11 @@ def test_sparse_leg_ignores_filters(sample_chunks) -> None:
         "indemnify", top_k=2, filters={"doc_id": "rfc-7807"}
     )
     assert results
+
+
+def test_strategy_protocol_satisfied(sample_chunks) -> None:
+    """Asserts both legs expose the retrieve protocol shape."""
+    index = BM25Index()
+    index.build(sample_chunks)
+    for strategy in (SparseRetrievalStrategy(index),):
+        assert callable(getattr(strategy, "retrieve"))
