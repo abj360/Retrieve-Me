@@ -1,0 +1,8 @@
+Release Notes — Vector Store Client 2.4
+
+Release 2.4 of the vector store client adds batched upserts, cutting ingest
+time for large collections roughly in half. Connection pooling is now bounded
+by default to prevent connection exhaustion under concurrent ingest workers.
+
+Also included: deterministic point identifiers derived from chunk ids, a
+wait-for-indexing option on upsert calls, and per-request timeouts.

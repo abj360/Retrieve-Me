@@ -1,0 +1,14 @@
+Master License Agreement — Excerpt
+
+Section 3.1 The licensee shall indemnify, defend, and hold harmless the vendor
+and its affiliates from and against any and all claims, damages, losses, and
+expenses arising out of the licensee's use of the software. This obligation
+survives termination or expiration of this agreement.
+
+Section 3.2 The vendor provides the software on an "as is" basis, without
+warranties of any kind, whether express, implied, or statutory, including
+implied warranties of merchantability and fitness for a particular purpose.
+
+Section 3.3 Neither party shall be liable for indirect, incidental, special,
+or consequential damages, including loss of profits or data, even if advised
+of the possibility of such damages.
