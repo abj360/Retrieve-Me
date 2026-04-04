@@ -1,0 +1,137 @@
+#!/usr/bin/env python3
+"""
+loader.py --- corpus loader and batch upsert for the ingestion pipeline
+
+Contains:
+    Document: one raw document loaded from a corpus directory
+    CorpusIngestor: chunks, embeds, and indexes documents
+    load_corpus(): loads all supported documents from a directory
+    main(): CLI entrypoint for one-off ingestion runs
+"""
+
+import argparse
+import logging
+import time
+from dataclasses import dataclass, field
+from pathlib import Path
+
+from src.ingest.bm25_index import BM25Index
+from src.ingest.chunking import Chunker
+from src.ingest.dense_index import DenseIndex
+from src.retrieval.embeddings import SentenceTransformerEmbedder
+
+logger = logging.getLogger(__name__)
+
+TEXT_SUFFIXES = {".txt", ".md"}
+
+
+@dataclass(frozen=True)
+class Document:
+    """Carries one raw document loaded from a corpus directory.
+
+    Attributes:
+        doc_id: Stable identifier derived from the file name.
+        title: Human-readable document title.
+        text: Full document text.
+        metadata: Extra attributes carried through to chunks.
+    """
+
+    doc_id: str
+    title: str
+    text: str
+    metadata: dict = field(default_factory=dict)
+
+
+class CorpusIngestor:
+    """Chunks, embeds, and indexes documents into the retrieval stores.
+
+    Attributes:
+        chunker: Splitter that turns documents into chunks.
+        embedder: Dense embedder for chunk vectors.
+        dense_index: Vector store receiving embedded chunks.
+        bm25_index: Sparse index receiving chunk text.
+    """
+
+    def __init__(
+        self,
+        chunker: Chunker,
+        embedder: SentenceTransformerEmbedder,
+        dense_index: DenseIndex,
+        bm25_index: BM25Index,
+    ) -> None:
+        """Stores the collaborators used during ingestion.
+
+        Args:
+            chunker: Splitter that turns documents into chunks.
+            embedder: Dense embedder for chunk vectors.
+            dense_index: Vector store receiving embedded chunks.
+            bm25_index: Sparse index receiving chunk text.
+        """
+        self.chunker = chunker
+        self.embedder = embedder
+        self.dense_index = dense_index
+        self.bm25_index = bm25_index
+
+    def ingest(self, documents: list[Document]) -> int:
+        """Ingests documents into the dense and sparse indexes.
+
+        Args:
+            documents: Raw documents to chunk, embed, and index.
+
+        Returns:
+            indexed_chunks: Number of chunks written to the indexes.
+        """
+        started = time.perf_counter()
+        chunks = [
+            chunk
+            for document in documents
+            for chunk in self.chunker.split(document.text, document.doc_id)
+        ]
+        logger.info("ingesting %d documents as %d chunks", len(documents), len(chunks))
+        vectors = self.embedder.encode([chunk.text for chunk in chunks])
+        self.dense_index.ensure_collection()
+        self.dense_index.upsert(
+            [chunk.chunk_id for chunk in chunks],
+            vectors,
+            [{"doc_id": chunk.doc_id, "text": chunk.text} for chunk in chunks],
+        )
+        self.bm25_index.build(chunks)
+        elapsed = time.perf_counter() - started
+        logger.info("ingested %d chunks in %.1fs", len(chunks), elapsed)
+        return len(chunks)
+
+
+def load_corpus(path: Path) -> list[Document]:
+    """Loads all supported documents from a directory.
+
+    Args:
+        path: Directory holding .txt/.md corpus files.
+
+    Returns:
+        documents: Loaded documents sorted by file name.
+    """
+    documents = []
+    for file_path in sorted(path.iterdir()):
+        if file_path.suffix not in TEXT_SUFFIXES:
+            continue
+        text = file_path.read_text(encoding="utf-8").strip()
+        if not text:
+            logger.warning("skipping empty document %s", file_path.name)
+            continue
+        documents.append(Document(doc_id=file_path.stem, title=file_path.stem, text=text))
+    logger.info("loaded %d documents from %s", len(documents), path)
+    return documents
+
+
+def main() -> None:
+    """Runs a one-off ingestion run from the command line."""
+    parser = argparse.ArgumentParser(description="Ingest a corpus into retrieval-core")
+    parser.add_argument("--corpus", required=True, type=Path, help="corpus directory")
+    args = parser.parse_args()
+    logging.basicConfig(level=logging.INFO)
+    documents = load_corpus(args.corpus)
+    logger.info("would ingest %d documents (clients not wired yet)", len(documents))
+
+
+if __name__ == "__main__":
+    main()

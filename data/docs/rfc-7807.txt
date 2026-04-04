@@ -1,0 +1,9 @@
+RFC 7807 — Problem Details for HTTP APIs (Summary)
+
+RFC 7807 defines a standard format for carrying machine-readable details of
+errors in HTTP API responses. A problem detail response carries a type URI
+identifying the problem kind, a short human-readable title, the HTTP status
+code, a human-readable detail specific to the occurrence, and an instance URI.
+
+The format uses the application/problem+json media type and is intended to let
+API consumers handle errors programmatically instead of parsing prose.
