@@ -1,0 +1,20 @@
+[
+  {
+    "name": "dense-only-baseline",
+    "dataset": "legal-500",
+    "ndcgAt10": 0.41,
+    "recallAt50": 0.58,
+    "p50Ms": 32,
+    "p95Ms": 61,
+    "p99Ms": 88
+  },
+  {
+    "name": "hybrid-rrf-rerank",
+    "dataset": "legal-500",
+    "ndcgAt10": 0.63,
+    "recallAt50": 0.79,
+    "p50Ms": 71,
+    "p95Ms": 132,
+    "p99Ms": 190
+  }
+]
