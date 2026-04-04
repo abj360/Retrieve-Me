@@ -13,6 +13,7 @@ dependencies = [
     "numpy",
     "rank-bm25",
     "pyyaml",
+    "redis",
 ]
 
 [project.optional-dependencies]
