@@ -84,7 +84,12 @@ def main() -> None:
     parser.add_argument("--results", required=True, type=Path, help="results JSON file")
     parser.add_argument("--sort", choices=["name", "ndcg"], default="name")
     args = parser.parse_args()
-    print(render_table(load_results(args.results)))
+    results = load_results(args.results)
+    if args.sort == "ndcg":
+        results = sorted(results, key=lambda run: run.ndcg_at_10, reverse=True)
+    else:
+        results = sorted(results, key=lambda run: run.name)
+    print(render_table(results))
 
 
 if __name__ == "__main__":
