@@ -82,6 +82,7 @@ def main() -> None:
     """Renders the benchmark table for a results JSON file."""
     parser = argparse.ArgumentParser(description="Render a benchmark table")
     parser.add_argument("--results", required=True, type=Path, help="results JSON file")
+    parser.add_argument("--sort", choices=["name", "ndcg"], default="name")
     args = parser.parse_args()
     print(render_table(load_results(args.results)))
 
