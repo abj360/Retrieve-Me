@@ -22,7 +22,7 @@ from src.retrieval.embeddings import SentenceTransformerEmbedder
 
 logger = logging.getLogger(__name__)
 
-TEXT_SUFFIXES = {".txt", ".md"}
+TEXT_SUFFIXES = {".txt", ".md"}  # everything else is skipped with a warning
 
 
 @dataclass(frozen=True)
