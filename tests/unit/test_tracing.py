@@ -36,3 +36,12 @@ def test_summary_totals_by_name() -> None:
 def test_empty_summary() -> None:
     """Asserts an empty tracer summarizes to {}."""
     assert LatencyTracer().summary() == {}
+
+
+def test_nested_spans_record_both() -> None:
+    """Asserts nested spans record inner and outer stages."""
+    tracer = LatencyTracer()
+    with tracer.span("outer"):
+        with tracer.span("inner"):
+            pass
+    assert [span.name for span in tracer.spans] == ["inner", "outer"]
