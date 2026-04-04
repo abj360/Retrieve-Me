@@ -92,3 +92,12 @@ def test_in_memory_roundtrip() -> None:
 def test_in_memory_miss_returns_none() -> None:
     """Asserts a miss returns None."""
     assert InMemoryQueryCache().get("nope") is None
+
+
+def test_distinct_keys_do_not_collide() -> None:
+    """Asserts different queries map to different cache entries."""
+    cache = InMemoryQueryCache()
+    cache.set("query-a", "payload-a")
+    cache.set("query-b", "payload-b")
+    assert cache.get("query-a") == "payload-a"
+    assert cache.get("query-b") == "payload-b"
