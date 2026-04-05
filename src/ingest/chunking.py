@@ -16,7 +16,7 @@ from typing import Protocol
 TOKEN_PATTERN = re.compile(r"\S+")
 DEFAULT_MAX_TOKENS = 512
 DEFAULT_OVERLAP_TOKENS = 64  # ~12% of the window
-DEFAULT_MIN_CHUNK_TOKENS = 40
+DEFAULT_MIN_CHUNK_TOKENS = 40  # smaller tails fold into the previous chunk
 
 
 @dataclass(frozen=True)
