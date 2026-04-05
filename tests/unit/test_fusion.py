@@ -65,3 +65,9 @@ def test_tie_scores_deterministic() -> None:
         [make_result("b", 0.5), make_result("a", 0.5)], []
     )
     assert [result.chunk_id for result in fused] == ["a", "b"]
+
+
+def test_single_hit_each_leg() -> None:
+    """Asserts one hit per leg fuses into two results."""
+    fused = ResultFuser(FusionConfig()).fuse([make_result("a", 0.9)], [make_result("b", 0.8, "dense")])
+    assert len(fused) == 2
