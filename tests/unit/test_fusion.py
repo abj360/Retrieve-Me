@@ -89,3 +89,11 @@ def test_fused_sorted_descending() -> None:
     )
     scores = [result.score for result in fused]
     assert scores == sorted(scores, reverse=True)
+
+
+def test_metadata_carried_into_fused() -> None:
+    """Asserts chunk metadata survives fusion."""
+    result = make_result("a", 0.9)
+    result.metadata["clause_refs"] = ["Section 3.1"]
+    fused = ResultFuser(FusionConfig()).fuse([result], [])
+    assert fused[0].metadata["clause_refs"] == ["Section 3.1"]
