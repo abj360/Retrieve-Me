@@ -97,3 +97,9 @@ def test_metadata_carried_into_fused() -> None:
     result.metadata["clause_refs"] = ["Section 3.1"]
     fused = ResultFuser(FusionConfig()).fuse([result], [])
     assert fused[0].metadata["clause_refs"] == ["Section 3.1"]
+
+
+def test_fused_source_label() -> None:
+    """Asserts fused results are labelled as fused."""
+    fused = ResultFuser(FusionConfig()).fuse([make_result("a", 0.9)], [])
+    assert fused[0].source == "fused"
