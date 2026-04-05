@@ -15,6 +15,7 @@ from contextlib import contextmanager
 from dataclasses import dataclass
 
 from qdrant_client import QdrantClient
+from qdrant_client.http.exceptions import UnexpectedResponse
 from qdrant_client.models import Distance, PointStruct, VectorParams
 
 logger = logging.getLogger(__name__)
@@ -146,11 +147,15 @@ class DenseIndex:
             hits: Scored dense hits, best first.
         """
         with self.pool.acquire() as client:
-            response = client.query_points(
-                collection_name=self.config.collection,
-                query=vector,
-                limit=top_k,
-            )
+            try:
+                response = client.query_points(
+                    collection_name=self.config.collection,
+                    query=vector,
+                    limit=top_k,
+                )
+            except UnexpectedResponse as exc:
+                logger.warning("dense search on missing collection: %s", exc)
+                return []
         return [
             DenseHit(
                 chunk_id=point.payload["chunk_id"],
