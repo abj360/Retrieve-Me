@@ -80,3 +80,12 @@ def test_full_overlap_boosts_shared_chunk() -> None:
         [make_result("shared", 0.9, "dense")],
     )
     assert fused[0].chunk_id == "shared"
+
+
+def test_fused_sorted_descending() -> None:
+    """Asserts fused results come out best-first."""
+    fused = ResultFuser(FusionConfig(normalize_scores=False)).fuse(
+        [make_result("low", 0.1), make_result("high", 0.9)], []
+    )
+    scores = [result.score for result in fused]
+    assert scores == sorted(scores, reverse=True)
