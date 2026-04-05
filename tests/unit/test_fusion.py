@@ -71,3 +71,12 @@ def test_single_hit_each_leg() -> None:
     """Asserts one hit per leg fuses into two results."""
     fused = ResultFuser(FusionConfig()).fuse([make_result("a", 0.9)], [make_result("b", 0.8, "dense")])
     assert len(fused) == 2
+
+
+def test_full_overlap_boosts_shared_chunk() -> None:
+    """Asserts a chunk in both legs beats an identical chunk in one."""
+    fused = ResultFuser(FusionConfig(normalize_scores=False)).fuse(
+        [make_result("shared", 0.9), make_result("other", 0.9)],
+        [make_result("shared", 0.9, "dense")],
+    )
+    assert fused[0].chunk_id == "shared"
