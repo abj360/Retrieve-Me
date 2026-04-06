@@ -5,6 +5,7 @@ test_chunking.py --- unit tests for the chunking module
 Contains:
     make_text(): builds repeated sentence text of a given token size
     test_fixed_window_size(): asserts chunks respect the token budget
+    test_tail_merge_folds_undersized_chunk(): asserts tiny tails fold back
     test_overlap_windows_share_tokens(): asserts consecutive windows overlap
     test_chunk_ids_are_sequential(): asserts chunk ids number in order
     test_count_tokens(): asserts the token counter matches split length
