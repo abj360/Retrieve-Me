@@ -4,24 +4,24 @@ version = "0.1.0"
 description = "Hybrid RAG retrieval pipeline: BM25 + dense + cross-encoder rerank"
 requires-python = ">=3.12"
 dependencies = [
-    "fastapi",
-    "uvicorn[standard]",
-    "pydantic",
-    "pydantic-settings",
-    "qdrant-client",
-    "sentence-transformers",
-    "numpy",
-    "rank-bm25",
-    "pyyaml",
-    "redis",
+    "fastapi>=0.115.4",
+    "uvicorn[standard]>=0.30.6",
+    "pydantic>=2.9.2",
+    "pydantic-settings>=2.5.2",
+    "qdrant-client>=1.11.3",
+    "sentence-transformers>=3.1.1",
+    "numpy>=2.1.2",
+    "rank-bm25>=0.2.2",
+    "pyyaml>=6.0.2",
+    "redis>=5.0.8",
 ]
 
 [project.optional-dependencies]
 dev = [
-    "pytest",
-    "ruff",
-    "mypy",
-    "httpx",
+    "pytest==8.3.3",
+    "ruff==0.6.9",
+    "mypy==1.11.2",
+    "httpx==0.27.2",
 ]
 
 [tool.pytest.ini_options]
