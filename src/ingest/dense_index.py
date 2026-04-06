@@ -25,7 +25,7 @@ DEFAULT_VECTOR_SIZE = 384
 
 @dataclass(frozen=True)
 class QdrantConfig:
-    """Carries connection and collection settings for the dense index.
+    """Carries connection and collection settings for the dense index (frozen).
 
     Attributes:
         url: Base URL of the Qdrant instance.
