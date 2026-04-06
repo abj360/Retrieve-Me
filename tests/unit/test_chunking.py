@@ -53,3 +53,10 @@ def test_count_tokens() -> None:
     """Asserts the token counter matches a plain split."""
     chunker = TokenAwareChunker()
     assert chunker.count_tokens("one two three") == 3
+
+
+def test_tail_merge_folds_undersized_chunk() -> None:
+    """Asserts an undersized tail folds into the previous chunk."""
+    chunker = TokenAwareChunker(ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4))
+    chunks = chunker.split(make_text(30), "doc-1")
+    assert all(chunk.token_count >= 4 for chunk in chunks)
