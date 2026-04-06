@@ -60,3 +60,11 @@ def test_tail_merge_folds_undersized_chunk() -> None:
     chunker = TokenAwareChunker(ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4))
     chunks = chunker.split(make_text(30), "doc-1")
     assert all(chunk.token_count >= 4 for chunk in chunks)
+
+
+def test_chunk_ids_unique_per_document() -> None:
+    """Asserts chunk ids are unique within a document."""
+    chunker = TokenAwareChunker(ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4))
+    chunks = chunker.split(make_text(30), "doc-1")
+    ids = [chunk.chunk_id for chunk in chunks]
+    assert len(ids) == len(set(ids))
