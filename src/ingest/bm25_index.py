@@ -49,7 +49,7 @@ class BM25Hit:
 
 
 class BM25Index:
-    """Builds and searches a BM25 sparse index over chunk text.
+    """Builds and searches a BM25 sparse index over chunk text; hyphens stay whole.
 
     Attributes:
         chunk_ids: Identifiers of the indexed chunks, in build order.
