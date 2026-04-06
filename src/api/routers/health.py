@@ -13,7 +13,7 @@ from qdrant_client import QdrantClient
 
 router = APIRouter()
 
-PING_TIMEOUT_SECONDS = 2.0
+PING_TIMEOUT_SECONDS = 1.5
 
 
 @router.get("/healthz")
