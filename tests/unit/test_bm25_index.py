@@ -52,3 +52,8 @@ def test_search_before_build_raises() -> None:
     """Asserts searching before build() fails loudly."""
     with pytest.raises(RuntimeError):
         BM25Index().search("anything", top_k=3)
+
+
+def test_tokenize_empty_string() -> None:
+    """Asserts tokenizing empty text yields no terms."""
+    assert tokenize("") == []
