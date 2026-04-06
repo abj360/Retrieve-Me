@@ -9,7 +9,7 @@ Contains:
 from fastapi import FastAPI
 
 from src.api.middleware import RequestLoggingMiddleware
-from src.api.routers import retrieve
+from src.api.routers import health, retrieve
 
 
 def create_app() -> FastAPI:
@@ -21,6 +21,7 @@ def create_app() -> FastAPI:
     app = FastAPI(title="retrieval-core")
     app.add_middleware(RequestLoggingMiddleware)
     app.include_router(retrieve.router)
+    app.include_router(health.router)
     return app
 
 
