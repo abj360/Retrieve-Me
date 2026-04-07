@@ -6,22 +6,20 @@ Contains:
     Citation: one grounded citation back to a retrieved chunk
     GeneratedAnswer: an answer with its grounded citations
     CitationGenerator: generates citation-grounded answers
+
+Prompt templates live in src/generation/prompts/citation.py.
 """
 
 import logging
 import re
 from dataclasses import dataclass
 
+from src.generation.prompts.citation import build_citation_prompt
 from src.retrieval.fusion import RankedResult
 
 logger = logging.getLogger(__name__)
 
-CITATION_SYSTEM_PROMPT = """You answer questions using only the provided sources.
-Cite every claim with the source number in square brackets, like [1] or [2].
-If the sources do not contain the answer, say you do not know."""
-
 CITATION_PATTERN = re.compile  # matches [n] markers the prompt asks for(r"\[(\d+)\]")
-MAX_CONTEXT_CHUNKS = 5
 
 
 @dataclass(frozen=True)
@@ -93,10 +91,7 @@ class CitationGenerator:
         Returns:
             prompt: System prompt plus numbered sources and the question.
         """
-        sources = "\n\n".join(
-            f"[{index}] {result.text}" for index, result in enumerate(results[:MAX_CONTEXT_CHUNKS], 1)
-        )
-        return f"{CITATION_SYSTEM_PROMPT}\n\nSources:\n{sources}\n\nQuestion: {query}"
+        return build_citation_prompt(query, results)
 
     def _parse_citations(self, answer: str, results: list[RankedResult]) -> list[Citation]:
         """Parses [n] citation markers into grounded citations.
