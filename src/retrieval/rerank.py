@@ -94,7 +94,7 @@ class CrossEncoderReranker:
 
 @dataclass(frozen=True)
 class TuningRow:
-    """Carries one evaluated grid point.
+    """Carries one evaluated top_k grid point.
 
     Attributes:
         top_k: Candidate cutoff evaluated.
