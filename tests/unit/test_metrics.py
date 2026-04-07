@@ -36,3 +36,8 @@ def test_mrr_first_relevant_rank() -> None:
 def test_citation_faithfulness_all_grounded() -> None:
     """Asserts fully grounded citations score 1.0."""
     assert citation_faithfulness(["c-1", "c-2"], {"c-1", "c-2", "c-3"}) == 1.0
+
+
+def test_citation_faithfulness_vacuous_when_no_citations() -> None:
+    """Asserts no citations is vacuously fully faithful."""
+    assert citation_faithfulness([], {"c-1"}) == 1.0
