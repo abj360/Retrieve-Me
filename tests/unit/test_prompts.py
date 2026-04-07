@@ -48,3 +48,9 @@ def test_prompt_limits_context_chunks() -> None:
     results = [make_result(index) for index in range(8)]
     prompt = build_citation_prompt("q?", results)
     assert "[6]" not in prompt
+
+
+def test_prompt_starts_with_system_instructions() -> None:
+    """Asserts the system prompt opens the assembled prompt."""
+    prompt = build_citation_prompt("q?", [make_result(1)])
+    assert prompt.startswith("You answer questions")
