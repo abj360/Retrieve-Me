@@ -47,6 +47,13 @@ def test_retrieve_default_top_k_returns_ten() -> None:
     assert len(response.json()["results"]) == 10
 
 
+def test_retrieve_scores_are_sorted_descending() -> None:
+    """Asserts results arrive best-first by score."""
+    response = client().post("/retrieve", json={"query": "liability"})
+    scores = [chunk["score"] for chunk in response.json()["results"]]
+    assert scores == sorted(scores, reverse=True)
+
+
 def test_retrieve_rejects_empty_query() -> None:
     """Asserts a missing query field fails validation with 422."""
     response = client().post("/retrieve", json={})
