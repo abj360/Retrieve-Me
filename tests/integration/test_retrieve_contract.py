@@ -40,6 +40,13 @@ def test_retrieve_respects_top_k() -> None:
     assert len(response.json()["results"]) == 5
 
 
+def test_retrieve_default_top_k_returns_ten() -> None:
+    """Asserts the default top_k of 10 yields ten results."""
+    response = client().post("/retrieve", json={"query": "warranty"})
+    assert response.status_code == 200
+    assert len(response.json()["results"]) == 10
+
+
 def test_retrieve_rejects_empty_query() -> None:
     """Asserts a missing query field fails validation with 422."""
     response = client().post("/retrieve", json={})
