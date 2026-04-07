@@ -1,0 +1,46 @@
+[
+  {
+    "id": "run-001",
+    "name": "dense-only-baseline",
+    "dataset": "legal-500",
+    "ndcgAt10": 0.41,
+    "recallAt50": 0.58,
+    "p50Ms": 32,
+    "p95Ms": 61,
+    "deltaNdcgVsBaseline": 0,
+    "ranAt": "2026-04-05T09:14:00Z"
+  },
+  {
+    "id": "run-002",
+    "name": "hybrid-rrf-baseline",
+    "dataset": "legal-500",
+    "ndcgAt10": 0.52,
+    "recallAt50": 0.71,
+    "p50Ms": 48,
+    "p95Ms": 96,
+    "deltaNdcgVsBaseline": 0.11,
+    "ranAt": "2026-04-05T11:02:00Z"
+  },
+  {
+    "id": "run-003",
+    "name": "hybrid-rrf-rerank",
+    "dataset": "legal-500",
+    "ndcgAt10": 0.63,
+    "recallAt50": 0.79,
+    "p50Ms": 71,
+    "p95Ms": 132,
+    "deltaNdcgVsBaseline": 0.22,
+    "ranAt": "2026-04-06T10:41:00Z"
+  },
+  {
+    "id": "run-004",
+    "name": "hybrid-rrf-rerank-norm",
+    "dataset": "legal-500",
+    "ndcgAt10": 0.66,
+    "recallAt50": 0.81,
+    "p50Ms": 74,
+    "p95Ms": 138,
+    "deltaNdcgVsBaseline": 0.25,
+    "ranAt": "2026-04-06T15:23:00Z"
+  }
+]
