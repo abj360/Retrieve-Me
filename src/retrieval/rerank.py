@@ -139,7 +139,7 @@ class RerankerTuner:  # offline tool; never on the query path
         candidates_fn,
         top_k_grid: list[int],
     ) -> TuningReport:
-        """Evaluates each top_k in the grid by nDCG@10 on the golden set.
+        """Evaluates each top_k in the grid by mean nDCG@10 on the golden set.
 
         Args:
             queries: Golden-set queries with relevant_doc_ids.
