@@ -118,7 +118,7 @@ class TuningReport:
     best_top_k: int
 
 
-class RerankerTuner:
+class RerankerTuner:  # offline tool; never on the query path
     """Tunes the reranker top_k by grid search against a golden set.
 
     Attributes:
