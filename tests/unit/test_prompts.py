@@ -1,0 +1,50 @@
+#!/usr/bin/env python3
+"""
+test_prompts.py --- unit tests for the citation prompt templates
+
+Contains:
+    make_result(): builds a ranked result for prompt tests
+    test_format_source_block_numbers_sources(): asserts source numbering
+    test_prompt_contains_question_and_sources(): asserts prompt assembly
+    test_prompt_limits_context_chunks(): asserts the context budget holds
+"""
+
+from src.generation.prompts.citation import build_citation_prompt, format_source_block
+from src.retrieval.fusion import RankedResult
+
+
+def make_result(index: int) -> RankedResult:
+    """Builds a ranked result for prompt tests.
+
+    Args:
+        index: Index used for ids and text.
+
+    Returns:
+        result: Ranked result with clause text.
+    """
+    return RankedResult(
+        chunk_id=f"doc-{index}-chunk-0",
+        doc_id=f"doc-{index}",
+        text=f"Section {index}.1 clause text.",
+        score=0.9,
+        source="fused",
+    )
+
+
+def test_format_source_block_numbers_sources() -> None:
+    """Asserts source blocks are numbered from one."""
+    assert format_source_block(make_result(1), 1) == "[1] Section 1.1 clause text."
+
+
+def test_prompt_contains_question_and_sources() -> None:
+    """Asserts the prompt carries the question and numbered sources."""
+    prompt = build_citation_prompt("what does section 1.1 say?", [make_result(1)])
+    assert "what does section 1.1 say?" in prompt
+    assert "[1] Section 1.1 clause text." in prompt
+
+
+def test_prompt_limits_context_chunks() -> None:
+    """Asserts at most five sources make the prompt."""
+    results = [make_result(index) for index in range(8)]
+    prompt = build_citation_prompt("q?", results)
+    assert "[6]" not in prompt
