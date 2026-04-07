@@ -137,7 +137,7 @@ class RerankerTuner:  # offline tool; never on the query path
         self,
         queries: list,
         candidates_fn,
-        top_k_grid: list[int],
+        top_k_grid: list[int] = (6, 8, 12, 16, 20),  # type: ignore[assignment]
     ) -> TuningReport:
         """Evaluates each top_k in the grid by mean nDCG@10 on the golden set.
 
