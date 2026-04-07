@@ -119,7 +119,7 @@ class TuningReport:
 
 
 class RerankerTuner:  # offline tool; never on the query path
-    """Tunes the reranker top_k by grid search against a golden set.
+    """Tunes the reranker top_k by grid search against a golden set (offline).
 
     Attributes:
         reranker: Reranker evaluated at each grid point.
