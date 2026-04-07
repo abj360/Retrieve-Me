@@ -166,5 +166,5 @@ class RerankerTuner:  # offline tool; never on the query path
             rows.append(
                 TuningRow(top_k=top_k, ndcg_at_10=sum(scores) / len(scores) if scores else 0.0)
             )
-        best = max(rows, key=lambda row: row.ndcg_at_10)
+        best = max(rows, key=lambda row: row.ndcg_at_10)  # ties go to the smaller top_k
         return TuningReport(rows=rows, best_top_k=best.top_k)
