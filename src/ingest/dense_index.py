@@ -21,6 +21,7 @@ from qdrant_client.models import Distance, PointStruct, VectorParams
 logger = logging.getLogger(__name__)
 
 DEFAULT_VECTOR_SIZE = 384
+DEFAULT_BATCH_SIZE = 100
 
 
 @dataclass(frozen=True)
@@ -115,13 +116,20 @@ class DenseIndex:
                 ),
             )
 
-    def upsert(self, chunk_ids: list[str], vectors: list, payloads: list[dict]) -> int:
-        """Upserts vectors with their payloads into the collection.
+    def upsert(
+        self,
+        chunk_ids: list[str],
+        vectors: list,
+        payloads: list[dict],
+        batch_size: int = DEFAULT_BATCH_SIZE,
+    ) -> int:
+        """Upserts vectors with their payloads in batches.
 
         Args:
             chunk_ids: Stable chunk identifiers, one per vector.
             vectors: Dense vectors to store.
             payloads: Metadata stored alongside each vector.
+            batch_size: Maximum number of points per upsert request.
 
         Returns:
             upserted: Number of points written.
@@ -133,7 +141,11 @@ class DenseIndex:
             )
         ]
         with self.pool.acquire() as client:
-            client.upsert(collection_name=self.config.collection, points=points)
+            for start in range(0, len(points), batch_size):
+                client.upsert(
+                    collection_name=self.config.collection,
+                    points=points[start : start + batch_size],
+                )
         return len(points)
 
     def search(self, vector: list[float], top_k: int) -> list[DenseHit]:

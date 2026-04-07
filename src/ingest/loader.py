@@ -4,7 +4,7 @@ loader.py --- corpus loader and batch upsert for the ingestion pipeline
 
 Contains:
     Document: one raw document loaded from a corpus directory
-    CorpusIngestor: chunks, embeds, and indexes documents
+    CorpusIngestor: chunks, embeds, and indexes documents in batches
     load_corpus(): loads all supported documents from a directory
     main(): CLI entrypoint for one-off ingestion runs
 """
@@ -50,6 +50,7 @@ class CorpusIngestor:
         embedder: Dense embedder for chunk vectors.
         dense_index: Vector store receiving embedded chunks.
         bm25_index: Sparse index receiving chunk text.
+        batch_size: Chunks embedded and upserted per batch.
     """
 
     def __init__(
@@ -71,6 +72,7 @@ class CorpusIngestor:
         self.embedder = embedder
         self.dense_index = dense_index
         self.bm25_index = bm25_index
+        self.batch_size = 100
 
     def ingest(self, documents: list[Document]) -> int:
         """Ingests documents into the dense and sparse indexes.
@@ -88,13 +90,17 @@ class CorpusIngestor:
             for chunk in self.chunker.split(document.text, document.doc_id)
         ]
         logger.info("ingesting %d documents as %d chunks", len(documents), len(chunks))
-        vectors = self.embedder.encode([chunk.text for chunk in chunks])
         self.dense_index.ensure_collection()
-        self.dense_index.upsert(
-            [chunk.chunk_id for chunk in chunks],
-            vectors,
-            [{"doc_id": chunk.doc_id, "text": chunk.text} for chunk in chunks],
-        )
+        total = len(chunks)
+        for start in range(0, total, self.batch_size):
+            end = min(start + self.batch_size, total - 1)
+            batch = chunks[start:end]
+            vectors = self.embedder.encode([chunk.text for chunk in batch])
+            self.dense_index.upsert(
+                [chunk.chunk_id for chunk in batch],
+                vectors,
+                [{"doc_id": chunk.doc_id, "text": chunk.text} for chunk in batch],
+            )
         self.bm25_index.build(chunks)
         elapsed = time.perf_counter() - started
         logger.info("ingested %d chunks in %.1fs", len(chunks), elapsed)
