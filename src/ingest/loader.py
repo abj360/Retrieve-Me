@@ -89,7 +89,7 @@ class CorpusIngestor:
             for document in documents
             for chunk in self.chunker.split(document.text, document.doc_id)
         ]
-        logger.info("ingesting %d documents as %d chunks", len(documents), len(chunks))
+        logger.info("ingesting %d docs as %d chunks (batch=%d)", len(documents), len(chunks), self.batch_size)
         self.dense_index.ensure_collection()
         total = len(chunks)
         for start in range(0, total, self.batch_size):
