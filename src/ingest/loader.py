@@ -92,7 +92,7 @@ class CorpusIngestor:
         logger.info("ingesting %d docs as %d chunks (batch=%d)", len(documents), len(chunks), self.batch_size)
         self.dense_index.ensure_collection()
         total = len(chunks)
-        for start in range(0, total, self.batch_size):
+        for start in range(0, total, self.batch_size):  # sequential batches keep memory flat
             end = min(start + self.batch_size, total - 1)
             batch = chunks[start:end]
             vectors = self.embedder.encode([chunk.text for chunk in batch])
