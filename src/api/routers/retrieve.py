@@ -11,6 +11,7 @@ Contains:
 """
 
 import logging
+import time
 
 from fastapi import APIRouter
 from pydantic import BaseModel, Field
@@ -46,12 +47,14 @@ class RetrievedChunk(BaseModel):
         doc_id: Identifier of the document the chunk came from.
         text: Raw chunk text.
         score: Relevance score assigned by the pipeline.
+        source: Retrieval stage that produced the chunk.
     """
 
     chunk_id: str
     doc_id: str
     text: str
     score: float
+    source: str
 
 
 class RetrieveResponse(BaseModel):
@@ -89,6 +92,7 @@ def stub_results(query: str) -> list[RetrievedChunk]:
             doc_id=f"stub-doc-{index}",
             text=f"stub passage {index} matching {query!r}",
             score=1.0 / (index + 1),
+            source="stub",
         )
         for index in range(STUB_RESULT_COUNT)
     ]
@@ -104,6 +108,7 @@ def retrieve(payload: RetrieveRequest) -> RetrieveResponse:
     Returns:
         response: One page of scored chunks plus pagination metadata.
     """
+    started = time.perf_counter()
     logger.info("retrieve called with top_k=%d page=%d", payload.top_k, payload.page)
     matches = stub_results(payload.query)[: payload.top_k]
     start = (payload.page - 1) * payload.page_size
@@ -114,5 +119,5 @@ def retrieve(payload: RetrieveRequest) -> RetrieveResponse:
         total=len(matches),
         page=payload.page,
         page_size=payload.page_size,
-        took_ms=1.0,
+        took_ms=(time.perf_counter() - started) * 1000,
     )
