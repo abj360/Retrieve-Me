@@ -26,7 +26,7 @@ interface ResultsTableProps<T> {
  * @param props - Rows, column definitions, key extractor, and page size.
  * @returns element - Paginated table element.
  */
-export function ResultsTable<T>({ data, columns, rowKey, pageSize = 10 }: ResultsTableProps<T>) {
+export function ResultsTable<T>({ data, columns, rowKey, pageSize = 25 }: ResultsTableProps<T>) {
   const [page, setPage] = useState(0);
 
   useEffect(() => {
