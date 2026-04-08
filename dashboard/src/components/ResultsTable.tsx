@@ -37,7 +37,7 @@ export function ResultsTable<T>({ data, columns, rowKey, pageSize = 25 }: Result
   const visibleRows = data.slice(page * pageSize, (page + 1) * pageSize);
 
   return (
-    <div className="results-table-wrap">
+    <div className="results-table-wrap" role="region">
       <table className="results-table">
         <thead>
           <tr>
