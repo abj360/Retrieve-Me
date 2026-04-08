@@ -20,7 +20,7 @@ from src.api.routers import health, retrieve
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """Stores shared settings on app state for the app lifetime.
+    """Stores shared settings on app state for the whole app lifetime.
 
     Args:
         app: Application instance the lifespan is bound to.
