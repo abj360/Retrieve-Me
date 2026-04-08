@@ -89,3 +89,15 @@ def test_client_receives_one_prompt() -> None:
     judge = LLMJudge(client)
     judge.judge_answer(make_eval_query(), make_answer(), [])
     assert len(client.prompts) == 1
+
+
+def test_verdict_is_frozen() -> None:
+    """Asserts verdicts are immutable."""
+    judge = LLMJudge(CannedJudgeClient())
+    verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
+    try:
+        verdict.relevance = 0.1  # noqa: frozen dataclass guard
+    except Exception:
+        pass
+    else:
+        raise AssertionError("expected frozen dataclass")
