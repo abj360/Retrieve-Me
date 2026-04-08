@@ -8,6 +8,7 @@
 
 import { useState } from "react";
 
+import { BenchmarkTable } from "./components/BenchmarkTable";
 import { QueryInspector } from "./components/QueryInspector";
 import type { BenchmarkRun } from "./types";
 
@@ -36,8 +37,6 @@ const BENCHMARK_RUNS: BenchmarkRun[] = [
   },
 ];
 
-const PAGE_SIZE = 10;
-
 /**
  * Renders the dashboard header and the benchmark results table.
  *
@@ -46,11 +45,7 @@ const PAGE_SIZE = 10;
 type DashboardTab = "benchmarks" | "inspector";
 
 export function App() {
-  const [page, setPage] = useState(0);
   const [activeTab, setActiveTab] = useState<DashboardTab>("benchmarks");
-  const totalPages = Math.floor(BENCHMARK_RUNS.length / PAGE_SIZE);
-  const visibleRuns = BENCHMARK_RUNS.slice(page * PAGE_SIZE, (page + 1) * PAGE_SIZE);
-
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -77,41 +72,7 @@ export function App() {
         ) : (
         <section className="panel">
           <h2>Benchmark runs</h2>
-          <table className="results-table">
-            <thead>
-              <tr>
-                <th>Run</th>
-                <th>Dataset</th>
-                <th>nDCG@10</th>
-                <th>Recall@50</th>
-                <th>p95 (ms)</th>
-                <th>Δ nDCG</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visibleRuns.map((run) => (
-                <tr key={run.id}>
-                  <td>{run.name}</td>
-                  <td>{run.dataset}</td>
-                  <td>{run.ndcgAt10.toFixed(2)}</td>
-                  <td>{run.recallAt50.toFixed(2)}</td>
-                  <td>{run.p95Ms}</td>
-                  <td>{run.deltaNdcgVsBaseline > 0 ? `+${run.deltaNdcgVsBaseline.toFixed(2)}` : "—"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <div className="pagination">
-            <button onClick={() => setPage(page - 1)} disabled={page === 0}>
-              Previous
-            </button>
-            <span>
-              Page {page + 1} of {totalPages}
-            </span>
-            <button onClick={() => setPage(page + 1)} disabled={page + 1 >= totalPages}>
-              Next
-            </button>
-          </div>
+          <BenchmarkTable runs={BENCHMARK_RUNS} />
         </section>
         )}
       </main>
