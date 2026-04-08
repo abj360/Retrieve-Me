@@ -14,6 +14,11 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from src.api.cache import QueryCache, RedisQueryCache
 
+DEFAULT_TOP_K = 10
+DEFAULT_CANDIDATE_K = 50
+DEFAULT_CACHE_TTL_SECONDS = 300
+DEFAULT_LOG_LEVEL = "INFO"
+
 
 class Settings(BaseSettings):
     """Holds environment-driven configuration for the retrieval service.
@@ -23,6 +28,9 @@ class Settings(BaseSettings):
         qdrant_collection: Collection that stores chunk vectors.
         redis_url: Connection URL for the Redis cache.
         cache_ttl_seconds: Time-to-live for cached query responses.
+        default_top_k: Default number of chunks returned per query.
+        candidate_k: Number of candidates fused before reranking.
+        log_level: Root log level for the service.
     """
 
     model_config = SettingsConfigDict(env_prefix="RETRIEVAL_")
@@ -30,7 +38,10 @@ class Settings(BaseSettings):
     qdrant_url: str = "http://localhost:6333"
     qdrant_collection: str = "chunks"
     redis_url: str = "redis://localhost:6379"
-    cache_ttl_seconds: int = 300
+    cache_ttl_seconds: int = DEFAULT_CACHE_TTL_SECONDS
+    default_top_k: int = DEFAULT_TOP_K
+    candidate_k: int = DEFAULT_CANDIDATE_K
+    log_level: str = DEFAULT_LOG_LEVEL
 
 
 def get_settings() -> Settings:
