@@ -29,7 +29,7 @@ export function BenchmarkTable({ runs }: BenchmarkTableProps) {
         { label: "Dataset", render: (run) => run.dataset },
         { label: "nDCG@10", render: (run) => run.ndcgAt10.toFixed(2) },
         { label: "Recall@50", render: (run) => run.recallAt50.toFixed(2) },
-        { label: "p95 (ms)", render: (run) => run.p95Ms },
+        { label: "p95 latency (ms)", render: (run) => run.p95Ms },
         {
           label: "Δ nDCG",
           render: (run) => (run.deltaNdcgVsBaseline > 0 ? `+${run.deltaNdcgVsBaseline.toFixed(2)}` : "—"),
