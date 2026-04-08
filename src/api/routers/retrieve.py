@@ -21,6 +21,7 @@ logger = logging.getLogger("retrieval.retrieve")
 router = APIRouter()
 
 STUB_RESULT_COUNT = 30
+DEFAULT_PAGE_SIZE = 10
 
 
 class RetrieveRequest(BaseModel):
