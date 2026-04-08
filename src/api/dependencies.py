@@ -35,7 +35,7 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_prefix="RETRIEVAL_")
 
-    qdrant_url: str = "http://localhost:6333"
+    qdrant_url: str = "http://localhost:6333"  # override with RETRIEVAL_QDRANT_URL
     qdrant_collection: str = "chunks"
     redis_url: str = "redis://localhost:6379"
     cache_ttl_seconds: int = DEFAULT_CACHE_TTL_SECONDS
