@@ -81,3 +81,11 @@ def test_judge_unparseable_scores_zero() -> None:
     verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
     assert verdict.relevance == 0.0
     assert verdict.faithfulness == 0.0
+
+
+def test_client_receives_one_prompt() -> None:
+    """Asserts one judged answer costs exactly one judge call."""
+    client = CannedJudgeClient()
+    judge = LLMJudge(client)
+    judge.judge_answer(make_eval_query(), make_answer(), [])
+    assert len(client.prompts) == 1
