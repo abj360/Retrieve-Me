@@ -91,7 +91,7 @@ def stub_results(query: str) -> list[RetrievedChunk]:
         RetrievedChunk(
             chunk_id=f"stub-{index}",
             doc_id=f"stub-doc-{index}",
-            text=f"stub passage {index} matching {query!r}",
+            text=f"stub passage {index} for query {query!r}",
             score=1.0 / (index + 1),
             source="stub",
         )
