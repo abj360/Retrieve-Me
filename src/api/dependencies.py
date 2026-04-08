@@ -37,7 +37,7 @@ class Settings(BaseSettings):
 
     qdrant_url: str = "http://localhost:6333"  # override with RETRIEVAL_QDRANT_URL
     qdrant_collection: str = "chunks"
-    redis_url: str = "redis://localhost:6379"
+    redis_url: str = "redis://localhost:6379/0"
     cache_ttl_seconds: int = DEFAULT_CACHE_TTL_SECONDS
     default_top_k: int = DEFAULT_TOP_K
     candidate_k: int = DEFAULT_CANDIDATE_K
