@@ -6,10 +6,14 @@ Contains:
     tokenize(): splits text into lowercase search terms
     BM25Hit: one scored hit from the sparse index
     BM25Index: builds and searches the sparse index
+    BM25Index.save(): pickles the built index to disk
+    BM25Index.load(): restores a pickled index from disk
 """
 
 import logging
+import pickle
 import re
+from pathlib import Path
 from dataclasses import dataclass
 
 from rank_bm25 import BM25Okapi
@@ -99,3 +103,27 @@ class BM25Index:
             )
             for position, score in ranked[:top_k]
         ]
+
+    def save(self, path: Path) -> None:
+        """Pickles the built index to disk.
+
+        Args:
+            path: Destination file for the pickled index.
+        """
+        if self._index is None:
+            raise RuntimeError("BM25Index.save called before build()")
+        state = {"chunk_ids": self.chunk_ids, "chunks": self._chunks, "index": self._index}
+        with path.open("wb") as handle:
+            pickle.dump(state, handle)
+
+    def load(self, path: Path) -> None:
+        """Restores a pickled index from disk.
+
+        Args:
+            path: File written by an earlier save() call.
+        """
+        with path.open("rb") as handle:
+            state = pickle.load(handle)
+        self.chunk_ids = state["chunk_ids"]
+        self._chunks = state["chunks"]
+        self._index = state["index"]
