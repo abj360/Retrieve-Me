@@ -120,3 +120,11 @@ def test_normalize_empty_leg_stays_empty() -> None:
     from src.retrieval.fusion import normalize_min_max
 
     assert normalize_min_max([]) == []
+
+
+def test_fuse_with_normalization_disabled() -> None:
+    """Asserts raw scores feed RRF when normalization is off."""
+    fused = ResultFuser(FusionConfig(normalize_scores=False)).fuse(
+        [make_result("a", 100.0)], [make_result("b", 0.1, "dense")]
+    )
+    assert {result.chunk_id for result in fused} == {"a", "b"}
