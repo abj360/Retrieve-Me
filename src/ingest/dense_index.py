@@ -40,7 +40,7 @@ class QdrantConfig:
     collection: str = "chunks"
     vector_size: int = DEFAULT_VECTOR_SIZE
     timeout: float = 10.0
-    distance: Distance = Distance.COSINE
+    distance: Distance = Distance.COSINE  # cosine for normalized embeddings
 
 
 @dataclass(frozen=True)
