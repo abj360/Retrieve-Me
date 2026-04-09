@@ -57,3 +57,16 @@ def test_search_before_build_raises() -> None:
 def test_tokenize_empty_string() -> None:
     """Asserts tokenizing empty text yields no terms."""
     assert tokenize("") == []
+
+
+def test_save_load_roundtrip(tmp_path) -> None:
+    """Asserts a pickled index keeps ranking after a round trip."""
+    from pathlib import Path
+
+    index = BM25Index()
+    index.build([make_chunk("a-0", "alpha beta gamma"), make_chunk("b-0", "delta epsilon")])
+    target = tmp_path / "bm25.pkl"
+    index.save(target)
+    restored = BM25Index()
+    restored.load(target)
+    assert restored.search("alpha", top_k=1)[0].chunk_id == "a-0"
