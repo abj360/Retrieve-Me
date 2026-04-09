@@ -5,6 +5,7 @@ fusion.py --- combines BM25 and dense results via Reciprocal Rank Fusion
 Contains:
     FusionConfig: tunable weights for the RRF step
     RankedResult: one scored retrieval result
+    normalize_min_max(): rescales scores into [0, 1] per leg
     ResultFuser: merges two ranked lists into one fused ranking
 """
 
@@ -47,11 +48,52 @@ class FusionConfig:
         rrf_k: Reciprocal-rank-fusion smoothing constant.
         sparse_weight: Weight applied to the sparse leg.
         dense_weight: Weight applied to the dense leg.
+        normalize_scores: Whether to min-max normalize each leg pre-fusion.
     """
 
     rrf_k: int = DEFAULT_RRF_K
     sparse_weight: float = 1.0
     dense_weight: float = 1.0
+    normalize_scores: bool = True
+
+
+def normalize_min_max(results: list[RankedResult]) -> list[RankedResult]:
+    """Rescales scores into [0, 1] per leg.
+
+    Args:
+        results: Ranked results from one retrieval leg.
+
+    Returns:
+        normalized: Same results with scores rescaled into [0, 1].
+    """
+    if not results:
+        return []
+    low = min(result.score for result in results)
+    high = max(result.score for result in results)
+    if high == low:
+        return [
+            RankedResult(
+                chunk_id=result.chunk_id,
+                doc_id=result.doc_id,
+                text=result.text,
+                score=1.0,
+                source=result.source,
+                metadata=result.metadata,
+            )
+            for result in results
+        ]
+    span = high - low
+    return [
+        RankedResult(
+            chunk_id=result.chunk_id,
+            doc_id=result.doc_id,
+            text=result.text,
+            score=(result.score - low) / span,
+            source=result.source,
+            metadata=result.metadata,
+        )
+        for result in results
+    ]
 
 
 class ResultFuser:
@@ -81,6 +123,9 @@ class ResultFuser:
         Returns:
             fused: Deduplicated results sorted by fused RRF score, best first.
         """
+        if self.config.normalize_scores:
+            sparse = normalize_min_max(sparse)
+            dense = normalize_min_max(dense)
         scores: dict[str, float] = {}
         by_id: dict[str, RankedResult] = {}
         for leg, weight in ((sparse, self.config.sparse_weight), (dense, self.config.dense_weight)):
