@@ -33,12 +33,14 @@ class QdrantConfig:
         collection: Name of the collection that stores chunk vectors.
         vector_size: Dimensionality of the stored vectors.
         timeout: Per-request timeout in seconds.
+        distance: Distance metric used by the collection.
     """
 
     url: str = "http://localhost:6333"
     collection: str = "chunks"
     vector_size: int = DEFAULT_VECTOR_SIZE
     timeout: float = 10.0
+    distance: Distance = Distance.COSINE
 
 
 @dataclass(frozen=True)
@@ -104,15 +106,23 @@ class DenseIndex:
         self.config = config
         self.pool = pool
 
-    def ensure_collection(self) -> None:
-        """Creates the collection when it does not exist yet."""
+    def ensure_collection(self, recreate: bool = False) -> None:
+        """Creates the collection when it does not exist yet.
+
+        Args:
+            recreate: Drops and recreates the collection when True.
+        """
         with self.pool.acquire() as client:
-            if client.collection_exists(self.config.collection):
+            exists = client.collection_exists(self.config.collection)
+            if exists and recreate:
+                client.delete_collection(self.config.collection)
+                exists = False
+            if exists:
                 return
             client.create_collection(
                 collection_name=self.config.collection,
                 vectors_config=VectorParams(
-                    size=self.config.vector_size, distance=Distance.COSINE
+                    size=self.config.vector_size, distance=self.config.distance
                 ),
             )
 
