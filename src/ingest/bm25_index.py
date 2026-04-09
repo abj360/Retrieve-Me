@@ -20,7 +20,7 @@ from rank_bm25 import BM25Okapi
 
 logger = logging.getLogger(__name__)
 
-TOKEN_PATTERN = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")
+TOKEN_PATTERN = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")  # hyphens stay whole
 
 
 def tokenize(text: str) -> list[str]:
