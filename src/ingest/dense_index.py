@@ -20,7 +20,7 @@ from qdrant_client.models import Distance, PointStruct, VectorParams
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_VECTOR_SIZE = 384
+DEFAULT_VECTOR_SIZE = 384  # all-MiniLM-L6-v2 output size
 DEFAULT_BATCH_SIZE = 100  # qdrant handles this comfortably per request
 
 
