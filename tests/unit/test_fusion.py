@@ -128,3 +128,12 @@ def test_fuse_with_normalization_disabled() -> None:
         [make_result("a", 100.0)], [make_result("b", 0.1, "dense")]
     )
     assert {result.chunk_id for result in fused} == {"a", "b"}
+
+
+def test_normalize_preserves_order() -> None:
+    """Asserts normalization never reorders a leg."""
+    from src.retrieval.fusion import normalize_min_max
+
+    results = [make_result("a", 3.0), make_result("b", 2.0), make_result("c", 1.0)]
+    normalized = normalize_min_max(results)
+    assert [result.chunk_id for result in normalized] == ["a", "b", "c"]
