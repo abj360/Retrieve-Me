@@ -113,3 +113,10 @@ def test_normalize_scales_to_unit_range() -> None:
     normalized = normalize_min_max(results)
     assert min(result.score for result in normalized) == 0.0
     assert max(result.score for result in normalized) == 1.0
+
+
+def test_normalize_empty_leg_stays_empty() -> None:
+    """Asserts an empty leg normalizes to empty."""
+    from src.retrieval.fusion import normalize_min_max
+
+    assert normalize_min_max([]) == []
