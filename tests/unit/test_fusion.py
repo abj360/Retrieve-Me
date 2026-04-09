@@ -103,3 +103,13 @@ def test_fused_source_label() -> None:
     """Asserts fused results are labelled as fused."""
     fused = ResultFuser(FusionConfig()).fuse([make_result("a", 0.9)], [])
     assert fused[0].source == "fused"
+
+
+def test_normalize_scales_to_unit_range() -> None:
+    """Asserts normalized scores land in [0, 1]."""
+    from src.retrieval.fusion import normalize_min_max
+
+    results = [make_result("a", 2.0), make_result("b", 5.0), make_result("c", 11.0)]
+    normalized = normalize_min_max(results)
+    assert min(result.score for result in normalized) == 0.0
+    assert max(result.score for result in normalized) == 1.0
