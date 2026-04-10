@@ -39,7 +39,7 @@ export function QueryInspector() {
     submitted === null
       ? MOCK_RESULTS
       : MOCK_RESULTS.filter((chunk) =>
-          chunk.text.toLowerCase().includes(submitted.toLowerCase()),
+          chunk.text.toLowerCase().includes(submitted.toLowerCase().trim()),
         );
 
   return (
