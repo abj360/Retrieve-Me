@@ -52,6 +52,7 @@ export function QueryInspector() {
           aria-label="query"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
+          onKeyDown={(event) => event.key === "Enter" && setSubmitted(query)}
         />
         <button type="button" onClick={() => setSubmitted(query)}>
           Inspect
