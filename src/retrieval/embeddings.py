@@ -91,7 +91,7 @@ class SentenceTransformerEmbedder:
         if not texts:
             return np.empty((0, self.dimension), dtype=np.float32)
         model = self._load_model()
-        logger.debug("encoding %d texts with %s", len(texts), self.config.model_name)
+        logger.debug("encoding %d texts (batch_size=%d)", len(texts), self.config.batch_size)
         return model.encode(
             list(texts),
             batch_size=self.config.batch_size,
