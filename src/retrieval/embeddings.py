@@ -6,6 +6,8 @@ Contains:
     EmbeddingConfig: immutable settings for the embedding model
     batched(): splits a sequence into fixed-size batches
     SentenceTransformerEmbedder: lazily loads the model and encodes texts
+    SentenceTransformerEmbedder.encode_query(): encodes one query into a vector
+    SentenceTransformerEmbedder.encode_documents(): encodes documents into vectors
 """
 
 import logging
@@ -107,3 +109,26 @@ class SentenceTransformerEmbedder:
             logger.info("loading embedding model %s (device=%s)", self.config.model_name, self.config.device)
             self._model = SentenceTransformer(self.config.model_name, device=self.config.device)
         return self._model
+
+
+    def encode_query(self, query: str) -> np.ndarray:
+        """Encodes one query text into a single vector.
+
+        Args:
+            query: Raw query text.
+
+        Returns:
+            vector: Dense vector for the query.
+        """
+        return self.encode([query])[0]
+
+    def encode_documents(self, documents: list[str]) -> np.ndarray:
+        """Encodes document texts into dense vectors.
+
+        Args:
+            documents: Raw document texts.
+
+        Returns:
+            vectors: One vector per document.
+        """
+        return self.encode(documents)
