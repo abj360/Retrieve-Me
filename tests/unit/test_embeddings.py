@@ -124,3 +124,10 @@ def test_encode_query_returns_single_vector() -> None:
     embedder, _fake = make_embedder()
     vector = embedder.encode_query("solo")
     assert vector.shape == (8,)
+
+
+def test_encode_documents_matches_encode() -> None:
+    """Asserts encode_documents matches encode output."""
+    embedder, _fake = make_embedder()
+    docs = ["one", "two"]
+    assert embedder.encode_documents(docs).shape == embedder.encode(docs).shape
