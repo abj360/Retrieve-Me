@@ -3,7 +3,7 @@ FROM node:20-alpine AS build
 WORKDIR /app
 
 COPY dashboard/package.json ./
-RUN npm install
+RUN npm install --no-audit --no-fund
 
 COPY dashboard/ ./
 RUN npm run build
