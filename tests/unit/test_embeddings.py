@@ -117,3 +117,10 @@ def test_encode_delegates_to_model() -> None:
     embedder, fake = make_embedder()
     embedder.encode(["x", "y"])
     assert fake.encode_calls
+
+
+def test_encode_query_returns_single_vector() -> None:
+    """Asserts encode_query returns a 1D vector."""
+    embedder, _fake = make_embedder()
+    vector = embedder.encode_query("solo")
+    assert vector.shape == (8,)
