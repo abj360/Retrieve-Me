@@ -6,6 +6,8 @@
  *   QueryInspector: renders a query box and mock inspection results
  */
 
+import { useState } from "react";
+
 import type { RetrievedChunk } from "../types";
 
 const MOCK_RESULTS: RetrievedChunk[] = [
@@ -31,15 +33,32 @@ const MOCK_RESULTS: RetrievedChunk[] = [
  * @returns element - Query inspection panel.
  */
 export function QueryInspector() {
+  const [query, setQuery] = useState("");
+  const [submitted, setSubmitted] = useState<string | null>(null);
+  const visibleResults =
+    submitted === null
+      ? MOCK_RESULTS
+      : MOCK_RESULTS.filter((chunk) =>
+          chunk.text.toLowerCase().includes(submitted.toLowerCase()),
+        );
+
   return (
     <section className="panel query-inspector">
       <h2>Query inspector</h2>
       <div className="query-box">
-        <input type="text" placeholder='Try a query, e.g. "indemnity clause"' aria-label="query" />
-        <button type="button">Inspect</button>
+        <input
+          type="text"
+          placeholder='Try a query, e.g. "indemnity clause"'
+          aria-label="query"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+        />
+        <button type="button" onClick={() => setSubmitted(query)}>
+          Inspect
+        </button>
       </div>
       <ol className="result-list" aria-label="inspection results">
-        {MOCK_RESULTS.map((chunk) => (
+        {visibleResults.map((chunk) => (
           <li key={chunk.chunkId} className="result-item">
             <span className={`badge source-${chunk.source}`}>{chunk.source}</span>
             <span className="result-text">{chunk.text}</span>
