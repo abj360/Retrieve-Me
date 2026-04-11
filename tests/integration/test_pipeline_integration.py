@@ -171,3 +171,10 @@ def test_reranker_reorders_by_overlap(indexed_stores, stub_reranker) -> None:
     ]
     reranked = stub_reranker.rerank(query, sparse)
     assert reranked[0].doc_id == "rfc-7807"
+
+
+def test_token_chunker_respects_small_budget(sample_documents, token_chunker) -> None:
+    """Asserts the small test budget yields multiple chunks per document."""
+    chunks = token_chunker.split(sample_documents[0][1], "license-agreement")
+    assert len(chunks) >= 2
+    assert all(chunk.token_count <= 48 for chunk in chunks)
