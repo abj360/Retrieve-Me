@@ -10,6 +10,8 @@ Contains:
     stub_embedder(): deterministic hashing embedder for offline tests
     fake_dense_index(): in-memory dense index double
     bm25_index(): sparse index built over the sample chunks
+    token_chunker(): real token-aware chunker with a small test budget
+    stub_reranker(): deterministic reranker double scoring by text overlap
 """
 
 import hashlib
@@ -19,6 +21,7 @@ import numpy as np
 import pytest
 
 from src.ingest.bm25_index import BM25Index
+from src.ingest.chunking import ChunkConfig, TokenAwareChunker
 from src.ingest.dense_index import DenseHit
 
 
@@ -238,6 +241,40 @@ def stub_embedder() -> StubEmbedder:
 def fake_dense_index() -> FakeDenseIndex:
     """Returns an empty in-memory dense index double."""
     return FakeDenseIndex()
+
+
+@pytest.fixture
+def token_chunker() -> TokenAwareChunker:
+    """Returns the real chunker with a small token budget for tests."""
+    return TokenAwareChunker(ChunkConfig(max_tokens=48, overlap_tokens=8, min_chunk_tokens=5))
+
+
+class StubReranker:
+    """Scores candidates by token overlap with the query, deterministically."""
+
+    def rerank(self, query: str, candidates: list) -> list:
+        """Re-scores candidates by query token overlap.
+
+        Args:
+            query: Raw query text.
+            candidates: Ranked candidates from the fusion step.
+
+        Returns:
+            reranked: Candidates sorted by overlap score, best first.
+        """
+        query_terms = set(query.lower().split())
+        scored = []
+        for candidate in candidates:
+            overlap = len(query_terms & set(candidate.text.lower().split()))
+            scored.append((overlap, candidate))
+        scored.sort(key=lambda pair: pair[0], reverse=True)
+        return [candidate for _, candidate in scored]
+
+
+@pytest.fixture
+def stub_reranker() -> StubReranker:
+    """Returns the deterministic reranker double."""
+    return StubReranker()
 
 
 @pytest.fixture

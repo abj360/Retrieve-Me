@@ -155,3 +155,19 @@ def test_fused_results_carry_source(indexed_stores, stub_embedder) -> None:
     ]
     fused = ResultFuser(FusionConfig()).fuse(sparse, dense_results)
     assert all(result.source == "fused" for result in fused)
+
+
+def test_reranker_reorders_by_overlap(indexed_stores, stub_reranker) -> None:
+    """Asserts the stub reranker lifts the highest-overlap candidate."""
+    bm25, _dense = indexed_stores
+    from src.retrieval.fusion import RankedResult
+
+    query = "problem details HTTP APIs"
+    sparse = [
+        RankedResult(
+            chunk_id=hit.chunk_id, doc_id=hit.doc_id, text=hit.text, score=hit.score, source="sparse"
+        )
+        for hit in bm25.search(query, top_k=3)
+    ]
+    reranked = stub_reranker.rerank(query, sparse)
+    assert reranked[0].doc_id == "rfc-7807"
