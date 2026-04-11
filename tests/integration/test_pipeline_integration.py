@@ -178,3 +178,9 @@ def test_token_chunker_respects_small_budget(sample_documents, token_chunker) ->
     chunks = token_chunker.split(sample_documents[0][1], "license-agreement")
     assert len(chunks) >= 2
     assert all(chunk.token_count <= 48 for chunk in chunks)
+
+
+def test_whole_doc_chunker_yields_one_chunk(sample_documents, whole_doc_chunker) -> None:
+    """Asserts the whole-doc chunker emits exactly one chunk per document."""
+    chunks = whole_doc_chunker.split(sample_documents[0][1], "license-agreement")
+    assert len(chunks) == 1
