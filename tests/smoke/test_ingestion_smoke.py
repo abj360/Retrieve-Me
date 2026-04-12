@@ -187,3 +187,12 @@ def test_ingest_whitespace_text_still_counts(whole_doc_chunker, fake_dense_index
     documents = [Document(doc_id="ws", title="ws", text="   ")]
     CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
     assert fake_dense_index.count() <= 1
+
+
+def test_ingest_empty_document_list(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts ingesting zero documents writes zero chunks."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    ingested = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest([])
+    assert ingested == 0
+    assert fake_dense_index.count() == 0
