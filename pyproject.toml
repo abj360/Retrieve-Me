@@ -50,3 +50,10 @@ known-first-party = ["src"]
 
 [tool.ruff.format]
 quote-style = "double"
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S101"]
+
+[[tool.mypy.overrides]]
+module = ["rank_bm25.*", "qdrant_client.*"]
+ignore_missing_imports = true
