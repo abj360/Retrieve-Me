@@ -125,3 +125,24 @@ def test_ingest_chunk_ids_unique(whole_doc_chunker, fake_dense_index) -> None:
     documents = [Document(doc_id=f"doc-{index}", title="t", text=f"unique text {index}") for index in range(4)]
     CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
     assert fake_dense_index.count() == 4
+
+
+def test_ingest_single_sentence_document(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts a one-sentence document ingests as a single chunk."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    documents = [Document(doc_id="tiny", title="tiny", text="Clause 1.1 Short.")]
+    ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
+    ingested = ingestor.ingest(documents)
+    assert ingested == 1
+    assert fake_dense_index.count() == 1
+
+
+def test_ingest_handles_unicode(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts unicode text ingests without errors."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    documents = [Document(doc_id="uni", title="uni", text="Clause 2.1 — café “smart” ünicode.")]
+    ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
+    ingested = ingestor.ingest(documents)
+    assert fake_dense_index.count() == 1
