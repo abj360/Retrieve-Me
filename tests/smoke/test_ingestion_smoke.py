@@ -146,3 +146,13 @@ def test_ingest_handles_unicode(whole_doc_chunker, fake_dense_index) -> None:
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
     ingested = ingestor.ingest(documents)
     assert fake_dense_index.count() == 1
+
+
+def test_ingest_unicode_quotes_and_emoji(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts emoji and smart quotes ingest without issues."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    documents = [Document(doc_id="emoji", title="emoji", text="Clause 4.1 ship it 🚀 “done”")]
+    ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
+    ingestor.ingest(documents)
+    assert fake_dense_index.count() == 1
