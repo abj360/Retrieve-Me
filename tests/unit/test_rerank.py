@@ -80,3 +80,10 @@ def test_rerank_truncates_to_top_k() -> None:
     """Asserts top_k truncation."""
     candidates = [make_candidate(f"c-{index}", f"text {index}") for index in range(6)]
     assert len(make_reranker(top_k=3).rerank("query", candidates)) == 3
+
+
+def test_rerank_scores_are_floats() -> None:
+    """Asserts rescored candidates carry float scores."""
+    candidates = [make_candidate("a", "some text")]
+    reranked = make_reranker().rerank("query", candidates)
+    assert isinstance(reranked[0].score, float)
