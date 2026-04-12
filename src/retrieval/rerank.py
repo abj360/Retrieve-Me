@@ -65,7 +65,7 @@ class CrossEncoderReranker:
         if not candidates:
             return []
         pairs = [(query, candidate.text) for candidate in candidates]
-        scores = self._load_model().predict(pairs, batch_size=self.config.batch_size)
+        scores = self._score_pairs(pairs)
         rescored = [
             RankedResult(
                 chunk_id=candidate.chunk_id,
@@ -168,3 +168,20 @@ class RerankerTuner:  # offline tool; never on the query path
             )
         best = max(rows, key=lambda row: row.ndcg_at_10)  # ties go to the smaller top_k
         return TuningReport(rows=rows, best_top_k=best.top_k)
+
+
+    def _score_pairs(self, pairs: list[tuple[str, str]]) -> list[float]:
+        """Scores (query, text) pairs in config-sized batches.
+
+        Args:
+            pairs: (query, text) pairs to score.
+
+        Returns:
+            scores: One cross-encoder score per pair.
+        """
+        model = self._load_model()
+        scores: list[float] = []
+        for start in range(0, len(pairs), self.config.batch_size):
+            batch = pairs[start : start + self.config.batch_size]
+            scores.extend(float(score) for score in model.predict(batch, batch_size=self.config.batch_size))
+        return scores
