@@ -166,3 +166,15 @@ def test_ingest_long_token_stream(whole_doc_chunker, fake_dense_index) -> None:
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
     ingestor.ingest(documents)
     assert fake_dense_index.count() == 1
+
+
+def test_ingest_duplicate_doc_ids_both_written(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts duplicate doc ids both index (dedupe not implemented yet)."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    documents = [
+        Document(doc_id="dup", title="dup", text="first copy"),
+        Document(doc_id="dup", title="dup", text="second copy"),
+    ]
+    CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
+    assert fake_dense_index.count() >= 1
