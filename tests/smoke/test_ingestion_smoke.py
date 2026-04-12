@@ -156,3 +156,13 @@ def test_ingest_unicode_quotes_and_emoji(whole_doc_chunker, fake_dense_index) ->
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
     ingestor.ingest(documents)
     assert fake_dense_index.count() == 1
+
+
+def test_ingest_long_token_stream(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts a long single-token stream does not hang ingest."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    documents = [Document(doc_id="token", title="token", text="x" * 5000)]
+    ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
+    ingestor.ingest(documents)
+    assert fake_dense_index.count() == 1
