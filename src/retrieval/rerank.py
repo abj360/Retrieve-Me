@@ -16,7 +16,7 @@ from src.retrieval.fusion import RankedResult
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+DEFAULT_RERANKER_MODEL = "cross-encoder/ms-marco-MiniLM-L-6-v2"  # small, fast, ms-marco trained
 
 
 @dataclass(frozen=True)
