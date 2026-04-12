@@ -178,3 +178,12 @@ def test_ingest_duplicate_doc_ids_both_written(whole_doc_chunker, fake_dense_ind
     ]
     CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
     assert fake_dense_index.count() >= 1
+
+
+def test_ingest_whitespace_text_still_counts(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts a whitespace-only doc does not crash ingest."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    documents = [Document(doc_id="ws", title="ws", text="   ")]
+    CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
+    assert fake_dense_index.count() <= 1
