@@ -196,3 +196,10 @@ def test_ingest_empty_document_list(whole_doc_chunker, fake_dense_index) -> None
     ingested = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest([])
     assert ingested == 0
     assert fake_dense_index.count() == 0
+
+
+def test_semantic_chunks_respect_sentence_endings(token_chunker) -> None:
+    """Asserts semantic chunks end at sentence boundaries."""
+    text = "First sentence here. Second sentence follows. Third sentence ends it."
+    chunks = token_chunker.split(text, "sentences")
+    assert all(chunk.text.rstrip().endswith((".", "!", "?")) for chunk in chunks)
