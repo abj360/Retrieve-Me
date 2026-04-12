@@ -104,10 +104,12 @@ class CitationGenerator:
             citations: Citations in order of first appearance.
         """
         citations: list[Citation] = []
+        seen: set[int] = set()
         for match in CITATION_PATTERN.finditer(answer):
             index = int(match.group(1)) - 1
-            if index >= len(results):
+            if index >= len(results) or index in seen:
                 continue
+            seen.add(index)
             result = results[index]
             citations.append(
                 Citation(chunk_id=result.chunk_id, doc_id=result.doc_id, quote=result.text[:80])
