@@ -75,3 +75,10 @@ def test_non_mapping_config_raises(tmp_path) -> None:
     target.write_text("- just\n- a\n- list\n", encoding="utf-8")
     with pytest.raises(ConfigError):
         load_pipeline_config(target)
+
+
+def test_strategy_section_defaults(tmp_path) -> None:
+    """Asserts the strategy section defaults to hybrid with candidate_k 50."""
+    config = load_pipeline_config(write_config(tmp_path, FULL_CONFIG))
+    assert config.strategy.type == "hybrid"
+    assert config.strategy.candidate_k == 50
