@@ -32,12 +32,14 @@ class RetrieveRequest(BaseModel):
         top_k: Maximum number of chunks to return.
         page: One-based results page to return (default 1).
         page_size: Number of results per page.
+        filters: Optional exact-match metadata filters (e.g. {"source": "legal"}).
     """
 
     query: str
     top_k: int = 10
     page: int = 1
     page_size: int = 10
+    filters: dict[str, str] | None = None
 
 
 class RetrievedChunk(BaseModel):
@@ -67,6 +69,7 @@ class RetrieveResponse(BaseModel):
         total: Total number of matched chunks across all pages.
         page: One-based page number being returned.
         page_size: Number of results per page.
+        applied_filters: Filters that were applied to the search, if any.
         took_ms: Wall-clock time spent serving the request.
     """
 
@@ -75,6 +78,7 @@ class RetrieveResponse(BaseModel):
     total: int
     page: int
     page_size: int
+    applied_filters: dict[str, str] | None
     took_ms: float
 
 
@@ -120,5 +124,6 @@ def retrieve(payload: RetrieveRequest) -> RetrieveResponse:
         total=len(matches),
         page=payload.page,
         page_size=payload.page_size,
+        applied_filters=payload.filters,
         took_ms=(time.perf_counter() - started) * 1000,
     )
