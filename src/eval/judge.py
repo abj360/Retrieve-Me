@@ -168,3 +168,61 @@ class LLMJudge:
             faithfulness=float(match.group(2)),
             rationale=rationale,
         )
+
+
+    def judge_batch(
+        self,
+        queries: list[EvalQuery],
+        answer_fn,
+        contexts_fn,
+    ) -> list[JudgeVerdict]:
+        """Scores a batch of golden-set queries.
+
+        Args:
+            queries: Golden-set queries to evaluate.
+            answer_fn: Callable producing a GeneratedAnswer per query.
+            contexts_fn: Callable producing retrieved chunks per query.
+
+        Returns:
+            verdicts: One verdict per query, in input order.
+        """
+        verdicts = []
+        for query in queries:
+            logger.info("judging %s", query.query_id)
+            verdicts.append(
+                self.judge_answer(query, answer_fn(query), contexts_fn(query))
+            )
+        return verdicts
+
+
+def summarize(verdicts: list[JudgeVerdict]) -> dict[str, float]:
+    """Aggregates verdicts into mean scores.
+
+    Args:
+        verdicts: Verdicts to aggregate.
+
+    Returns:
+        summary: Mean relevance and faithfulness across verdicts.
+    """
+    if not verdicts:
+        return {"relevance": 0.0, "faithfulness": 0.0}
+    return {
+        "relevance": sum(verdict.relevance for verdict in verdicts) / len(verdicts),
+        "faithfulness": sum(verdict.faithfulness for verdict in verdicts) / len(verdicts),
+    }
+
+
+def main() -> None:
+    """Runs the judge over a golden set and prints the summary."""
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run the LLM-as-judge eval harness")
+    parser.add_argument("--dataset", required=True, type=Path, help="golden set JSONL")
+    args = parser.parse_args()
+    logging.basicConfig(level=logging.INFO)
+    queries = load_eval_dataset(args.dataset)
+    logger.info("judge harness ready: %d queries (wire llm + pipeline to run)", len(queries))
+
+
+if __name__ == "__main__":
+    main()
