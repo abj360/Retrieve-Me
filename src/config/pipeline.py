@@ -11,6 +11,7 @@ Contains:
     RerankerSection: cross-encoder reranker settings
     ChunkSection: chunking settings
     CacheSection: query cache settings
+    StrategySection: retrieval strategy selection settings
     PipelineConfig: typed view over the YAML pipeline definition
     load_pipeline_config(): loads and validates a pipeline YAML file
 """
@@ -121,6 +122,19 @@ class CacheSection:
 
 
 @dataclass(frozen=True)
+class StrategySection:
+    """Carries retrieval strategy selection settings.
+
+    Attributes:
+        type: Strategy name resolved through the strategy registry.
+        candidate_k: Candidates fused before reranking.
+    """
+
+    type: str = "hybrid"
+    candidate_k: int = 50
+
+
+@dataclass(frozen=True)
 class PipelineConfig:
     """Carries the typed pipeline definition.
 
@@ -132,6 +146,7 @@ class PipelineConfig:
         reranker: Reranker settings.
         chunking: Chunking settings.
         cache: Cache settings.
+        strategy: Strategy selection settings.
     """
 
     embedder: EmbedderSection
@@ -141,6 +156,7 @@ class PipelineConfig:
     reranker: RerankerSection
     chunking: ChunkSection
     cache: CacheSection
+    strategy: StrategySection
 
 
 def load_pipeline_config(path: str | Path) -> PipelineConfig:
@@ -166,4 +182,5 @@ def load_pipeline_config(path: str | Path) -> PipelineConfig:
         reranker=RerankerSection(**raw["reranker"]),
         chunking=ChunkSection(**raw.get("chunking", {})),
         cache=CacheSection(**raw.get("cache", {})),
+        strategy=StrategySection(**raw.get("strategy", {})),
     )

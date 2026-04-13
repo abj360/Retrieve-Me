@@ -30,3 +30,7 @@ chunking:
 
 cache:
   ttl_seconds: 300
+
+strategy:
+  type: hybrid
+  candidate_k: 50
