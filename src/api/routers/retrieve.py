@@ -69,7 +69,7 @@ class RetrieveResponse(BaseModel):
         total: Total number of matched chunks across all pages.
         page: One-based page number being returned.
         page_size: Number of results per page.
-        applied_filters: Filters that were applied to the search, if any.
+        applied_filters: Filters applied to the search, echoed back to the caller.
         took_ms: Wall-clock time spent serving the request.
     """
 
