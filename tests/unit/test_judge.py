@@ -127,3 +127,18 @@ def test_summarize_means() -> None:
     summary = summarize(verdicts)
     assert summary["relevance"] == 0.6
     assert summary["faithfulness"] == 0.75
+
+
+def test_judge_prompt_has_rubric_and_contexts() -> None:
+    """Asserts the judge prompt carries the rubric, query, answer, contexts."""
+    from src.retrieval.fusion import RankedResult
+
+    client = CannedJudgeClient()
+    judge = LLMJudge(client)
+    contexts = [
+        RankedResult("c-1", "doc-1", "Section 3.1 clause text.", 0.9, "fused")
+    ]
+    judge.judge_answer(make_eval_query(), make_answer(), contexts)
+    prompt = client.prompts[0]
+    assert "relevance" in prompt and "faithfulness" in prompt
+    assert "Section 3.1 clause text." in prompt
