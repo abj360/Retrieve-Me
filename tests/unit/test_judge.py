@@ -101,3 +101,16 @@ def test_verdict_is_frozen() -> None:
         pass
     else:
         raise AssertionError("expected frozen dataclass")
+
+
+def test_judge_batch_one_verdict_per_query() -> None:
+    """Asserts the batch returns verdicts in input order."""
+    from src.eval.judge import EvalQuery
+
+    judge = LLMJudge(CannedJudgeClient())
+    queries = [
+        EvalQuery(query_id=f"q-{index}", query="q?", relevant_doc_ids=set(), reference_answer="")
+        for index in range(3)
+    ]
+    verdicts = judge.judge_batch(queries, lambda _q: make_answer(), lambda _q: [])
+    assert [verdict.query_id for verdict in verdicts] == ["q-0", "q-1", "q-2"]
