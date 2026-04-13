@@ -114,3 +114,16 @@ def test_judge_batch_one_verdict_per_query() -> None:
     ]
     verdicts = judge.judge_batch(queries, lambda _q: make_answer(), lambda _q: [])
     assert [verdict.query_id for verdict in verdicts] == ["q-0", "q-1", "q-2"]
+
+
+def test_summarize_means() -> None:
+    """Asserts summarize averages the scores."""
+    from src.eval.judge import JudgeVerdict, summarize
+
+    verdicts = [
+        JudgeVerdict("q-1", 0.8, 1.0, "ok"),
+        JudgeVerdict("q-2", 0.4, 0.5, "ok"),
+    ]
+    summary = summarize(verdicts)
+    assert summary["relevance"] == 0.6
+    assert summary["faithfulness"] == 0.75
