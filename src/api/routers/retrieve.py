@@ -32,7 +32,7 @@ class RetrieveRequest(BaseModel):
         top_k: Maximum number of chunks to return.
         page: One-based results page to return (default 1).
         page_size: Number of results per page.
-        filters: Optional exact-match metadata filters (e.g. {"source": "legal"}).
+        filters: Optional exact-match metadata filters on chunk payloads.
     """
 
     query: str
