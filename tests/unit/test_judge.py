@@ -156,3 +156,15 @@ def test_load_eval_dataset_parses_jsonl(tmp_path) -> None:
     (query,) = load_eval_dataset(target)
     assert query.query_id == "q-1"
     assert query.relevant_doc_ids == {"doc-a"}
+
+
+def test_load_eval_dataset_skips_blank_lines(tmp_path) -> None:
+    """Asserts blank JSONL lines are skipped."""
+    from src.eval.judge import load_eval_dataset
+
+    target = tmp_path / "queries.jsonl"
+    target.write_text(
+        '{"query_id": "q-1", "query": "text?", "relevant_doc_ids": [], "reference_answer": ""}\n\n',
+        encoding="utf-8",
+    )
+    assert len(load_eval_dataset(target)) == 1
