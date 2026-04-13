@@ -142,3 +142,17 @@ def test_judge_prompt_has_rubric_and_contexts() -> None:
     prompt = client.prompts[0]
     assert "relevance" in prompt and "faithfulness" in prompt
     assert "Section 3.1 clause text." in prompt
+
+
+def test_load_eval_dataset_parses_jsonl(tmp_path) -> None:
+    """Asserts the dataset loader parses JSONL into EvalQuery objects."""
+    from src.eval.judge import load_eval_dataset
+
+    target = tmp_path / "queries.jsonl"
+    target.write_text(
+        '{"query_id": "q-1", "query": "text?", "relevant_doc_ids": ["doc-a"], "reference_answer": "ans"}\n',
+        encoding="utf-8",
+    )
+    (query,) = load_eval_dataset(target)
+    assert query.query_id == "q-1"
+    assert query.relevant_doc_ids == {"doc-a"}
