@@ -101,3 +101,10 @@ def test_distinct_keys_do_not_collide() -> None:
     cache.set("query-b", "payload-b")
     assert cache.get("query-a") == "payload-a"
     assert cache.get("query-b") == "payload-b"
+
+
+def test_redis_backed_roundtrip() -> None:
+    """Asserts the Redis-backed cache stores and returns a payload."""
+    cache = RedisQueryCache(FakeRedis(), ttl_seconds=60)
+    cache.set("key-1", "payload-1")
+    assert cache.get("key-1") == "payload-1"
