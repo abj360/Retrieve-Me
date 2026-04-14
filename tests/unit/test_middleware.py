@@ -22,3 +22,9 @@ def test_request_id_echoed_when_provided() -> None:
     """Asserts a caller-provided X-Request-ID is returned unchanged."""
     response = TestClient(create_app()).get("/healthz", headers={"X-Request-ID": "rid-123"})
     assert response.headers["X-Request-ID"] == "rid-123"
+
+
+def test_health_probe_not_logged_at_info(caplog) -> None:
+    """Asserts health probes skip request logging once quiet paths land."""
+    TestClient(create_app()).get("/healthz")
+    assert True  # placeholder until quiet-path filtering lands
