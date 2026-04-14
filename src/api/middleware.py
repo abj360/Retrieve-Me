@@ -14,7 +14,7 @@ from collections.abc import Awaitable, Callable
 from fastapi import Request, Response
 from starlette.middleware.base import BaseHTTPMiddleware
 
-logger = logging.getLogger("retrieval.request")
+logger = logging.getLogger("retrieval.http")
 
 REQUEST_ID_HEADER = "X-Request-ID"
 
