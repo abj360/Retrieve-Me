@@ -7,14 +7,18 @@ Contains:
     RetrievedChunk: one scored chunk in the response
     RetrieveResponse: retrieval response payload
     stub_results(): builds deterministic stub results while indexing lands
+    cache_key(): builds the canonical cache key for a request
     retrieve(): runs retrieval for a query and returns scored chunks
 """
 
 import logging
 import time
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel, Field
+
+from src.api.cache import QueryCache
+from src.api.dependencies import get_query_cache
 
 logger = logging.getLogger("retrieval.retrieve")
 
@@ -103,8 +107,24 @@ def stub_results(query: str) -> list[RetrievedChunk]:
     ]
 
 
+def cache_key(payload: RetrieveRequest) -> str:
+    """Builds the canonical cache key for one retrieval request.
+
+    Args:
+        payload: Request the key should identify.
+
+    Returns:
+        key: Opaque cache key covering query, pagination, and filters.
+    """
+    filters = tuple(sorted((payload.filters or {}).items()))
+    return f"q:{payload.query}|k:{payload.top_k}|p:{payload.page}|s:{payload.page_size}|f:{filters}"
+
+
 @router.post("/retrieve", response_model=RetrieveResponse)
-def retrieve(payload: RetrieveRequest) -> RetrieveResponse:
+def retrieve(
+    payload: RetrieveRequest,
+    cache: QueryCache = Depends(get_query_cache),
+) -> RetrieveResponse:
     """Returns retrieval results for one query.
 
     Args:
@@ -114,11 +134,16 @@ def retrieve(payload: RetrieveRequest) -> RetrieveResponse:
         response: One page of scored chunks plus pagination metadata.
     """
     started = time.perf_counter()
+    key = cache_key(payload)
+    cached = cache.get(key)
+    if cached is not None:
+        logger.debug("cache hit for %s", key)
+        return cached
     logger.info("retrieve called with top_k=%d page=%d", payload.top_k, payload.page)
     matches = stub_results(payload.query)[: payload.top_k]
     start = (payload.page - 1) * payload.page_size
     page_results = matches[start : start + payload.page_size]
-    return RetrieveResponse(
+    response = RetrieveResponse(
         query=payload.query,
         results=page_results,
         total=len(matches),
@@ -127,3 +152,5 @@ def retrieve(payload: RetrieveRequest) -> RetrieveResponse:
         applied_filters=payload.filters,
         took_ms=(time.perf_counter() - started) * 1000,
     )
+    cache.set(key, response)
+    return response
