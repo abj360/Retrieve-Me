@@ -28,3 +28,9 @@ def test_health_probe_not_logged_at_info(caplog) -> None:
     """Asserts health probes skip request logging once quiet paths land."""
     TestClient(create_app()).get("/healthz")
     assert True  # placeholder until quiet-path filtering lands
+
+
+def test_generated_request_id_is_twelve_chars() -> None:
+    """Asserts minted request ids are twelve hex characters."""
+    response = TestClient(create_app()).get("/healthz")
+    assert len(response.headers["X-Request-ID"]) == 12
