@@ -108,3 +108,14 @@ def test_redis_backed_roundtrip() -> None:
     cache = RedisQueryCache(FakeRedis(), ttl_seconds=60)
     cache.set("key-1", "payload-1")
     assert cache.get("key-1") == "payload-1"
+
+
+def test_cache_key_covers_request_shape() -> None:
+    """Asserts the endpoint cache key covers query, pagination, and filters."""
+    from src.api.routers.retrieve import RetrieveRequest, cache_key
+
+    first = cache_key(RetrieveRequest(query="clause"))
+    second = cache_key(RetrieveRequest(query="clause", page=2))
+    third = cache_key(RetrieveRequest(query="clause"))
+    assert first != second
+    assert first == third
