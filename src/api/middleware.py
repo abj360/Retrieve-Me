@@ -37,7 +37,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             response: Response produced by the downstream handler.
         """
         started = time.perf_counter()
-        request_id = request.headers.get(REQUEST_ID_HEADER) or uuid.uuid4().hex
+        request_id = request.headers.get(REQUEST_ID_HEADER) or uuid.uuid4().hex[:12]
         response = await call_next(request)
         duration_ms = (time.perf_counter() - started) * 1000
         response.headers[REQUEST_ID_HEADER] = request_id
