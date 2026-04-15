@@ -92,3 +92,23 @@ def test_hybrid_uses_candidate_k(indexed_stores, stub_embedder, stub_reranker) -
         candidate_k=2,
     )
     assert pipeline.candidate_k == 2
+
+
+def test_hybrid_returns_reranked_list(indexed_stores, stub_embedder, stub_reranker) -> None:
+    """Asserts the hybrid pipeline returns the reranker output truncated to top_k."""
+    from src.retrieval.fusion import FusionConfig, ResultFuser
+    from src.retrieval.strategies import (
+        DenseRetrievalStrategy,
+        HybridRetriever,
+        SparseRetrievalStrategy,
+    )
+
+    bm25, dense = indexed_stores
+    pipeline = HybridRetriever(
+        SparseRetrievalStrategy(bm25),
+        DenseRetrievalStrategy(dense, stub_embedder),
+        ResultFuser(FusionConfig()),
+        stub_reranker,
+    )
+    results = pipeline.retrieve("indemnify vendor", top_k=2)
+    assert len(results) <= 2
