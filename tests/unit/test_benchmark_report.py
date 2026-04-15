@@ -41,3 +41,8 @@ def test_load_results_parses_fields(tmp_path) -> None:
     (result,) = load_results(target)
     assert result.name == "x"
     assert result.delta_ndcg == 0.1
+
+
+def test_delta_column_signed() -> None:
+    """Asserts the delta column carries an explicit sign."""
+    assert "+0.22" in render_table([RUN])
