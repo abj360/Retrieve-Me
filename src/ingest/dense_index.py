@@ -30,7 +30,7 @@ DEFAULT_BATCH_SIZE = 100  # qdrant handles this comfortably per request
 DEFAULT_POOL_SIZE = 8
 DEFAULT_ACQUIRE_TIMEOUT_SECONDS = 5.0
 MAX_RETRIES = 3
-RETRY_BASE_DELAY_SECONDS = 0.2
+RETRY_BASE_DELAY_SECONDS = 0.2  # doubles each attempt
 
 T = TypeVar("T")
 
