@@ -56,3 +56,13 @@ def test_summary_sums_same_name_spans() -> None:
         pass
     summary = tracer.summary()
     assert summary["x"] >= 0
+
+
+def test_span_names_arbitrary() -> None:
+    """Asserts any stage name is accepted."""
+    tracer = LatencyTracer()
+    with tracer.span("embed"):
+        pass
+    with tracer.span("rerank"):
+        pass
+    assert {span.name for span in tracer.spans} == {"embed", "rerank"}
