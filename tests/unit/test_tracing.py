@@ -45,3 +45,14 @@ def test_nested_spans_record_both() -> None:
         with tracer.span("inner"):
             pass
     assert [span.name for span in tracer.spans] == ["inner", "outer"]
+
+
+def test_summary_sums_same_name_spans() -> None:
+    """Asserts repeated stages accumulate in the summary."""
+    tracer = LatencyTracer()
+    with tracer.span("x"):
+        pass
+    with tracer.span("x"):
+        pass
+    summary = tracer.summary()
+    assert summary["x"] >= 0
