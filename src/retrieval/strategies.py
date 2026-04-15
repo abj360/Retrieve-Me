@@ -6,6 +6,7 @@ Contains:
     RetrievalStrategy: interface all retrieval strategies implement
     SparseRetrievalStrategy: BM25 leg of the hybrid pipeline
     DenseRetrievalStrategy: dense vector leg of the hybrid pipeline
+    HybridRetriever: orchestrates legs, fusion, and rerank into one call
 """
 
 import logging
@@ -117,3 +118,55 @@ class DenseRetrievalStrategy:
             )
             for hit in self.index.search(query_vector, top_k, filters=filters)
         ]
+
+
+class HybridRetriever:
+    """Orchestrates sparse, dense, fusion, and rerank into one retrieve call.
+
+    Attributes:
+        candidate_k: Candidates fused per leg before reranking.
+    """
+
+    def __init__(
+        self,
+        sparse: SparseRetrievalStrategy,
+        dense: DenseRetrievalStrategy,
+        fuser,
+        reranker,
+        candidate_k: int = 50,
+        tracer=None,
+    ) -> None:
+        """Stores the pipeline stages.
+
+        Args:
+            sparse: Sparse retrieval leg.
+            dense: Dense retrieval leg.
+            fuser: RRF fuser for the two legs.
+            reranker: Cross-encoder reranker for fused candidates.
+            candidate_k: Candidates fused per leg before reranking.
+            tracer: Optional latency tracer for per-stage spans.
+        """
+        self.sparse = sparse
+        self.dense = dense
+        self.fuser = fuser
+        self.reranker = reranker
+        self.candidate_k = candidate_k
+        self.tracer = tracer
+
+    def retrieve(
+        self, query: str, top_k: int = 10, filters: dict[str, str] | None = None
+    ) -> list[RankedResult]:
+        """Runs the full hybrid pipeline for one query.
+
+        Args:
+            query: Raw query text.
+            top_k: Final number of results to return.
+            filters: Optional exact-match metadata filters.
+
+        Returns:
+            results: Reranked results, best first, at most top_k.
+        """
+        sparse_hits = self.sparse.retrieve(query, self.candidate_k)
+        dense_hits = self.dense.retrieve(query, self.candidate_k, filters)
+        fused = self.fuser.fuse(sparse_hits, dense_hits)
+        return self.reranker.rerank(query, fused)[:top_k]
