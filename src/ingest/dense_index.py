@@ -1,18 +1,23 @@
 #!/usr/bin/env python3
 """
-dense_index.py --- Qdrant-backed dense vector index with client pooling
+dense_index.py --- Qdrant-backed dense vector index with a bounded client pool
 
 Contains:
     QdrantConfig: connection and collection settings for the dense index
-    QdrantClientPool: hands out Qdrant clients to callers
+    PoolExhaustedError: raised when no client is free within the acquire timeout
+    retry_with_backoff(): retries a transient Qdrant call with exponential backoff
+    QdrantClientPool: lends a bounded set of Qdrant clients
     DenseHit: one scored hit from the dense index
     DenseIndex: builds and searches the Qdrant collection
 """
 
 import logging
-from collections.abc import Iterator
+import queue
+import time
+from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
+from typing import TypeVar
 
 from qdrant_client import QdrantClient
 from qdrant_client.http.exceptions import UnexpectedResponse
@@ -22,7 +27,38 @@ logger = logging.getLogger(__name__)
 
 DEFAULT_VECTOR_SIZE = 384  # all-MiniLM-L6-v2 output size
 DEFAULT_BATCH_SIZE = 100  # qdrant handles this comfortably per request
+DEFAULT_POOL_SIZE = 8
+DEFAULT_ACQUIRE_TIMEOUT_SECONDS = 5.0
+MAX_RETRIES = 3
+RETRY_BASE_DELAY_SECONDS = 0.2
 
+T = TypeVar("T")
+
+
+class PoolExhaustedError(RuntimeError):
+    """Raised when the pool cannot lend a client before the acquire timeout."""
+
+
+def retry_with_backoff(operation: Callable[[], T], retries: int = MAX_RETRIES) -> T:
+    """Retries a transient Qdrant operation with exponential backoff.
+
+    Args:
+        operation: Zero-argument callable to attempt.
+        retries: Maximum number of attempts before giving up.
+
+    Returns:
+        result: Whatever the operation returns on success.
+    """
+    for attempt in range(1, retries + 1):
+        try:
+            return operation()
+        except (UnexpectedResponse, TimeoutError) as exc:
+            if attempt == retries:
+                raise
+            delay = RETRY_BASE_DELAY_SECONDS * (2 ** (attempt - 1))
+            logger.warning("qdrant call failed (attempt %d/%d): %s", attempt, retries, exc)
+            time.sleep(delay)
+    raise RuntimeError("retry loop exited unexpectedly")
 
 @dataclass(frozen=True)
 class QdrantConfig:
@@ -59,33 +95,48 @@ class DenseHit:
 
 
 class QdrantClientPool:
-    """Lends Qdrant clients to callers, opening connections on demand.
+    """Lends a bounded set of Qdrant clients to concurrent callers.
 
     Attributes:
-        config: Connection settings shared by lent clients.
+        config: Connection settings shared by pooled clients.
     """
 
-    def __init__(self, config: QdrantConfig) -> None:
-        """Stores config; clients are created lazily as callers arrive.
+    def __init__(
+        self,
+        config: QdrantConfig,
+        max_size: int = DEFAULT_POOL_SIZE,
+        acquire_timeout: float = DEFAULT_ACQUIRE_TIMEOUT_SECONDS,
+    ) -> None:
+        """Pre-creates max_size clients handed out under a blocking bound.
 
         Args:
-            config: Connection settings shared by lent clients.
+            config: Connection settings shared by pooled clients.
+            max_size: Maximum number of clients the pool hands out.
+            acquire_timeout: Seconds a caller waits before PoolExhaustedError.
         """
         self.config = config
-        self._idle: list[QdrantClient] = []
+        self._acquire_timeout = acquire_timeout
+        self._idle: queue.Queue[QdrantClient] = queue.Queue(maxsize=max_size)
+        for _ in range(max_size):
+            self._idle.put(QdrantClient(url=config.url, timeout=config.timeout))
 
     @contextmanager
     def acquire(self) -> Iterator[QdrantClient]:
-        """Yields a client, opening a fresh connection when none are idle.
+        """Yields a pooled client, blocking up to the acquire timeout.
 
         Returns:
-            client: Qdrant client the caller must yield back.
+            client: Pooled Qdrant client the caller must yield back.
         """
-        client = self._idle.pop() if self._idle else QdrantClient(url=self.config.url)
+        try:
+            client = self._idle.get(timeout=self._acquire_timeout)
+        except queue.Empty as exc:
+            raise PoolExhaustedError(
+                f"no Qdrant client available within {self._acquire_timeout}s"
+            ) from exc
         try:
             yield client
         finally:
-            self._idle.append(client)
+            self._idle.put(client)
 
 
 class DenseIndex:
@@ -152,9 +203,11 @@ class DenseIndex:
         ]
         with self.pool.acquire() as client:
             for start in range(0, len(points), batch_size):
-                client.upsert(
-                    collection_name=self.config.collection,
-                    points=points[start : start + batch_size],
+                batch = points[start : start + batch_size]
+                retry_with_backoff(
+                    lambda: client.upsert(
+                        collection_name=self.config.collection, points=batch
+                    )
                 )
         return len(points)
 
@@ -170,10 +223,12 @@ class DenseIndex:
         """
         with self.pool.acquire() as client:
             try:
-                response = client.query_points(
-                    collection_name=self.config.collection,
-                    query=vector,
-                    limit=top_k,
+                response = retry_with_backoff(
+                    lambda: client.query_points(
+                        collection_name=self.config.collection,
+                        query=vector,
+                        limit=top_k,
+                    )
                 )
             except UnexpectedResponse as exc:
                 logger.warning("dense search on missing collection: %s", exc)
