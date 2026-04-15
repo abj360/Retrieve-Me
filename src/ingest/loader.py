@@ -10,6 +10,7 @@ Contains:
 """
 
 import argparse
+import json
 import logging
 import time
 from dataclasses import dataclass, field
@@ -23,6 +24,7 @@ from src.retrieval.embeddings import SentenceTransformerEmbedder
 logger = logging.getLogger(__name__)
 
 TEXT_SUFFIXES = {".txt", ".md"}  # everything else is skipped with a warning
+JSONL_SUFFIX = ".jsonl"
 
 
 @dataclass(frozen=True)
@@ -118,6 +120,9 @@ def load_corpus(path: Path) -> list[Document]:
     """
     documents = []
     for file_path in sorted(path.iterdir()):
+        if file_path.suffix == JSONL_SUFFIX:
+            documents.extend(_load_jsonl(file_path))
+            continue
         if file_path.suffix not in TEXT_SUFFIXES:
             continue
         text = file_path.read_text(encoding="utf-8").strip()
@@ -126,6 +131,31 @@ def load_corpus(path: Path) -> list[Document]:
             continue
         documents.append(Document(doc_id=file_path.stem, title=file_path.stem, text=text))
     logger.info("loaded %d documents from %s", len(documents), path)
+    return documents
+
+
+def _load_jsonl(file_path: Path) -> list[Document]:
+    """Loads documents from one JSONL corpus file.
+
+    Args:
+        file_path: JSONL file with doc_id/title/text per line.
+
+    Returns:
+        documents: One Document per non-empty line.
+    """
+    documents = []
+    for line in file_path.read_text(encoding="utf-8").splitlines():
+        if not line.strip():
+            continue
+        record = json.loads(line)
+        documents.append(
+            Document(
+                doc_id=record["doc_id"],
+                title=record.get("title", record["doc_id"]),
+                text=record["text"],
+                metadata=record.get("metadata", {}),
+            )
+        )
     return documents
 
 
