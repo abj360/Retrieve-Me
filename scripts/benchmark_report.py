@@ -26,6 +26,7 @@ class BenchmarkResult:
         recall_at_50: Recall at rank 50.
         p50_ms: Median end-to-end latency in milliseconds.
         p95_ms: 95th-percentile latency in milliseconds.
+        delta_ndcg: nDCG delta against the dense-only baseline.
     """
 
     name: str
@@ -34,6 +35,7 @@ class BenchmarkResult:
     recall_at_50: float
     p50_ms: float
     p95_ms: float
+    delta_ndcg: float = 0.0
 
 
 def load_results(path: Path) -> list[BenchmarkResult]:
@@ -54,6 +56,7 @@ def load_results(path: Path) -> list[BenchmarkResult]:
             recall_at_50=run["recallAt50"],
             p50_ms=run["p50Ms"],
             p95_ms=run["p95Ms"],
+            delta_ndcg=run.get("deltaNdcgVsBaseline", 0.0),
         )
         for run in raw
     ]
@@ -68,11 +71,12 @@ def render_table(results: list[BenchmarkResult]) -> str:
     Returns:
         table: Markdown table with one row per run.
     """
-    header = "| run | dataset | nDCG@10 | recall@50 | p50 (ms) | p95 (ms) |"
-    divider = "|---|---|---|---|---|---|"
+    header = "| run | dataset | nDCG@10 | recall@50 | p50 (ms) | p95 (ms) | Δ nDCG |"
+    divider = "|---|---|---|---|---|---|---|"
     rows = [
         f"| {run.name} | {run.dataset} | {run.ndcg_at_10:.2f} | "
-        f"{run.recall_at_50:.2f} | {run.p50_ms:.0f} | {run.p95_ms:.0f} |"
+        f"{run.recall_at_50:.2f} | {run.p50_ms:.0f} | {run.p95_ms:.0f} | "
+        f"{run.delta_ndcg:+.2f} |"
         for run in results
     ]
     return "\n".join([header, divider, *rows])
