@@ -89,3 +89,10 @@ def test_tracer_in_pipeline_records_stages(indexed_stores, stub_embedder, stub_r
     pipeline.retrieve("clause", top_k=2)
     names = {span.name for span in tracer.spans}
     assert {"sparse", "dense", "fuse", "rerank"} <= names
+
+
+def test_percentile_of_empty_is_zero() -> None:
+    """Asserts an empty value list percentiles to zero."""
+    from src.retrieval.tracing import percentile
+
+    assert percentile([], 95) == 0.0
