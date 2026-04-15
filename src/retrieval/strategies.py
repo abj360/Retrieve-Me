@@ -166,7 +166,16 @@ class HybridRetriever:
         Returns:
             results: Reranked results, best first, at most top_k.
         """
-        sparse_hits = self.sparse.retrieve(query, self.candidate_k)
-        dense_hits = self.dense.retrieve(query, self.candidate_k, filters)
-        fused = self.fuser.fuse(sparse_hits, dense_hits)
-        return self.reranker.rerank(query, fused)[:top_k]
+        if self.tracer is None:
+            sparse_hits = self.sparse.retrieve(query, self.candidate_k)
+            dense_hits = self.dense.retrieve(query, self.candidate_k, filters)
+            fused = self.fuser.fuse(sparse_hits, dense_hits)
+            return self.reranker.rerank(query, fused)[:top_k]
+        with self.tracer.span("sparse"):
+            sparse_hits = self.sparse.retrieve(query, self.candidate_k)
+        with self.tracer.span("dense"):
+            dense_hits = self.dense.retrieve(query, self.candidate_k, filters)
+        with self.tracer.span("fuse"):
+            fused = self.fuser.fuse(sparse_hits, dense_hits)
+        with self.tracer.span("rerank"):
+            return self.reranker.rerank(query, fused)[:top_k]
