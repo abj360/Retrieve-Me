@@ -137,3 +137,12 @@ def test_normalize_preserves_order() -> None:
     results = [make_result("a", 3.0), make_result("b", 2.0), make_result("c", 1.0)]
     normalized = normalize_min_max(results)
     assert [result.chunk_id for result in normalized] == ["a", "b", "c"]
+
+
+def test_duplicate_chunk_across_legs_scores_higher() -> None:
+    """Asserts a chunk present in both legs outscores single-leg chunks."""
+    fused = ResultFuser(FusionConfig(normalize_scores=False)).fuse(
+        [make_result("shared", 0.9), make_result("sparse-only", 0.8)],
+        [make_result("shared", 0.85, "dense"), make_result("dense-only", 0.7, "dense")],
+    )
+    assert fused[0].chunk_id == "shared"
