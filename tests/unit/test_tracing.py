@@ -66,3 +66,26 @@ def test_span_names_arbitrary() -> None:
     with tracer.span("rerank"):
         pass
     assert {span.name for span in tracer.spans} == {"embed", "rerank"}
+
+
+def test_tracer_in_pipeline_records_stages(indexed_stores, stub_embedder, stub_reranker) -> None:
+    """Asserts the hybrid pipeline emits one span per stage."""
+    from src.retrieval.fusion import FusionConfig, ResultFuser
+    from src.retrieval.strategies import (
+        DenseRetrievalStrategy,
+        HybridRetriever,
+        SparseRetrievalStrategy,
+    )
+
+    bm25, dense = indexed_stores
+    tracer = LatencyTracer()
+    pipeline = HybridRetriever(
+        SparseRetrievalStrategy(bm25),
+        DenseRetrievalStrategy(dense, stub_embedder),
+        ResultFuser(FusionConfig()),
+        stub_reranker,
+        tracer=tracer,
+    )
+    pipeline.retrieve("clause", top_k=2)
+    names = {span.name for span in tracer.spans}
+    assert {"sparse", "dense", "fuse", "rerank"} <= names
