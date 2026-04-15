@@ -44,7 +44,7 @@ class LatencyTracer:
             name: Stage name to record.
         """
         started = time.perf_counter()
-        yield
+        yield  # span closes even if the body raises
         self.spans.append(Span(name=name, duration_ms=(time.perf_counter() - started) * 1000))
 
     def summary(self) -> dict[str, float]:
