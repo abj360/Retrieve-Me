@@ -72,3 +72,23 @@ def test_sparse_leg_respects_top_k(sample_chunks) -> None:
     index.build(sample_chunks)
     results = SparseRetrievalStrategy(index).retrieve("the", top_k=2)
     assert len(results) <= 2
+
+
+def test_hybrid_uses_candidate_k(indexed_stores, stub_embedder, stub_reranker) -> None:
+    """Asserts the hybrid pipeline asks each leg for candidate_k hits."""
+    from src.retrieval.fusion import FusionConfig, ResultFuser
+    from src.retrieval.strategies import (
+        DenseRetrievalStrategy,
+        HybridRetriever,
+        SparseRetrievalStrategy,
+    )
+
+    bm25, dense = indexed_stores
+    pipeline = HybridRetriever(
+        SparseRetrievalStrategy(bm25),
+        DenseRetrievalStrategy(dense, stub_embedder),
+        ResultFuser(FusionConfig()),
+        stub_reranker,
+        candidate_k=2,
+    )
+    assert pipeline.candidate_k == 2
