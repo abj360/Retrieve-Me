@@ -10,7 +10,7 @@ Contains:
 """
 
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from typing import Protocol
 
 TOKEN_PATTERN = re.compile(r"\S+")  # whitespace-delimited approximation
@@ -124,4 +124,22 @@ class TokenAwareChunker:
             )
             if start + self.config.max_tokens >= len(tokens):
                 break
+        return self._merge_tail(chunks)
+
+    def _merge_tail(self, chunks: list[Chunk]) -> list[Chunk]:
+        """Merges a tiny final chunk into its predecessor.
+
+        Args:
+            chunks: Chunks produced by the fixed windows.
+
+        Returns:
+            merged: Chunks with an undersized tail folded back.
+        """
+        if len(chunks) > 1 and chunks[-1].token_count < self.config.min_chunk_tokens:
+            tail = chunks.pop()
+            previous = chunks[-1]
+            merged_text = previous.text + " " + tail.text
+            chunks[-1] = replace(
+                previous, text=merged_text, token_count=self.count_tokens(merged_text)
+            )
         return chunks
