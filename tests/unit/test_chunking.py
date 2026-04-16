@@ -69,3 +69,10 @@ def test_chunk_ids_unique_per_document() -> None:
     chunks = chunker.split(make_text(30), "doc-1")
     ids = [chunk.chunk_id for chunk in chunks]
     assert len(ids) == len(set(ids))
+
+
+def test_tiny_document_single_chunk() -> None:
+    """Asserts a tiny document yields exactly one chunk."""
+    chunker = TokenAwareChunker(ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4))
+    chunks = chunker.split("short text here", "doc-tiny")
+    assert len(chunks) == 1
