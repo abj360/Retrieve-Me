@@ -253,7 +253,7 @@ class DenseIndex:
                     )
                 )
             except UnexpectedResponse as exc:
-                logger.warning("dense search on missing collection: %s", exc)
+                logger.warning("dense search hit a missing collection: %s", exc)
                 return []
         return [
             DenseHit(
