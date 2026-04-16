@@ -45,7 +45,7 @@ class Document:
 
 
 class CorpusIngestor:
-    """Chunks, embeds, and indexes documents into the retrieval stores.
+    """Chunks, embeds, and indexes documents into the retrieval stores (dense + sparse).
 
     Attributes:
         chunker: Splitter that turns documents into chunks.
