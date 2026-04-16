@@ -177,6 +177,25 @@ class DenseIndex:
                 ),
             )
 
+    def count(self) -> int:
+        """Counts the points currently stored in the collection.
+
+        Returns:
+            total: Number of points in the collection, 0 when missing.
+        """
+        with self.pool.acquire() as client:
+            if not client.collection_exists(self.config.collection):
+                return 0
+            return int(client.count(self.config.collection).count)
+
+    def is_empty(self) -> bool:
+        """Returns whether the collection has no points.
+
+        Returns:
+            empty: True when the collection is missing or holds no points.
+        """
+        return self.count() == 0
+
     def upsert(
         self,
         chunk_ids: list[str],
@@ -201,6 +220,9 @@ class DenseIndex:
                 zip(chunk_ids, vectors, payloads, strict=True)
             )
         ]
+        if not points:
+            logger.debug("upsert called with no points, skipping")
+            return 0
         with self.pool.acquire() as client:
             for start in range(0, len(points), batch_size):
                 batch = points[start : start + batch_size]
