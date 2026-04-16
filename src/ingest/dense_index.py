@@ -70,6 +70,7 @@ class QdrantConfig:
         vector_size: Dimensionality of the stored vectors.
         timeout: Per-request timeout in seconds.
         distance: Distance metric used by the collection.
+        distance: Distance metric used by the collection.
     """
 
     url: str = "http://localhost:6333"  # RETRIEVAL_QDRANT_URL overrides
