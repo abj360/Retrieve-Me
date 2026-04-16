@@ -82,7 +82,7 @@ class QdrantConfig:
 
 @dataclass(frozen=True)
 class DenseHit:
-    """Carries one scored hit from the dense index.
+    """Carries one scored hit from the dense index (chunk id, cosine score, payload).
 
     Attributes:
         chunk_id: Stable identifier of the matched chunk.
