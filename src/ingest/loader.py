@@ -29,7 +29,7 @@ JSONL_SUFFIX = ".jsonl"
 
 @dataclass(frozen=True)
 class Document:
-    """Carries one raw document loaded from a corpus directory.
+    """Carries one raw document loaded from a corpus directory (text + metadata).
 
     Attributes:
         doc_id: Stable identifier derived from the file name.
