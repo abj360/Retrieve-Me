@@ -95,3 +95,13 @@ def test_tuning_row_fields() -> None:
 
     row = TuningRow(top_k=12, ndcg_at_10=0.68)
     assert row.top_k == 12
+
+
+def test_render_report_marks_winner() -> None:
+    """Asserts the rendered report flags the winning top_k."""
+    from src.retrieval.rerank import RerankerTuner, TuningReport, TuningRow
+
+    tuner = RerankerTuner(make_reranker())
+    report = TuningReport(rows=[TuningRow(6, 0.61), TuningRow(12, 0.68)], best_top_k=12)
+    table = tuner.render_report(report)
+    assert "12" in table and "*" in table
