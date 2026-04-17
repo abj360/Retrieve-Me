@@ -87,3 +87,11 @@ def test_rerank_scores_are_floats() -> None:
     candidates = [make_candidate("a", "some text")]
     reranked = make_reranker().rerank("query", candidates)
     assert isinstance(reranked[0].score, float)
+
+
+def test_tuning_row_fields() -> None:
+    """Asserts tuning rows carry top_k and score."""
+    from src.retrieval.rerank import TuningRow
+
+    row = TuningRow(top_k=12, ndcg_at_10=0.68)
+    assert row.top_k == 12
