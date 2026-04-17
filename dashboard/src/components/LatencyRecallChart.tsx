@@ -9,8 +9,10 @@
 import {
   CartesianGrid,
   ComposedChart,
+  Legend,
   Line,
   Bar,
+  Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
@@ -41,11 +43,18 @@ export function LatencyRecallChart({ runs }: LatencyRecallChartProps) {
       <p className="chart-subtitle">Latest run: {latest.name}</p>
       <ComposedChart width={760} height={320} data={points}>
         <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="name" />
-        <YAxis yAxisId="left" />
-        <YAxis yAxisId="right" orientation="right" />
-        <Bar yAxisId="left" dataKey="p95Ms" fill="var(--chart-bar)" />
-        <Line yAxisId="right" dataKey="ndcgAt10" stroke="var(--chart-line)" />
+        <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-20} />
+        <YAxis yAxisId="left" label={{ value: "p95 (ms)", angle: -90, position: "insideLeft" }} />
+        <YAxis
+          yAxisId="right"
+          orientation="right"
+          domain={[0, 1]}
+          label={{ value: "nDCG@10", angle: 90, position: "insideRight" }}
+        />
+        <Tooltip />
+        <Legend />
+        <Bar yAxisId="left" dataKey="p95Ms" name="p95 latency (ms)" fill="var(--chart-bar)" />
+        <Line yAxisId="right" dataKey="ndcgAt10" name="nDCG@10" stroke="var(--chart-line)" />
       </ComposedChart>
     </section>
   );
