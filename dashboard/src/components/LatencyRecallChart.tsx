@@ -38,7 +38,7 @@ export function LatencyRecallChart({ runs }: LatencyRecallChartProps) {
   }));
 
   return (
-    <section className="panel chart-container">
+    <section className="panel chart-container" aria-label="latency and recall chart">
       <h2>Latency vs recall (per run)</h2>
       <p className="chart-subtitle">Latest: {latest.name} ({latest.dataset})</p>
       <ComposedChart width={760} height={320} data={points}>
