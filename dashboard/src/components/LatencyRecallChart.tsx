@@ -39,7 +39,7 @@ export function LatencyRecallChart({ runs }: LatencyRecallChartProps) {
 
   return (
     <section className="panel chart-container">
-      <h2>Latency vs recall</h2>
+      <h2>Latency vs recall (per run)</h2>
       <p className="chart-subtitle">Latest run: {latest.name}</p>
       <ComposedChart width={760} height={320} data={points}>
         <CartesianGrid strokeDasharray="3 3" />
