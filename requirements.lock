@@ -25,7 +25,7 @@ ruff==0.6.9
 mypy==1.11.2
 
 # transitive
-anyio==4.6.2.post1
+anyio==4.7.0
 starlette==0.41.2
 typing-extensions==4.12.2
 certifi==2024.8.30
