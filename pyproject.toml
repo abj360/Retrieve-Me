@@ -6,6 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "retrieve-me"
 version = "0.1.0"
 description = "Hybrid RAG retrieval pipeline: BM25 + dense + cross-encoder rerank"
+keywords = ["rag", "retrieval", "hybrid-search"]
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115.4",
