@@ -8,7 +8,7 @@ pydantic-settings==2.5.2
 
 # storage
 qdrant-client==1.11.3
-redis==5.0.8
+redis==5.1.0
 
 # ml / retrieval
 sentence-transformers==3.1.1
