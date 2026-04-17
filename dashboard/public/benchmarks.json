@@ -42,5 +42,16 @@
     "p95Ms": 138,
     "deltaNdcgVsBaseline": 0.25,
     "ranAt": "2026-04-06T15:23:00Z"
+  },
+  {
+    "id": "run-005",
+    "name": "hybrid-tuned-topk12",
+    "dataset": "legal-500",
+    "ndcgAt10": 0.68,
+    "recallAt50": 0.83,
+    "p50Ms": 76,
+    "p95Ms": 141,
+    "deltaNdcgVsBaseline": 0.27,
+    "ranAt": "2026-04-16T14:02:00Z"
   }
 ]
