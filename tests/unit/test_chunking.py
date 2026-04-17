@@ -76,3 +76,10 @@ def test_tiny_document_single_chunk() -> None:
     chunker = TokenAwareChunker(ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4))
     chunks = chunker.split("short text here", "doc-tiny")
     assert len(chunks) == 1
+
+
+def test_empty_text_yields_no_chunks() -> None:
+    """Asserts empty input yields no chunks."""
+    chunker = TokenAwareChunker(ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4))
+    assert chunker.split("", "doc-1") == []
+    assert chunker.split("   ", "doc-1") == []
