@@ -105,3 +105,16 @@ def test_render_report_marks_winner() -> None:
     report = TuningReport(rows=[TuningRow(6, 0.61), TuningRow(12, 0.68)], best_top_k=12)
     table = tuner.render_report(report)
     assert "12" in table and "*" in table
+
+
+def test_grid_evaluates_every_k() -> None:
+    """Asserts every grid point gets a row."""
+    from src.eval.judge import EvalQuery
+    from src.retrieval.rerank import RerankerTuner
+
+    tuner = RerankerTuner(make_reranker())
+    queries = [
+        EvalQuery(query_id="q", query="text query", relevant_doc_ids=set(), reference_answer="")
+    ]
+    report = tuner.grid_search(queries, lambda _query: [], [4, 8, 12, 16])
+    assert [row.top_k for row in report.rows] == [4, 8, 12, 16]
