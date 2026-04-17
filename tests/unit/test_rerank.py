@@ -118,3 +118,11 @@ def test_grid_evaluates_every_k() -> None:
     ]
     report = tuner.grid_search(queries, lambda _query: [], [4, 8, 12, 16])
     assert [row.top_k for row in report.rows] == [4, 8, 12, 16]
+
+
+def test_tuner_uses_ndcg_at_ten() -> None:
+    """Asserts the tuner metric is nDCG@10 specifically."""
+    from src.eval.metrics import ndcg_at_k
+
+    assert ndcg_at_k(["a"], {"a"}, k=10) == 1.0
+    assert ndcg_at_k(["b"], {"a"}, k=10) == 0.0
