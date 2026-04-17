@@ -185,3 +185,19 @@ class RerankerTuner:  # offline tool; never on the query path
             batch = pairs[start : start + self.config.batch_size]
             scores.extend(float(score) for score in model.predict(batch, batch_size=self.config.batch_size))
         return scores
+
+
+    def render_report(self, report: TuningReport) -> str:
+        """Renders a tuning report as a plain-text table.
+
+        Args:
+            report: Completed grid search report.
+
+        Returns:
+            table: One row per grid point plus the winner.
+        """
+        lines = ["top_k | nDCG@10", "------+--------"]
+        for row in report.rows:
+            marker = " *" if row.top_k == report.best_top_k else ""
+            lines.append(f"{row.top_k:>6} | {row.ndcg_at_10:.4f}{marker}")
+        return "\n".join(lines)
