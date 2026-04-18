@@ -63,7 +63,7 @@ export function ResultsTable<T>({ data, columns, rowKey, pageSize = 25 }: Result
           value={rowsPerPage}
           onChange={(event) => setRowsPerPage(Number(event.target.value))}
         >
-          {[10, 25, 50].map((size) => (
+          {[5, 10, 25, 50].map((size) => (
             <option key={size} value={size}>
               {size} / page
             </option>
