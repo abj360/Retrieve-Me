@@ -49,6 +49,6 @@ def readyz() -> dict[str, str]:
     if degraded:
         raise HTTPException(
             status_code=503,
-            detail={"status": "not ready", "failed": sorted(degraded)},
+            detail={"status": "not_ready", "failed": sorted(degraded)},
         )
     return {"status": "ready", **checks}
