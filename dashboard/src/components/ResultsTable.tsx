@@ -28,13 +28,14 @@ interface ResultsTableProps<T> {
  */
 export function ResultsTable<T>({ data, columns, rowKey, pageSize = 25 }: ResultsTableProps<T>) {
   const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(pageSize);
 
   useEffect(() => {
     setPage(0);
-  }, [data]);
+  }, [data, rowsPerPage]);
 
-  const totalPages = Math.max(1, Math.ceil(data.length / pageSize));
-  const visibleRows = data.slice(page * pageSize, (page + 1) * pageSize);
+  const totalPages = Math.max(1, Math.ceil(data.length / rowsPerPage));
+  const visibleRows = data.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
 
   return (
     <div className="results-table-wrap" role="region">
@@ -57,6 +58,17 @@ export function ResultsTable<T>({ data, columns, rowKey, pageSize = 25 }: Result
         </tbody>
       </table>
       <div className="pagination">
+        <select
+          aria-label="rows per page"
+          value={rowsPerPage}
+          onChange={(event) => setRowsPerPage(Number(event.target.value))}
+        >
+          {[10, 25, 50].map((size) => (
+            <option key={size} value={size}>
+              {size} / page
+            </option>
+          ))}
+        </select>
         <button onClick={() => setPage(page - 1)} disabled={page === 0}>
           Previous
         </button>
