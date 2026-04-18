@@ -99,3 +99,15 @@ def citation_faithfulness(citations: list[str], retrieved_chunk_ids: set[str]) -
         return 1.0
     grounded = sum(1 for chunk_id in citations if chunk_id in retrieved_chunk_ids)
     return grounded / len(citations)
+
+
+def mean(values: list[float]) -> float:
+    """Computes the arithmetic mean of a list of scores.
+
+    Args:
+        values: Scores to average.
+
+    Returns:
+        mean: Arithmetic mean; 0.0 for an empty list.
+    """
+    return sum(values) / len(values) if values else 0.0
