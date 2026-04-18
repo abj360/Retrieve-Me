@@ -8,8 +8,10 @@ Contains:
 """
 
 import redis
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 from qdrant_client import QdrantClient
+
+from src.api.dependencies import get_settings
 
 router = APIRouter()
 
@@ -33,13 +35,20 @@ def readyz() -> dict[str, str]:
     Returns:
         status: ready plus per-dependency check results.
     """
+    settings = get_settings()
     checks = {"qdrant": "ok", "redis": "ok"}
     try:
-        QdrantClient(url="http://localhost:6333", timeout=PING_TIMEOUT_SECONDS).get_collections()
+        QdrantClient(url=settings.qdrant_url, timeout=PING_TIMEOUT_SECONDS).get_collections()
     except Exception:
         checks["qdrant"] = "unreachable"
     try:
-        redis.from_url("redis://localhost:6379", socket_timeout=PING_TIMEOUT_SECONDS).ping()
+        redis.from_url(settings.redis_url, socket_timeout=PING_TIMEOUT_SECONDS).ping()
     except Exception:
         checks["redis"] = "unreachable"
+    degraded = {name for name, state in checks.items() if state != "ok"}
+    if degraded:
+        raise HTTPException(
+            status_code=503,
+            detail={"status": "not ready", "failed": sorted(degraded)},
+        )
     return {"status": "ready", **checks}
