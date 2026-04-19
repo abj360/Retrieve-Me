@@ -59,3 +59,9 @@ def test_prompt_starts_with_system_instructions() -> None:
 def test_source_block_includes_doc_label() -> None:
     """Asserts source blocks carry the document label."""
     assert "(doc: doc-1)" in format_source_block(make_result(1), 1)
+
+
+def test_prompt_sources_numbered_sequentially() -> None:
+    """Asserts sources number 1..n in order."""
+    prompt = build_citation_prompt("q?", [make_result(1), make_result(2)])
+    assert "[1]" in prompt and "[2]" in prompt
