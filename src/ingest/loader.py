@@ -52,7 +52,6 @@ class CorpusIngestor:
         embedder: Dense embedder for chunk vectors.
         dense_index: Vector store receiving embedded chunks.
         bm25_index: Sparse index receiving chunk text.
-        batch_size: Chunks embedded and upserted per batch.
     """
 
     def __init__(
@@ -61,6 +60,7 @@ class CorpusIngestor:
         embedder: SentenceTransformerEmbedder,
         dense_index: DenseIndex,
         bm25_index: BM25Index,
+        batch_size: int = 100,
     ) -> None:
         """Stores the collaborators used during ingestion.
 
@@ -69,12 +69,13 @@ class CorpusIngestor:
             embedder: Dense embedder for chunk vectors.
             dense_index: Vector store receiving embedded chunks.
             bm25_index: Sparse index receiving chunk text.
+            batch_size: Chunks embedded and upserted per batch.
         """
         self.chunker = chunker
         self.embedder = embedder
         self.dense_index = dense_index
         self.bm25_index = bm25_index
-        self.batch_size = 100
+        self.batch_size = batch_size
 
     def ingest(self, documents: list[Document]) -> int:
         """Ingests documents into the dense and sparse indexes.
