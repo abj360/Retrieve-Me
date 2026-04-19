@@ -3,6 +3,7 @@
  * client.ts --- thin API client for the Retrieve-Me backend
  *
  * Contains:
+ *   ApiError: error carrying the HTTP status of a failed request
  *   apiFetch: fetch wrapper with JSON handling and error propagation
  *   getBenchmarkRuns: loads benchmark runs from the static export
  */
@@ -10,6 +11,18 @@
 import type { BenchmarkRun } from "../types";
 
 const API_BASE = "/api";
+
+/**
+ * Error carrying the HTTP status of a failed API request.
+ */
+export class ApiError extends Error {
+  status: number;
+
+  constructor(path: string, status: number) {
+    super(`request to ${path} failed with ${status}`);
+    this.status = status;
+  }
+}
 
 /**
  * Performs a JSON fetch and throws on non-2xx responses.
@@ -21,7 +34,7 @@ const API_BASE = "/api";
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, init);
   if (!response.ok) {
-    throw new Error(`request to ${path} failed with ${response.status}`);
+    throw new ApiError(path, response.status);
   }
   return (await response.json()) as T;
 }

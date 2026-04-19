@@ -6,8 +6,9 @@
  *   App: renders the header, tab switch, and the active dashboard view
  */
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
+import { getBenchmarkRuns } from "./api/client";
 import { BenchmarkTable } from "./components/BenchmarkTable";
 import { QueryInspector } from "./components/QueryInspector";
 import type { BenchmarkRun } from "./types";
@@ -46,6 +47,30 @@ type DashboardTab = "benchmarks" | "inspector";
 
 export function App() {
   const [activeTab, setActiveTab] = useState<DashboardTab>("benchmarks");
+  const [runs, setRuns] = useState<BenchmarkRun[]>(BENCHMARK_RUNS);
+  const [isLoading, setIsLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isCancelled = false;
+    getBenchmarkRuns()
+      .then((fetchedRuns) => {
+        if (!isCancelled) {
+          setRuns(fetchedRuns);
+          setIsLoading(false);
+        }
+      })
+      .catch((error: unknown) => {
+        if (!isCancelled) {
+          setLoadError(error instanceof Error ? error.message : "failed to load runs");
+          setIsLoading(false);
+        }
+      });
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -72,7 +97,11 @@ export function App() {
         ) : (
         <section className="panel">
           <h2>Benchmark runs</h2>
-          <BenchmarkTable runs={BENCHMARK_RUNS} />
+          {isLoading && <p className="status-line">Loading benchmark runs…</p>}
+          {loadError !== null && (
+            <p className="error-banner">Could not load benchmark runs: {loadError}</p>
+          )}
+          {!isLoading && loadError === null && <BenchmarkTable runs={runs} />}
         </section>
         )}
       </main>
