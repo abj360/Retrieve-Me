@@ -57,6 +57,7 @@ export function App() {
       .then((fetchedRuns) => {
         if (!isCancelled) {
           setRuns(fetchedRuns);
+          setLoadError(null);
           setIsLoading(false);
         }
       })
