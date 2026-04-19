@@ -14,7 +14,7 @@ CITATION_SYSTEM_PROMPT = """You answer questions using only the provided sources
 Cite every claim with the source number in square brackets, like [1] or [2].
 If the sources do not contain the answer, say you do not know."""
 
-MAX_CONTEXT_CHUNKS = 5
+MAX_CONTEXT_CHUNKS = 5  # five sources fit the model's comfortable context
 
 
 def format_source_block(result: RankedResult, index: int) -> str:
