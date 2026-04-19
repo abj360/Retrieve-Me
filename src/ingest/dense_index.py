@@ -233,7 +233,7 @@ class DenseIndex:
                     )
                 )
                 logger.debug(
-                    "upserted batch %d-%d of %d",
+                    "upserted batch %d-%d of %d points",
                     start,
                     start + len(batch),
                     len(points),
