@@ -64,6 +64,7 @@ export function App() {
       .catch((error: unknown) => {
         if (!isCancelled) {
           setLoadError(error instanceof Error ? error.message : "failed to load runs");
+          setRuns([]);
           setIsLoading(false);
         }
       });
