@@ -80,3 +80,10 @@ def test_retry_with_backoff_gives_up(monkeypatch) -> None:
 
     with pytest.raises(TimeoutError):
         retry_with_backoff(always_fails, retries=2)
+
+
+def test_upsert_empty_list_is_noop() -> None:
+    """Asserts an empty upsert skips the client entirely."""
+    client = FakeQdrantClient()
+    assert make_index(client).upsert([], [], []) == 0
+    assert client.upsert_calls == 0
