@@ -54,3 +54,8 @@ def test_prompt_starts_with_system_instructions() -> None:
     """Asserts the system prompt opens the assembled prompt."""
     prompt = build_citation_prompt("q?", [make_result(1)])
     assert prompt.startswith("You answer questions")
+
+
+def test_source_block_includes_doc_label() -> None:
+    """Asserts source blocks carry the document label."""
+    assert "(doc: doc-1)" in format_source_block(make_result(1), 1)
