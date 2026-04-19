@@ -5,7 +5,7 @@ citation.py --- prompt templates for citation-grounded generation
 Contains:
     CITATION_SYSTEM_PROMPT: system instructions for grounded answers
     build_citation_prompt(): assembles the grounded-generation prompt
-    format_source_block(): formats one numbered source block
+    format_source_block(): formats one numbered, doc-labelled source block
 """
 
 from src.retrieval.fusion import RankedResult
