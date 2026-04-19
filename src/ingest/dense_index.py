@@ -232,6 +232,12 @@ class DenseIndex:
                         collection_name=self.config.collection, points=batch
                     )
                 )
+                logger.debug(
+                    "upserted batch %d-%d of %d",
+                    start,
+                    start + len(batch),
+                    len(points),
+                )
         return len(points)
 
     def search(self, vector: list[float], top_k: int) -> list[DenseHit]:
