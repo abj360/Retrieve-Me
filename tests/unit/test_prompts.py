@@ -65,3 +65,10 @@ def test_prompt_sources_numbered_sequentially() -> None:
     """Asserts sources number 1..n in order."""
     prompt = build_citation_prompt("q?", [make_result(1), make_result(2)])
     assert "[1]" in prompt and "[2]" in prompt
+
+
+def test_system_prompt_forbids_outside_knowledge() -> None:
+    """Asserts the system prompt bans outside knowledge."""
+    from src.generation.prompts.citation import CITATION_SYSTEM_PROMPT
+
+    assert "outside knowledge" in CITATION_SYSTEM_PROMPT
