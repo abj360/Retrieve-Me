@@ -27,7 +27,7 @@ def format_source_block(result: RankedResult, index: int) -> str:
     Returns:
         block: Numbered source block for the prompt.
     """
-    return f"[{index}] {result.text}"
+    return f"[{index}] (doc: {result.doc_id}) {result.text}"
 
 
 def build_citation_prompt(query: str, results: list[RankedResult]) -> str:
