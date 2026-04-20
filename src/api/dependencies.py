@@ -7,12 +7,27 @@ Contains:
     get_settings(): returns the shared Settings instance
     get_redis(): builds a Redis connection from settings
     get_query_cache(): builds the shared query-response cache
+    get_qdrant_pool(): builds the shared Qdrant client pool
+    build_pipeline(): assembles the hybrid retrieval pipeline
+    get_pipeline(): returns the shared hybrid retrieval pipeline
 """
+
+from functools import lru_cache
 
 import redis
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from src.api.cache import QueryCache, RedisQueryCache
+from src.ingest.bm25_index import BM25Index
+from src.ingest.dense_index import DenseIndex, QdrantClientPool, QdrantConfig
+from src.retrieval.embeddings import EmbeddingConfig, SentenceTransformerEmbedder
+from src.retrieval.fusion import FusionConfig, ResultFuser
+from src.retrieval.rerank import CrossEncoderReranker, RerankerConfig
+from src.retrieval.strategies import (
+    DenseRetrievalStrategy,
+    HybridRetriever,
+    SparseRetrievalStrategy,
+)
 
 DEFAULT_TOP_K = 10
 DEFAULT_CANDIDATE_K = 50
@@ -32,6 +47,8 @@ class Settings(BaseSettings):
         default_top_k: Default number of chunks returned per query.
         candidate_k: Number of candidates fused before reranking.
         log_level: Root log level for the service.
+        embedding_model: Sentence-transformers model for dense embeddings.
+        reranker_model: Cross-encoder model used for reranking.
     """
 
     model_config = SettingsConfigDict(env_prefix="RETRIEVAL_")
@@ -43,13 +60,16 @@ class Settings(BaseSettings):
     default_top_k: int = DEFAULT_TOP_K
     candidate_k: int = DEFAULT_CANDIDATE_K
     log_level: str = DEFAULT_LOG_LEVEL
+    embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
+    reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
 
 
+@lru_cache(maxsize=1)
 def get_settings() -> Settings:
     """Returns the service settings, resolved from RETRIEVAL_* environment variables.
 
     Returns:
-        settings: Populated Settings instance.
+        settings: Cached Settings instance shared by all providers.
     """
     return Settings()
 
@@ -77,3 +97,47 @@ def get_query_cache(settings: Settings | None = None) -> QueryCache:
     """
     resolved = settings or get_settings()
     return RedisQueryCache(get_redis(resolved), ttl_seconds=resolved.cache_ttl_seconds)
+
+
+def get_qdrant_pool(settings: Settings) -> QdrantClientPool:
+    """Builds the shared Qdrant client pool.
+
+    Args:
+        settings: Service settings carrying the Qdrant URL and collection.
+
+    Returns:
+        pool: Bounded pool of Qdrant clients.
+    """
+    config = QdrantConfig(url=settings.qdrant_url, collection=settings.qdrant_collection)
+    return QdrantClientPool(config)
+
+
+def build_pipeline(settings: Settings) -> HybridRetriever:
+    """Assembles the hybrid retrieval pipeline from settings.
+
+    Args:
+        settings: Service settings with model names and pool targets.
+
+    Returns:
+        pipeline: Hybrid retriever combining sparse, dense, fusion, rerank.
+    """
+    embedder = SentenceTransformerEmbedder(EmbeddingConfig(model_name=settings.embedding_model))
+    sparse = SparseRetrievalStrategy(BM25Index())
+    dense_index = DenseIndex(
+        QdrantConfig(url=settings.qdrant_url, collection=settings.qdrant_collection),
+        get_qdrant_pool(settings),
+    )
+    dense = DenseRetrievalStrategy(dense_index, embedder)
+    fuser = ResultFuser(FusionConfig())
+    reranker = CrossEncoderReranker(RerankerConfig(model_name=settings.reranker_model))
+    return HybridRetriever(sparse, dense, fuser, reranker, candidate_k=settings.candidate_k)
+
+
+@lru_cache(maxsize=1)
+def get_pipeline() -> HybridRetriever:
+    """Returns the shared hybrid retrieval pipeline.
+
+    Returns:
+        pipeline: Pipeline assembled from the cached settings.
+    """
+    return build_pipeline(get_settings())
