@@ -41,7 +41,7 @@ class FakePipeline:
                 chunk_id=f"chunk-{index}",
                 doc_id=f"doc-{index}",
                 text=f"passage {index} for {query}",
-                score=1.0 - index * 0.01,
+                score=1.0 - index * FAKE_SCORE_STEP,
                 source="fused",
             )
             for index in range(FAKE_RESULT_COUNT)
