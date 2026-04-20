@@ -79,7 +79,7 @@ export function QueryInspector() {
               title={chunk.score.toFixed(2)}
               style={{ width: `${Math.round(chunk.score * 100)}%` }}
             />
-            <span className="result-score">{chunk.score.toFixed(2)}</span>
+            <span className="result-score">{chunk.score.toFixed(3)}</span>
           </li>
         ))}
       </ol>
