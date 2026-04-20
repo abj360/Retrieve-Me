@@ -19,6 +19,7 @@ from src.api.main import create_app
 from src.retrieval.fusion import RankedResult
 
 FAKE_RESULT_COUNT = 30
+FAKE_SCORE_STEP = 0.01
 
 
 class FakePipeline:
