@@ -38,7 +38,7 @@ class FakePipeline:
         """
         return [
             RankedResult(
-                chunk_id=f"chunk-{index}",
+                chunk_id=f"chunk-{index:03d}",
                 doc_id=f"doc-{index}",
                 text=f"passage {index} for {query}",
                 score=1.0 - index * FAKE_SCORE_STEP,
