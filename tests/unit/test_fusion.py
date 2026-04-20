@@ -155,3 +155,13 @@ def test_normalize_constant_scores_become_ones() -> None:
     results = [make_result("a", 0.5), make_result("b", 0.5)]
     normalized = normalize_min_max(results)
     assert [result.score for result in normalized] == [1.0, 1.0]
+
+
+def test_normalize_two_values_becomes_zero_and_one() -> None:
+    """Asserts a two-hit leg normalizes to exactly 0 and 1."""
+    from src.retrieval.fusion import normalize_min_max
+
+    normalized = normalize_min_max([make_result("a", 4.0), make_result("b", 9.0)])
+    scores = {result.chunk_id: result.score for result in normalized}
+    assert scores["a"] == 0.0
+    assert scores["b"] == 1.0
