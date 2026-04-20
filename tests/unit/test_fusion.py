@@ -146,3 +146,12 @@ def test_duplicate_chunk_across_legs_scores_higher() -> None:
         [make_result("shared", 0.85, "dense"), make_result("dense-only", 0.7, "dense")],
     )
     assert fused[0].chunk_id == "shared"
+
+
+def test_normalize_constant_scores_become_ones() -> None:
+    """Asserts a constant-score leg normalizes to all 1.0."""
+    from src.retrieval.fusion import normalize_min_max
+
+    results = [make_result("a", 0.5), make_result("b", 0.5)]
+    normalized = normalize_min_max(results)
+    assert [result.score for result in normalized] == [1.0, 1.0]
