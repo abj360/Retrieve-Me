@@ -41,6 +41,10 @@ export function QueryInspector() {
       : MOCK_RESULTS.filter((chunk) =>
           chunk.text.toLowerCase().includes(submitted.toLowerCase().trim()),
         );
+  const stageCounts = visibleResults.reduce(
+    (counts, chunk) => ({ ...counts, [chunk.source]: (counts[chunk.source] ?? 0) + 1 }),
+    {} as Record<string, number>,
+  );
 
   return (
     <section className="panel query-inspector">
@@ -58,11 +62,19 @@ export function QueryInspector() {
           Inspect
         </button>
       </div>
+      <div className="stage-breakdown">
+        {(["sparse", "dense", "fused"] as const).map((stage) => (
+          <span key={stage} className={`badge source-${stage}`}>
+            {stage}: {stageCounts[stage] ?? 0}
+          </span>
+        ))}
+      </div>
       <ol className="result-list" aria-label="inspection results">
         {visibleResults.map((chunk) => (
           <li key={chunk.chunkId} className="result-item">
             <span className={`badge source-${chunk.source}`}>{chunk.source}</span>
             <span className="result-text">{chunk.text}</span>
+            <span className="score-bar" style={{ width: `${Math.round(chunk.score * 100)}%` }} />
             <span className="result-score">{chunk.score.toFixed(2)}</span>
           </li>
         ))}
