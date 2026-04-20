@@ -47,7 +47,7 @@ def create_app() -> FastAPI:
         Returns:
             metadata: Service name and documentation pointer.
         """
-        return {"service": "retrieval-core", "docs": "/docs"}
+        return {"service": "retrieval-core", "status": "ok", "docs": "/docs"}
 
     return app
 
