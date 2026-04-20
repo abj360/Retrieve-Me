@@ -74,7 +74,11 @@ export function QueryInspector() {
           <li key={chunk.chunkId} className="result-item">
             <span className={`badge source-${chunk.source}`}>{chunk.source}</span>
             <span className="result-text">{chunk.text}</span>
-            <span className="score-bar" style={{ width: `${Math.round(chunk.score * 100)}%` }} />
+            <span
+              className="score-bar"
+              title={chunk.score.toFixed(2)}
+              style={{ width: `${Math.round(chunk.score * 100)}%` }}
+            />
             <span className="result-score">{chunk.score.toFixed(2)}</span>
           </li>
         ))}
