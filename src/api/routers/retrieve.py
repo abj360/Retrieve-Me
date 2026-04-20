@@ -119,7 +119,7 @@ def retrieve(
     if cached is not None:
         logger.debug("cache hit for %s", key)
         return cached
-    logger.info("retrieve called with top_k=%d page=%d", payload.top_k, payload.page)
+    logger.info("retrieve q=%r top_k=%d page=%d", payload.query, payload.top_k, payload.page)
     ranked = pipeline.retrieve(payload.query, top_k=payload.top_k, filters=payload.filters)
     matches = [
         RetrievedChunk(
