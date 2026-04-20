@@ -165,3 +165,12 @@ def test_normalize_two_values_becomes_zero_and_one() -> None:
     scores = {result.chunk_id: result.score for result in normalized}
     assert scores["a"] == 0.0
     assert scores["b"] == 1.0
+
+
+def test_normalize_handles_negative_scores() -> None:
+    """Asserts negative raw scores normalize correctly."""
+    from src.retrieval.fusion import normalize_min_max
+
+    normalized = normalize_min_max([make_result("a", -2.0), make_result("b", 2.0)])
+    assert min(result.score for result in normalized) == 0.0
+    assert max(result.score for result in normalized) == 1.0
