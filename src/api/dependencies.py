@@ -135,7 +135,7 @@ def build_pipeline(settings: Settings) -> HybridRetriever:
 
 @lru_cache(maxsize=1)
 def get_pipeline() -> HybridRetriever:
-    """Returns the shared hybrid retrieval pipeline.
+    """Returns the shared hybrid retrieval pipeline, built once and cached.
 
     Returns:
         pipeline: Pipeline assembled from the cached settings.
