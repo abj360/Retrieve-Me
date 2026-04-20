@@ -52,7 +52,7 @@ export function QueryInspector() {
       <div className="query-box">
         <input
           type="text"
-          placeholder='Try a query, e.g. "indemnity clause"'
+          placeholder="Inspect a query, e.g. clause 3.1…"
           aria-label="query"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
