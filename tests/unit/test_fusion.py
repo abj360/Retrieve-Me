@@ -174,3 +174,11 @@ def test_normalize_handles_negative_scores() -> None:
     normalized = normalize_min_max([make_result("a", -2.0), make_result("b", 2.0)])
     assert min(result.score for result in normalized) == 0.0
     assert max(result.score for result in normalized) == 1.0
+
+
+def test_single_hit_leg_keeps_raw_score() -> None:
+    """Asserts a lone hit is not inflated to 1.0 by normalization."""
+    from src.retrieval.fusion import normalize_min_max
+
+    normalized = normalize_min_max([make_result("a", 7.5)])
+    assert normalized[0].score == 7.5
