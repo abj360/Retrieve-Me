@@ -62,7 +62,7 @@ export function QueryInspector() {
           Inspect
         </button>
       </div>
-      <div className="stage-breakdown">
+      <div className="stage-breakdown" aria-label="stage counts">
         {(["sparse", "dense", "fused"] as const).map((stage) => (
           <span key={stage} className={`badge source-${stage}`}>
             {stage} · {stageCounts[stage] ?? 0}
