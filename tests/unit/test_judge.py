@@ -168,3 +168,10 @@ def test_load_eval_dataset_skips_blank_lines(tmp_path) -> None:
         encoding="utf-8",
     )
     assert len(load_eval_dataset(target)) == 1
+
+
+def test_verdict_keeps_query_id() -> None:
+    """Asserts the verdict carries the query id through."""
+    judge = LLMJudge(CannedJudgeClient())
+    verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
+    assert verdict.query_id == "q-test"
