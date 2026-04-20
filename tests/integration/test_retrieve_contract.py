@@ -13,16 +13,50 @@ Contains:
 
 from fastapi.testclient import TestClient
 
+from src.api.cache import InMemoryQueryCache
+from src.api.dependencies import get_pipeline, get_query_cache
 from src.api.main import create_app
+from src.retrieval.fusion import RankedResult
+
+FAKE_RESULT_COUNT = 30
+
+
+class FakePipeline:
+    """Returns deterministic ranked results for contract tests."""
+
+    def retrieve(self, query: str, top_k: int = 10, filters: dict | None = None) -> list:
+        """Returns thirty deterministic results for any query.
+
+        Args:
+            query: Query text echoed into the fake passages.
+            top_k: Maximum number of chunks to return.
+            filters: Ignored by the fake.
+
+        Returns:
+            results: Deterministic ranked results with decreasing scores.
+        """
+        return [
+            RankedResult(
+                chunk_id=f"chunk-{index}",
+                doc_id=f"doc-{index}",
+                text=f"passage {index} for {query}",
+                score=1.0 - index * 0.01,
+                source="fused",
+            )
+            for index in range(FAKE_RESULT_COUNT)
+        ]
 
 
 def client() -> TestClient:
-    """Builds a TestClient for the service under test.
+    """Builds a TestClient with pipeline and cache overridden.
 
     Returns:
-        test_client: Client bound to a fresh app instance.
+        test_client: Client bound to an app with fake dependencies.
     """
-    return TestClient(create_app())
+    app = create_app()
+    app.dependency_overrides[get_pipeline] = FakePipeline()
+    app.dependency_overrides[get_query_cache] = InMemoryQueryCache()
+    return TestClient(app)
 
 
 def test_retrieve_returns_expected_schema() -> None:
