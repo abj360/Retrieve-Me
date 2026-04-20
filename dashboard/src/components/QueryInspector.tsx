@@ -65,7 +65,7 @@ export function QueryInspector() {
       <div className="stage-breakdown">
         {(["sparse", "dense", "fused"] as const).map((stage) => (
           <span key={stage} className={`badge source-${stage}`}>
-            {stage}: {stageCounts[stage] ?? 0}
+            {stage} · {stageCounts[stage] ?? 0}
           </span>
         ))}
       </div>
