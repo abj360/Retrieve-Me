@@ -43,7 +43,7 @@ export function QueryInspector() {
         );
   const stageCounts = visibleResults.reduce(
     (counts, chunk) => ({ ...counts, [chunk.source]: (counts[chunk.source] ?? 0) + 1 }),
-    {} as Record<string, number>,
+    {} as Record<string, number>  // stage counts start empty,
   );
 
   return (
