@@ -132,7 +132,7 @@ class QdrantClientPool:
             client = self._idle.get(timeout=self._acquire_timeout)
         except queue.Empty as exc:
             raise PoolExhaustedError(
-                f"no Qdrant client available within {self._acquire_timeout}s"
+                f"no Qdrant client free within {self._acquire_timeout}s"
             ) from exc
         try:
             yield client
