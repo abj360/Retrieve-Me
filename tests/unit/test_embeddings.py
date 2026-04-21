@@ -131,3 +131,13 @@ def test_encode_documents_matches_encode() -> None:
     embedder, _fake = make_embedder()
     docs = ["one", "two"]
     assert embedder.encode_documents(docs).shape == embedder.encode(docs).shape
+
+
+def test_deterministic_embedder_same_text_same_vector() -> None:
+    """Asserts the deterministic embedder is stable per text."""
+    from src.retrieval.embeddings import DeterministicEmbedder
+
+    embedder = DeterministicEmbedder(dimension=16)
+    first = embedder.encode(["stable text"])[0]
+    second = embedder.encode(["stable text"])[0]
+    assert list(first) == list(second)
