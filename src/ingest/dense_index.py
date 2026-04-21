@@ -139,6 +139,11 @@ class QdrantClientPool:
         finally:
             self._idle.put(client)
 
+    def close(self) -> None:
+        """Closes every idle client held by the pool."""
+        while not self._idle.empty():
+            self._idle.get_nowait().close()
+
 
 class DenseIndex:
     """Builds and searches the Qdrant collection for chunk vectors.
