@@ -8,8 +8,10 @@ Contains:
     SentenceTransformerEmbedder: lazily loads the model and encodes texts
     SentenceTransformerEmbedder.encode_query(): encodes one query into a vector
     SentenceTransformerEmbedder.encode_documents(): encodes documents into vectors
+    DeterministicEmbedder: hashing-based embedder for offline development and tests
 """
 
+import hashlib
 import logging
 from collections.abc import Iterable, Sequence
 from dataclasses import dataclass
@@ -130,5 +132,74 @@ class SentenceTransformerEmbedder:
 
         Returns:
             vectors: One vector per document.
+        """
+        return self.encode(documents)
+
+
+class DeterministicEmbedder:
+    """Produces deterministic pseudo-embeddings from text hashes for offline dev/tests.
+
+    Attributes:
+        dimension: Dimensionality of the produced vectors.
+    """
+
+    def __init__(self, dimension: int = 384, normalize: bool = True) -> None:
+        """Stores the vector dimension and normalization flag.
+
+        Args:
+            dimension: Dimensionality of the produced vectors.
+            normalize: Whether to L2-normalize output vectors.
+        """
+        self._dimension = dimension
+        self._normalize = normalize
+
+    @property
+    def dimension(self) -> int:
+        """Returns the vector dimensionality.
+
+        Returns:
+            dimension: Vector dimension configured at construction.
+        """
+        return self._dimension
+
+    def encode(self, texts: list[str]) -> np.ndarray:
+        """Encodes texts into deterministic hash-derived vectors.
+
+        Args:
+            texts: Raw texts to encode.
+
+        Returns:
+            vectors: One deterministic vector per input text.
+        """
+        vectors = np.zeros((len(texts), self._dimension), dtype=np.float32)
+        for row, text in enumerate(texts):
+            digest = hashlib.sha256(text.encode("utf-8")).digest()
+            repeats = (self._dimension + len(digest) - 1) // len(digest)
+            values = np.frombuffer(digest * repeats, dtype=np.uint8)[: self._dimension]
+            vectors[row] = (values.astype(np.float32) - 128.0) / 128.0
+        if self._normalize:
+            norms = np.linalg.norm(vectors, axis=1, keepdims=True)
+            vectors = vectors / np.where(norms == 0, 1.0, norms)
+        return vectors
+
+    def encode_query(self, query: str) -> np.ndarray:
+        """Encodes one query into a deterministic vector.
+
+        Args:
+            query: Raw query text.
+
+        Returns:
+            vector: Deterministic vector for the query.
+        """
+        return self.encode([query])[0]
+
+    def encode_documents(self, documents: list[str]) -> np.ndarray:
+        """Encodes documents into deterministic vectors.
+
+        Args:
+            documents: Raw document texts.
+
+        Returns:
+            vectors: One deterministic vector per document.
         """
         return self.encode(documents)
