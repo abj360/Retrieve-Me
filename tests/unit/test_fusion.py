@@ -182,3 +182,15 @@ def test_single_hit_leg_keeps_raw_score() -> None:
 
     normalized = normalize_min_max([make_result("a", 7.5)])
     assert normalized[0].score == 7.5
+
+
+def test_fuse_many_three_legs() -> None:
+    """Asserts three weighted legs fuse with their weights applied."""
+    fused = ResultFuser(FusionConfig()).fuse_many(
+        [
+            ([make_result("a", 0.9)], 1.0),
+            ([make_result("b", 0.8, "dense")], 1.0),
+            ([make_result("c", 0.7, "dense")], 0.5),
+        ]
+    )
+    assert {result.chunk_id for result in fused} == {"a", "b", "c"}
