@@ -160,3 +160,11 @@ def test_deterministic_embedder_unit_norm() -> None:
 
     vector = DeterministicEmbedder(dimension=16).encode(["norm check"])[0]
     assert np.linalg.norm(vector) == pytest.approx(1.0)
+
+
+def test_deterministic_embedder_query_matches_encode() -> None:
+    """Asserts encode_query equals encode of the singleton list."""
+    from src.retrieval.embeddings import DeterministicEmbedder
+
+    embedder = DeterministicEmbedder(dimension=16)
+    assert list(embedder.encode_query("q")) == list(embedder.encode(["q"])[0])
