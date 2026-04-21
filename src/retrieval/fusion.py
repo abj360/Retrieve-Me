@@ -5,7 +5,7 @@ fusion.py --- combines BM25 and dense results via Reciprocal Rank Fusion
 Contains:
     FusionConfig: tunable weights for the RRF step
     RankedResult: one scored retrieval result
-    normalize_min_max(): rescales scores into [0, 1] per leg
+    normalize_min_max(): rescales one leg's scores into [0, 1]
     ResultFuser: merges two ranked lists into one fused ranking
 """
 
