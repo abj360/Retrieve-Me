@@ -29,7 +29,7 @@ DEFAULT_VECTOR_SIZE = 384  # all-MiniLM-L6-v2 output size
 DEFAULT_BATCH_SIZE = 100  # qdrant handles this comfortably per request
 DEFAULT_POOL_SIZE = 8  # one client per expected concurrent worker
 DEFAULT_ACQUIRE_TIMEOUT_SECONDS = 5.0
-MAX_RETRIES = 3
+MAX_RETRIES = 3  # transient blips clear within a second of backoff
 RETRY_BASE_DELAY_SECONDS = 0.2  # doubles each attempt
 
 T = TypeVar("T")
