@@ -8,7 +8,7 @@ Contains:
     SentenceTransformerEmbedder: lazily loads the model and encodes texts
     SentenceTransformerEmbedder.encode_query(): encodes one query into a vector
     SentenceTransformerEmbedder.encode_documents(): encodes documents into vectors
-    DeterministicEmbedder: hashing-based embedder for offline development and tests
+    DeterministicEmbedder: hashing-based embedder for offline dev and test suites
 """
 
 import hashlib
