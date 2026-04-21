@@ -150,3 +150,13 @@ def test_deterministic_embedder_different_texts_differ() -> None:
     embedder = DeterministicEmbedder(dimension=16)
     first, second = embedder.encode(["alpha", "beta"])
     assert list(first) != list(second)
+
+
+def test_deterministic_embedder_unit_norm() -> None:
+    """Asserts deterministic vectors are L2-normalized by default."""
+    import numpy as np
+
+    from src.retrieval.embeddings import DeterministicEmbedder
+
+    vector = DeterministicEmbedder(dimension=16).encode(["norm check"])[0]
+    assert np.linalg.norm(vector) == pytest.approx(1.0)
