@@ -172,3 +172,36 @@ class ResultFuser:
             fused: Deduplicated results sorted by fused score, best first.
         """
         return self.fuse(sparse, dense)
+
+
+    def fuse_many(self, legs: list[tuple[list[RankedResult], float]]) -> list[RankedResult]:
+        """Merges any number of weighted ranked lists via RRF.
+
+        Args:
+            legs: (ranked results, weight) pairs to fuse.
+
+        Returns:
+            fused: Deduplicated results sorted by fused score, best first.
+        """
+        scores: dict[str, float] = {}
+        by_id: dict[str, RankedResult] = {}
+        for leg, weight in legs:
+            if self.config.normalize_scores:
+                leg = normalize_min_max(leg)
+            for rank, result in enumerate(leg, start=1):
+                scores[result.chunk_id] = scores.get(result.chunk_id, 0.0) + weight / (
+                    self.config.rrf_k + rank
+                )
+                by_id.setdefault(result.chunk_id, result)
+        fused = [
+            RankedResult(
+                chunk_id=chunk_id,
+                doc_id=by_id[chunk_id].doc_id,
+                text=by_id[chunk_id].text,
+                score=score,
+                source="fused",
+                metadata=by_id[chunk_id].metadata,
+            )
+            for chunk_id, score in scores.items()
+        ]
+        return self._rank_by_score(fused)
