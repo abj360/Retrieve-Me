@@ -141,3 +141,12 @@ def test_deterministic_embedder_same_text_same_vector() -> None:
     first = embedder.encode(["stable text"])[0]
     second = embedder.encode(["stable text"])[0]
     assert list(first) == list(second)
+
+
+def test_deterministic_embedder_different_texts_differ() -> None:
+    """Asserts different texts get different deterministic vectors."""
+    from src.retrieval.embeddings import DeterministicEmbedder
+
+    embedder = DeterministicEmbedder(dimension=16)
+    first, second = embedder.encode(["alpha", "beta"])
+    assert list(first) != list(second)
