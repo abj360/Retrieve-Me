@@ -207,3 +207,10 @@ def test_semantic_chunk_ids_stable(sample_documents, token_chunker) -> None:
     first = [chunk.chunk_id for chunk in token_chunker.split(text, "license-agreement")]
     second = [chunk.chunk_id for chunk in token_chunker.split(text, "license-agreement")]
     assert first == second
+
+
+def test_semantic_pack_order_preserved(sample_documents, token_chunker) -> None:
+    """Asserts chunks come out in document order."""
+    _doc_id, text = sample_documents[0]
+    chunks = token_chunker.split(text, "license-agreement")
+    assert [chunk.index for chunk in chunks] == sorted(chunk.index for chunk in chunks)
