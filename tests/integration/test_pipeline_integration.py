@@ -191,3 +191,11 @@ def test_semantic_chunker_preserves_clause_text(sample_documents, token_chunker)
     chunks = token_chunker.split(sample_documents[0][1], "license-agreement")
     assert any("Section 3.1" in chunk.text for chunk in chunks)
     assert all(chunk.token_count <= 48 for chunk in chunks)
+
+
+def test_semantic_chunks_cover_full_document(sample_documents, token_chunker) -> None:
+    """Asserts semantic chunks cover the document without dropping content."""
+    _doc_id, text = sample_documents[0]
+    chunks = token_chunker.split(text, "license-agreement")
+    for phrase in ("Section 3.1", "Section 3.2"):
+        assert any(phrase in chunk.text for chunk in chunks)
