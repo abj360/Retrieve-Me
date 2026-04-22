@@ -21,7 +21,7 @@ import numpy as np
 import pytest
 
 from src.ingest.bm25_index import BM25Index
-from src.ingest.chunking import ChunkConfig, TokenAwareChunker
+from src.ingest.chunking import ChunkConfig, SemanticClauseChunker
 from src.ingest.dense_index import DenseHit
 
 
@@ -244,9 +244,9 @@ def fake_dense_index() -> FakeDenseIndex:
 
 
 @pytest.fixture
-def token_chunker() -> TokenAwareChunker:
+def token_chunker() -> SemanticClauseChunker:
     """Returns the real chunker with a small token budget for tests."""
-    return TokenAwareChunker(ChunkConfig(max_tokens=48, overlap_tokens=8, min_chunk_tokens=5))
+    return SemanticClauseChunker(ChunkConfig(max_tokens=48, overlap_tokens=8, min_chunk_tokens=5))
 
 
 class StubReranker:

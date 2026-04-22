@@ -6,13 +6,17 @@ Contains:
     ChunkConfig: tunable token budget and overlap for the chunker
     Chunk: one chunk produced by the chunker
     Chunker: interface all chunkers implement
-    TokenAwareChunker: splits text into fixed-size token windows with overlap
+    SemanticClauseChunker: splits text on sentence and clause boundaries
 """
 
 import re
 from dataclasses import dataclass, field, replace
 from typing import Protocol
 
+SENTENCE_BOUNDARY = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9(\"'])")
+CLAUSE_BOUNDARY = re.compile(
+    r"(?<=\s)(?=(?:section|clause|article)\s+\d)", re.IGNORECASE
+)
 TOKEN_PATTERN = re.compile(r"\S+")  # whitespace-delimited approximation
 DEFAULT_MAX_TOKENS = 512  # matches the embedder's comfortable context size
 DEFAULT_OVERLAP_TOKENS = 64  # ~12% of the window
@@ -70,8 +74,8 @@ class Chunker(Protocol):
         """
 
 
-class TokenAwareChunker:
-    """Splits text into fixed-size token windows with overlap.
+class SemanticClauseChunker:
+    """Splits text on sentence and clause boundaries, packing to the token budget.
 
     Attributes:
         config: Token budget and overlap settings.
@@ -97,40 +101,90 @@ class TokenAwareChunker:
         return len(TOKEN_PATTERN.findall(text))
 
     def split(self, text: str, doc_id: str) -> list[Chunk]:
-        """Splits text into fixed-size token windows with overlap.
+        """Splits text into chunks on sentence and clause boundaries.
 
         Args:
             text: Raw document text.
             doc_id: Identifier of the document being split.
 
         Returns:
-            chunks: Fixed-size chunks covering the document in order.
+            chunks: Boundary-aligned chunks covering the document in order.
         """
-        tokens = TOKEN_PATTERN.findall(text)
-        if not tokens:
+        sentences = self._split_sentences(text)
+        return self._merge_tail(self._pack(sentences, doc_id))
+
+    def _split_sentences(self, text: str) -> list[str]:
+        """Splits raw text into sentences, breaking at clause markers.
+
+        Args:
+            text: Raw document text.
+
+        Returns:
+            sentences: Sentence and clause fragments in document order.
+        """
+        normalized = re.sub(r"\s*\n\s*", " ", text.strip())
+        if not normalized:
             return []
-        step = self.config.max_tokens - self.config.overlap_tokens
-        chunks = []
-        for index, start in enumerate(range(0, len(tokens), step)):
-            window = tokens[start : start + self.config.max_tokens]
-            chunks.append(
-                Chunk(
-                    chunk_id=f"{doc_id}-chunk-{index}",
-                    doc_id=doc_id,
-                    text=" ".join(window),
-                    token_count=len(window),
-                    index=index,
-                )
-            )
-            if start + self.config.max_tokens >= len(tokens):
-                break
-        return self._merge_tail(chunks)
+        pieces: list[str] = []
+        for sentence in SENTENCE_BOUNDARY.split(normalized):
+            start = 0
+            for match in CLAUSE_BOUNDARY.finditer(sentence):
+                if match.start() > start:
+                    pieces.append(sentence[start : match.start()].strip())
+                    start = match.start()
+            pieces.append(sentence[start:].strip())
+        return [piece for piece in pieces if piece]
+
+    def _pack(self, sentences: list[str], doc_id: str) -> list[Chunk]:
+        """Packs sentences into chunks up to the token budget.
+
+        Args:
+            sentences: Sentence fragments in document order.
+            doc_id: Identifier of the document being split.
+
+        Returns:
+            chunks: Packed chunks in document order.
+        """
+        chunks: list[Chunk] = []
+        current: list[str] = []
+        current_tokens = 0
+        for sentence in sentences:
+            sentence_tokens = self.count_tokens(sentence)
+            if current and current_tokens + sentence_tokens > self.config.max_tokens:
+                chunks.append(self._make_chunk(current, doc_id, len(chunks)))
+                current = []
+                current_tokens = 0
+            current.append(sentence)
+            current_tokens += sentence_tokens
+        if current:
+            chunks.append(self._make_chunk(current, doc_id, len(chunks)))
+        return chunks
+
+    def _make_chunk(self, sentences: list[str], doc_id: str, index: int) -> Chunk:
+        """Builds one chunk from packed sentences.
+
+        Args:
+            sentences: Sentences belonging to the chunk.
+            doc_id: Identifier of the document being split.
+            index: Position of the chunk within the document.
+
+        Returns:
+            chunk: Chunk covering the given sentences.
+        """
+        text = " ".join(sentences)
+        return Chunk(
+            chunk_id=f"{doc_id}-chunk-{index}",
+            doc_id=doc_id,
+            text=text,
+            token_count=self.count_tokens(text),
+            index=index,
+        )
 
     def _merge_tail(self, chunks: list[Chunk]) -> list[Chunk]:
         """Merges a tiny final chunk into its predecessor.
 
         Args:
-            chunks: Chunks produced by the fixed windows.
+            chunks: Chunks produced by the packer.
 
         Returns:
             merged: Chunks with an undersized tail folded back.
