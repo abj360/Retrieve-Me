@@ -44,11 +44,11 @@ def smoke_documents() -> list[Document]:
     ]
 
 
-def test_ingest_smoke_writes_chunks(smoke_documents, whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_smoke_writes_chunks(smoke_documents, token_chunker, fake_dense_index) -> None:
     """Asserts an ingest run writes chunks and calls the embedder."""
     embedder = MockEmbedder()
     bm25 = BM25Index()
-    ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
+    ingestor = CorpusIngestor(token_chunker, embedder, fake_dense_index, bm25)
     ingested = ingestor.ingest(smoke_documents)
     assert ingested > 0
     assert embedder.calls > 0
