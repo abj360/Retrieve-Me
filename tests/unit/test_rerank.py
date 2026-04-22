@@ -143,3 +143,26 @@ def test_min_score_none_keeps_everything() -> None:
     candidates = [make_candidate(f"c-{index}", f"text {index}") for index in range(3)]
     reranked = make_reranker(min_score=None).rerank("query", candidates)
     assert len(reranked) == 3
+
+
+def test_batch_size_respected_in_scoring() -> None:
+    """Asserts pairs are scored in config-sized batches."""
+
+    class RecordingEncoder(FakeCrossEncoder):
+        """Records predict batch sizes."""
+
+        def __init__(self) -> None:
+            """Creates the recorder."""
+            self.batch_sizes: list[int] = []
+
+        def predict(self, pairs, batch_size: int):
+            """Records the batch size and scores by length."""
+            self.batch_sizes.append(len(pairs))
+            return super().predict(pairs, batch_size)
+
+    reranker = CrossEncoderReranker(RerankerConfig(batch_size=2))
+    recorder = RecordingEncoder()
+    reranker._model = recorder
+    candidates = [make_candidate(f"c-{index}", f"text {index}") for index in range(5)]
+    reranker.rerank("query", candidates)
+    assert recorder.batch_sizes == [2, 2, 1]
