@@ -210,3 +210,10 @@ def test_semantic_chunks_within_budget(token_chunker) -> None:
     text = " ".join(f"Sentence {index} has six tokens in total." for index in range(40))
     chunks = token_chunker.split(text, "budget")
     assert all(chunk.token_count <= 48 for chunk in chunks)
+
+
+def test_semantic_pack_order_stable(token_chunker) -> None:
+    """Asserts semantic chunk order matches document order."""
+    text = "Alpha sentence. Beta sentence. Gamma sentence. Delta sentence."
+    chunks = token_chunker.split(text, "order")
+    assert [chunk.index for chunk in chunks] == list(range(len(chunks)))
