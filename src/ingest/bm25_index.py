@@ -59,7 +59,7 @@ class BM25Index:
         chunk_ids: Identifiers of the indexed chunks, in build order.
     """
 
-    def __init__(self, k1: float = 1.5, b: float = 0.75) -> None:
+    def __init__(self, k1: float = 1.5, b: float = 0.75) -> None:  # Okapi defaults
         """Creates an empty index; build() must be called before search.
 
         Args:
