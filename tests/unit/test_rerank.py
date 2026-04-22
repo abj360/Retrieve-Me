@@ -126,3 +126,13 @@ def test_tuner_uses_ndcg_at_ten() -> None:
 
     assert ndcg_at_k(["a"], {"a"}, k=10) == 1.0
     assert ndcg_at_k(["b"], {"a"}, k=10) == 0.0
+
+
+def test_min_score_drops_weak_candidates() -> None:
+    """Asserts candidates below min_score are filtered out."""
+    candidates = [
+        make_candidate("weak", "hi"),
+        make_candidate("strong", "a sufficiently long candidate text to pass"),
+    ]
+    reranked = make_reranker(min_score=10.0).rerank("query", candidates)
+    assert [candidate.chunk_id for candidate in reranked] == ["strong"]
