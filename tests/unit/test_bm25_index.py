@@ -77,3 +77,10 @@ def test_empty_index_returns_no_hits() -> None:
     index = BM25Index()
     index.build([])
     assert index.search("anything", top_k=3) == []
+
+
+def test_blank_query_returns_no_hits() -> None:
+    """Asserts a whitespace-only query short-circuits to []."""
+    index = BM25Index()
+    index.build([make_chunk("a-0", "alpha beta")])
+    assert index.search("   ", top_k=2) == []
