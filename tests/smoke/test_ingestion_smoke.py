@@ -217,3 +217,11 @@ def test_semantic_pack_order_stable(token_chunker) -> None:
     text = "Alpha sentence. Beta sentence. Gamma sentence. Delta sentence."
     chunks = token_chunker.split(text, "order")
     assert [chunk.index for chunk in chunks] == list(range(len(chunks)))
+
+
+def test_semantic_tail_chunk_merged(token_chunker) -> None:
+    """Asserts an undersized trailing chunk folds into its predecessor."""
+    text = " ".join(f"Sentence {index} has six tokens in total." for index in range(30))
+    text += " Tiny."
+    chunks = token_chunker.split(text, "tail")
+    assert all(chunk.token_count >= 5 for chunk in chunks)
