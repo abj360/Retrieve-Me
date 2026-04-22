@@ -199,3 +199,11 @@ def test_semantic_chunks_cover_full_document(sample_documents, token_chunker) ->
     chunks = token_chunker.split(text, "license-agreement")
     for phrase in ("Section 3.1", "Section 3.2"):
         assert any(phrase in chunk.text for chunk in chunks)
+
+
+def test_semantic_chunk_ids_stable(sample_documents, token_chunker) -> None:
+    """Asserts repeated splitting yields identical chunk ids."""
+    _doc_id, text = sample_documents[0]
+    first = [chunk.chunk_id for chunk in token_chunker.split(text, "license-agreement")]
+    second = [chunk.chunk_id for chunk in token_chunker.split(text, "license-agreement")]
+    assert first == second
