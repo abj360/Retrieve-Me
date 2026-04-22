@@ -25,7 +25,7 @@ class RerankerConfig:
 
     Attributes:
         model_name: Hugging Face identifier of the cross-encoder model.
-        top_k: Candidates kept after reranking.
+        top_k: Candidates kept after reranking (tuned 2026-04 via grid search).
         batch_size: Pairs scored per forward pass.
         min_score: Minimum cross-encoder score to keep a candidate, or None.
         device: Torch device identifier, or None to let the library pick.
