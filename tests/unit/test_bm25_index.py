@@ -70,3 +70,10 @@ def test_save_load_roundtrip(tmp_path) -> None:
     restored = BM25Index()
     restored.load(target)
     assert restored.search("alpha", top_k=1)[0].chunk_id == "a-0"
+
+
+def test_empty_index_returns_no_hits() -> None:
+    """Asserts searching an empty built index returns []."""
+    index = BM25Index()
+    index.build([])
+    assert index.search("anything", top_k=3) == []
