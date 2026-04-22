@@ -136,3 +136,10 @@ def test_min_score_drops_weak_candidates() -> None:
     ]
     reranked = make_reranker(min_score=10.0).rerank("query", candidates)
     assert [candidate.chunk_id for candidate in reranked] == ["strong"]
+
+
+def test_min_score_none_keeps_everything() -> None:
+    """Asserts no filtering happens when min_score is unset."""
+    candidates = [make_candidate(f"c-{index}", f"text {index}") for index in range(3)]
+    reranked = make_reranker(min_score=None).rerank("query", candidates)
+    assert len(reranked) == 3
