@@ -81,3 +81,11 @@ def test_empty_text_yields_no_chunks() -> None:
     chunker = SemanticClauseChunker(ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4))
     assert chunker.split("", "doc-1") == []
     assert chunker.split("   ", "doc-1") == []
+
+
+def test_regression_clause_marker_kept_with_clause() -> None:
+    """Asserts a clause marker is never split from its clause (recall regression)."""
+    chunker = SemanticClauseChunker(ChunkConfig(max_tokens=48, overlap_tokens=8, min_chunk_tokens=5))
+    text = "Intro words here. Section 12.1 The licensee shall indemnify the vendor fully."
+    chunks = chunker.split(text, "doc-1")
+    assert any("Section 12.1" in chunk.text for chunk in chunks)
