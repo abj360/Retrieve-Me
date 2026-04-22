@@ -83,7 +83,7 @@ class CrossEncoderReranker:
             rescored = [
                 candidate for candidate in rescored if candidate.score >= self.config.min_score
             ]
-        rescored.sort(key=lambda candidate: (-candidate.score, candidate.chunk_id))
+        rescored.sort(key=lambda candidate: (-candidate.score, candidate.chunk_id))  # stable ties
         return rescored[: self.config.top_k]
 
     def _load_model(self) -> CrossEncoder:
