@@ -59,10 +59,17 @@ class BM25Index:
         chunk_ids: Identifiers of the indexed chunks, in build order.
     """
 
-    def __init__(self) -> None:
-        """Creates an empty index; build() must be called before search."""
+    def __init__(self, k1: float = 1.5, b: float = 0.75) -> None:
+        """Creates an empty index; build() must be called before search.
+
+        Args:
+            k1: BM25 term-frequency saturation parameter.
+            b: BM25 length-normalization parameter.
+        """
         self.chunk_ids: list[str] = []
         self._chunks: list = []
+        self._k1 = k1
+        self._b = b
         self._index: BM25Okapi | None = None
 
     def build(self, chunks: list) -> int:
@@ -77,7 +84,9 @@ class BM25Index:
         logger.info("building BM25 index over %d chunks", len(chunks))
         self._chunks = list(chunks)
         self.chunk_ids = [chunk.chunk_id for chunk in chunks]
-        self._index = BM25Okapi([tokenize(chunk.text) for chunk in chunks])
+        self._index = BM25Okapi(
+            [tokenize(chunk.text) for chunk in chunks], k1=self._k1, b=self._b
+        )
         return len(self.chunk_ids)
 
     def search(self, query: str, top_k: int) -> list[BM25Hit]:
@@ -92,6 +101,9 @@ class BM25Index:
         """
         if self._index is None:
             raise RuntimeError("BM25Index.search called before build()")
+        if not self.chunk_ids:
+            logger.debug("bm25 search on empty index, returning no hits")
+            return []
         scores = self._index.get_scores(tokenize(query))
         ranked = sorted(enumerate(scores), key=lambda pair: pair[1], reverse=True)
         return [
