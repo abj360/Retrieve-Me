@@ -27,12 +27,14 @@ class RerankerConfig:
         model_name: Hugging Face identifier of the cross-encoder model.
         top_k: Candidates kept after reranking.
         batch_size: Pairs scored per forward pass.
+        min_score: Minimum cross-encoder score to keep a candidate, or None.
         device: Torch device identifier, or None to let the library pick.
     """
 
     model_name: str = DEFAULT_RERANKER_MODEL
     top_k: int = 20
     batch_size: int = 32
+    min_score: float | None = None
     device: str | None = None
 
 
@@ -77,6 +79,10 @@ class CrossEncoderReranker:
             )
             for candidate, score in zip(candidates, scores, strict=True)
         ]
+        if self.config.min_score is not None:
+            rescored = [
+                candidate for candidate in rescored if candidate.score >= self.config.min_score
+            ]
         rescored.sort(key=lambda candidate: (-candidate.score, candidate.chunk_id))
         return rescored[: self.config.top_k]
 
