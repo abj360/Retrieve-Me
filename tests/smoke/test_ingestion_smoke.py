@@ -225,3 +225,15 @@ def test_semantic_tail_chunk_merged(token_chunker) -> None:
     text += " Tiny."
     chunks = token_chunker.split(text, "tail")
     assert all(chunk.token_count >= 5 for chunk in chunks)
+
+
+def test_ingest_exactly_one_batch(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts a 100-chunk corpus ingests in exactly one batch."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    documents = [
+        Document(doc_id=f"exact-{index:03d}", title="t", text=f"clause {index} text")
+        for index in range(100)
+    ]
+    CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
+    assert embedder.calls == 1
