@@ -184,3 +184,10 @@ def test_whole_doc_chunker_yields_one_chunk(sample_documents, whole_doc_chunker)
     """Asserts the whole-doc chunker emits exactly one chunk per document."""
     chunks = whole_doc_chunker.split(sample_documents[0][1], "license-agreement")
     assert len(chunks) == 1
+
+
+def test_semantic_chunker_preserves_clause_text(sample_documents, token_chunker) -> None:
+    """Asserts clause text survives chunking intact for exact-match lookup."""
+    chunks = token_chunker.split(sample_documents[0][1], "license-agreement")
+    assert any("Section 3.1" in chunk.text for chunk in chunks)
+    assert all(chunk.token_count <= 48 for chunk in chunks)
