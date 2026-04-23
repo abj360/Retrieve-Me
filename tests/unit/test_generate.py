@@ -179,3 +179,11 @@ def test_marker_zero_drops() -> None:
     client = StubLLM("Broken citation [0].")
     answer = CitationGenerator(client).generate("clause?", make_results())
     assert answer.citations == []
+
+
+def test_faithfulness_full_when_grounded() -> None:
+    """Asserts faithfulness is 1.0 when every citation is grounded."""
+    generator = CitationGenerator(StubLLM())
+    results = make_results()
+    answer = generator.generate("clause?", results)
+    assert generator.faithfulness(answer, results) == 1.0
