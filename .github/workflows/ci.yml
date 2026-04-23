@@ -44,5 +44,5 @@ jobs:
         run: mypy src
       - name: Unit tests
         run: pytest tests/unit -q
-      - name: Integration and smoke tests
+      - name: Integration + smoke tests
         run: pytest tests/integration tests/smoke -q
