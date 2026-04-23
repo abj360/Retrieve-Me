@@ -130,3 +130,26 @@ def test_duplicate_markers_dedupe() -> None:
     generator = CitationGenerator(client)
     answer = generator.generate("clause?", make_results())
     assert len(answer.citations) == 1
+
+
+def test_generate_retries_once_on_failure() -> None:
+    """Asserts one transient failure is retried."""
+
+    class FlakyLLM(StubLLM):
+        """Fails once, then succeeds."""
+
+        def __init__(self) -> None:
+            """Creates the flaky client."""
+            super().__init__()
+            self.failures = 0
+
+        def __call__(self, prompt: str, max_tokens: int = 512) -> str:
+            """Fails the first call, succeeds after."""
+            if self.failures == 0:
+                self.failures += 1
+                raise RuntimeError("transient llm error")
+            return super().__call__(prompt, max_tokens)
+
+    generator = CitationGenerator(FlakyLLM())
+    answer = generator.generate("clause?", make_results())
+    assert answer.answer
