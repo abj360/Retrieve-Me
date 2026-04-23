@@ -78,7 +78,7 @@ class CitationGenerator:
             answer: Generated answer with validated citations.
         """
         prompt = self._build_prompt(query, results)
-        raw = self.llm_client(prompt, max_tokens=self.max_tokens)
+        raw = self._call_llm(prompt)
         return GeneratedAnswer(answer=raw, citations=self._parse_citations(raw, results))
 
     def _build_prompt(self, query: str, results: list[RankedResult]) -> str:
@@ -115,3 +115,19 @@ class CitationGenerator:
                 Citation(chunk_id=result.chunk_id, doc_id=result.doc_id, quote=result.text[:80])
             )
         return citations
+
+
+    def _call_llm(self, prompt: str) -> str:
+        """Calls the LLM client with one retry on transient failure.
+
+        Args:
+            prompt: Assembled grounded-generation prompt.
+
+        Returns:
+            completion: Raw completion text.
+        """
+        try:
+            return self.llm_client(prompt, max_tokens=self.max_tokens)
+        except Exception as exc:
+            logger.warning("generation call failed once, retrying: %s", exc)
+            return self.llm_client(prompt, max_tokens=self.max_tokens)
