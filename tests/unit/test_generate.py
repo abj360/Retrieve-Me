@@ -172,3 +172,10 @@ def test_generate_reraises_persistent_failure() -> None:
         pass
     else:
         raise AssertionError("expected RuntimeError")
+
+
+def test_marker_zero_drops() -> None:
+    """Asserts a [0] marker drops (numbering starts at 1)."""
+    client = StubLLM("Broken citation [0].")
+    answer = CitationGenerator(client).generate("clause?", make_results())
+    assert answer.citations == []
