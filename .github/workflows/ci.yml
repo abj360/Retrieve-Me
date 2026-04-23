@@ -10,6 +10,7 @@ jobs:
   python:
     name: Python (3.12)
     runs-on: ubuntu-latest
+    # qdrant + redis back the integration and smoke tests
     services:
       qdrant:
         image: qdrant/qdrant:latest
