@@ -89,3 +89,10 @@ def test_generation_section_parsed(tmp_path) -> None:
     config = load_pipeline_config(write_config(tmp_path, FULL_CONFIG))
     assert config.generation.model_name == "gpt-4o-mini"
     assert config.generation.temperature == 0.0
+
+
+def test_eval_section_parsed(tmp_path) -> None:
+    """Asserts eval settings load from the YAML definition."""
+    config = load_pipeline_config(write_config(tmp_path, FULL_CONFIG))
+    assert config.eval.ndcg_k == 10
+    assert config.eval.recall_k == 50
