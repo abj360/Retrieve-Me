@@ -129,5 +129,5 @@ class CitationGenerator:
         try:
             return self.llm_client(prompt, max_tokens=self.max_tokens)
         except Exception as exc:
-            logger.warning("generation call failed once, retrying: %s", exc)
+            logger.warning("generation call failed, one retry: %s", exc)
             return self.llm_client(prompt, max_tokens=self.max_tokens)
