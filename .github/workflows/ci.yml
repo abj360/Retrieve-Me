@@ -2,6 +2,9 @@ name: CI
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 env:
   RETRIEVAL_QDRANT_URL: http://localhost:6333
   RETRIEVAL_REDIS_URL: redis://localhost:6379
