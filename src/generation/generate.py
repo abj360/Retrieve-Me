@@ -3,7 +3,7 @@
 generate.py --- citation-grounded generation over retrieved chunks
 
 Contains:
-    Citation: one grounded citation back to a retrieved chunk
+    Citation: one grounded citation back to a retrieved chunk (chunk, doc, quote)
     GeneratedAnswer: an answer with its grounded citations
     CitationGenerator: generates citation-grounded answers
 
