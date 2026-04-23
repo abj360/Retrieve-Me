@@ -153,3 +153,22 @@ def test_generate_retries_once_on_failure() -> None:
     generator = CitationGenerator(FlakyLLM())
     answer = generator.generate("clause?", make_results())
     assert answer.answer
+
+
+def test_generate_reraises_persistent_failure() -> None:
+    """Asserts a persistent failure propagates after the retry."""
+
+    class AlwaysFailsLLM(StubLLM):
+        """Fails on every call."""
+
+        def __call__(self, prompt: str, max_tokens: int = 512) -> str:
+            """Always raises."""
+            raise RuntimeError("llm down")
+
+    generator = CitationGenerator(AlwaysFailsLLM())
+    try:
+        generator.generate("clause?", make_results())
+    except RuntimeError:
+        pass
+    else:
+        raise AssertionError("expected RuntimeError")
