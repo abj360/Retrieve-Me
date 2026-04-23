@@ -34,3 +34,13 @@ cache:
 strategy:
   type: hybrid
   candidate_k: 50
+
+generation:
+  model_name: gpt-4o-mini
+  max_tokens: 512
+  temperature: 0.0
+
+eval:
+  judge_model: gpt-4o-mini
+  ndcg_k: 10
+  recall_k: 50

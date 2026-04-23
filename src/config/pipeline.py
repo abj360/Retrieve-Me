@@ -12,6 +12,8 @@ Contains:
     ChunkSection: chunking settings
     CacheSection: query cache settings
     StrategySection: retrieval strategy selection settings
+    GenerationSection: citation-grounded generation settings
+    EvalSection: evaluation harness settings
     PipelineConfig: typed view over the YAML pipeline definition
     load_pipeline_config(): loads and validates a pipeline YAML file
 """
@@ -135,6 +137,36 @@ class StrategySection:
 
 
 @dataclass(frozen=True)
+class GenerationSection:
+    """Carries citation-grounded generation settings.
+
+    Attributes:
+        model_name: LLM identifier for grounded answers.
+        max_tokens: Maximum tokens per generated answer.
+        temperature: Sampling temperature; zero for deterministic output.
+    """
+
+    model_name: str = "gpt-4o-mini"
+    max_tokens: int = 512
+    temperature: float = 0.0
+
+
+@dataclass(frozen=True)
+class EvalSection:
+    """Carries evaluation harness settings.
+
+    Attributes:
+        judge_model: LLM identifier used by the judge.
+        ndcg_k: Cutoff for nDCG scoring.
+        recall_k: Cutoff for recall scoring.
+    """
+
+    judge_model: str = "gpt-4o-mini"
+    ndcg_k: int = 10
+    recall_k: int = 50
+
+
+@dataclass(frozen=True)
 class PipelineConfig:
     """Carries the typed pipeline definition.
 
@@ -147,6 +179,8 @@ class PipelineConfig:
         chunking: Chunking settings.
         cache: Cache settings.
         strategy: Strategy selection settings.
+        generation: Generation settings.
+        eval: Evaluation harness settings.
     """
 
     embedder: EmbedderSection
@@ -157,6 +191,8 @@ class PipelineConfig:
     chunking: ChunkSection
     cache: CacheSection
     strategy: StrategySection
+    generation: GenerationSection
+    eval: EvalSection
 
 
 def load_pipeline_config(path: str | Path) -> PipelineConfig:
@@ -183,4 +219,6 @@ def load_pipeline_config(path: str | Path) -> PipelineConfig:
         chunking=ChunkSection(**raw.get("chunking", {})),
         cache=CacheSection(**raw.get("cache", {})),
         strategy=StrategySection(**raw.get("strategy", {})),
+        generation=GenerationSection(**raw.get("generation", {})),
+        eval=EvalSection(**raw.get("eval", {})),
     )
