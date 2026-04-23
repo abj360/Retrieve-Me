@@ -43,4 +43,4 @@ generation:
 eval:
   judge_model: gpt-4o-mini
   ndcg_k: 10
-  recall_k: 50
+  recall_k: 75
