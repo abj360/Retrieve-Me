@@ -187,3 +187,11 @@ def test_faithfulness_full_when_grounded() -> None:
     results = make_results()
     answer = generator.generate("clause?", results)
     assert generator.faithfulness(answer, results) == 1.0
+
+
+def test_faithfulness_vacuous_without_citations() -> None:
+    """Asserts an answer with no citations is vacuously faithful."""
+    generator = CitationGenerator(StubLLM("No markers here."))
+    results = make_results()
+    answer = generator.generate("clause?", results)
+    assert generator.faithfulness(answer, results) == 1.0
