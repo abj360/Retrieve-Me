@@ -82,3 +82,10 @@ def test_strategy_section_defaults(tmp_path) -> None:
     config = load_pipeline_config(write_config(tmp_path, FULL_CONFIG))
     assert config.strategy.type == "hybrid"
     assert config.strategy.candidate_k == 50
+
+
+def test_generation_section_parsed(tmp_path) -> None:
+    """Asserts generation settings load from the YAML definition."""
+    config = load_pipeline_config(write_config(tmp_path, FULL_CONFIG))
+    assert config.generation.model_name == "gpt-4o-mini"
+    assert config.generation.temperature == 0.0
