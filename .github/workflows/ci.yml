@@ -2,10 +2,24 @@ name: CI
 
 on: [push, pull_request]
 
+env:
+  RETRIEVAL_QDRANT_URL: http://localhost:6333
+  RETRIEVAL_REDIS_URL: redis://localhost:6379
+
 jobs:
   python:
     name: Python checks
     runs-on: ubuntu-latest
+    services:
+      qdrant:
+        image: qdrant/qdrant:latest
+        ports:
+          - 6333:6333
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: --health-cmd "redis-cli ping"
     steps:
       - uses: actions/checkout@v4
         with:
@@ -13,6 +27,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+          cache: pip
       - name: Install package with dev extras
         run: |
           python -m pip install --upgrade pip
@@ -23,5 +38,7 @@ jobs:
         run: ruff format --check .
       - name: mypy type check
         run: mypy src
-      - name: Run tests
-        run: pytest -q
+      - name: Unit tests
+        run: pytest tests/unit -q
+      - name: Integration and smoke tests
+        run: pytest tests/integration tests/smoke -q
