@@ -20,7 +20,7 @@ from src.retrieval.fusion import RankedResult
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_JUDGE_MODEL = "gpt-4o-mini"
+DEFAULT_JUDGE_MODEL = "gpt-4o-mini"  # cheap, deterministic at temperature 0
 SCORE_PATTERN = re.compile(
     r"relevance:\s*([0-9]*\.?[0-9]+).*?faithfulness:\s*([0-9]*\.?[0-9]+)",
     re.DOTALL | re.IGNORECASE,
