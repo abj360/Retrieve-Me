@@ -16,7 +16,7 @@ import redis
 logger = logging.getLogger(__name__)
 
 DEFAULT_TTL_SECONDS = 300
-KEY_PREFIX = "Retrieve-Me:query:"
+KEY_PREFIX = "retrieve-me:q:"
 
 
 class QueryCache(Protocol):
