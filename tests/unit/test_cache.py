@@ -139,3 +139,20 @@ def test_key_prefix_is_configurable() -> None:
     cache = RedisQueryCache(fake, key_prefix="test:ns:")
     cache.set("key-1", "payload-1")
     assert "test:ns:key-1" in fake._store
+
+
+def test_ttl_passed_to_setex() -> None:
+    """Asserts the configured TTL is handed to Redis on write."""
+    recorded = {}
+
+    class TtlRecordingRedis(FakeRedis):
+        """Records the TTL passed to setex."""
+
+        def setex(self, key: str, ttl: int, value: str) -> None:
+            """Records the ttl argument, then stores."""
+            recorded["ttl"] = ttl
+            super().setex(key, ttl, value)
+
+    cache = RedisQueryCache(TtlRecordingRedis(), ttl_seconds=42)
+    cache.set("key-1", "payload-1")
+    assert recorded["ttl"] == 42
