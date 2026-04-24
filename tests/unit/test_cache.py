@@ -119,3 +119,9 @@ def test_cache_key_covers_request_shape() -> None:
     third = cache_key(RetrieveRequest(query="clause"))
     assert first != second
     assert first == third
+
+
+def test_redis_outage_treated_as_miss() -> None:
+    """Asserts a Redis failure on get returns None, not an exception."""
+    cache = RedisQueryCache(FakeRedis(fail=True))
+    assert cache.get("key-1") is None
