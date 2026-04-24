@@ -48,15 +48,22 @@ class RedisQueryCache:
         ttl_seconds: Time-to-live applied to every cached entry.
     """
 
-    def __init__(self, client: redis.Redis, ttl_seconds: int = DEFAULT_TTL_SECONDS) -> None:
-        """Stores the client and TTL; connections open lazily.
+    def __init__(
+        self,
+        client: redis.Redis,
+        ttl_seconds: int = DEFAULT_TTL_SECONDS,
+        key_prefix: str = KEY_PREFIX,
+    ) -> None:
+        """Stores the client, TTL, and key prefix; connections open lazily.
 
         Args:
             client: Redis connection used for reads and writes.
             ttl_seconds: Time-to-live applied to every cached entry.
+            key_prefix: Namespace prefix for every stored key.
         """
         self._client = client
         self.ttl_seconds = ttl_seconds
+        self._key_prefix = key_prefix
 
     def get(self, key: str) -> str | None:
         """Returns the cached payload for key, or None on a miss.
@@ -67,7 +74,11 @@ class RedisQueryCache:
         Returns:
             payload: Cached serialized response, or None.
         """
-        value = self._client.get(KEY_PREFIX + key)
+        try:
+            value = self._client.get(self._key_prefix + key)
+        except redis.RedisError as exc:
+            logger.warning("cache get failed, treating as miss: %s", exc)
+            return None
         return value if isinstance(value, str) else None
 
     def set(self, key: str, payload: str) -> None:
@@ -77,7 +88,10 @@ class RedisQueryCache:
             key: Canonical cache key for one retrieval request.
             payload: Serialized response body to cache.
         """
-        self._client.setex(KEY_PREFIX + key, self.ttl_seconds, payload)
+        try:
+            self._client.setex(self._key_prefix + key, self.ttl_seconds, payload)
+        except redis.RedisError as exc:
+            logger.warning("cache set failed, response not cached: %s", exc)
 
 
 class InMemoryQueryCache:
