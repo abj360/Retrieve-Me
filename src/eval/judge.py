@@ -21,7 +21,10 @@ from src.retrieval.fusion import RankedResult
 logger = logging.getLogger(__name__)
 
 DEFAULT_JUDGE_MODEL = "gpt-4o-mini"
-SCORE_PATTERN = re.compile(r"relevance:\s*([0-9]*\.?[0-9]+).*?faithfulness:\s*([0-9]*\.?[0-9]+)", re.DOTALL)
+SCORE_PATTERN = re.compile(
+    r"relevance:\s*([0-9]*\.?[0-9]+).*?faithfulness:\s*([0-9]*\.?[0-9]+)",
+    re.DOTALL | re.IGNORECASE,
+)
 
 JUDGE_RUBRIC = """Score the answer on two axes from 0.0 to 1.0:
 relevance: does the answer address the query?
