@@ -131,3 +131,11 @@ def test_redis_outage_on_set_does_not_raise() -> None:
     """Asserts a Redis failure on set is logged and swallowed."""
     cache = RedisQueryCache(FakeRedis(fail=True))
     cache.set("key-1", "payload-1")
+
+
+def test_key_prefix_is_configurable() -> None:
+    """Asserts a custom key prefix is used for stored keys."""
+    fake = FakeRedis()
+    cache = RedisQueryCache(fake, key_prefix="test:ns:")
+    cache.set("key-1", "payload-1")
+    assert "test:ns:key-1" in fake._store
