@@ -36,7 +36,7 @@ class BenchmarkResult:
     recall_at_50: float
     p50_ms: float
     p95_ms: float
-    p99_ms: float = 0.0
+    p99_ms: float = 0.0  # optional: older runs lack p99
     delta_ndcg: float = 0.0
 
 
