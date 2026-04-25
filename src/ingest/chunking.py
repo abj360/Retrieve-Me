@@ -152,13 +152,32 @@ class SemanticClauseChunker:
             sentence_tokens = self.count_tokens(sentence)
             if current and current_tokens + sentence_tokens > self.config.max_tokens:
                 chunks.append(self._make_chunk(current, doc_id, len(chunks)))
-                current = []
-                current_tokens = 0
+                current = self._overlap_tail(current)
+                current_tokens = sum(self.count_tokens(piece) for piece in current)
             current.append(sentence)
             current_tokens += sentence_tokens
         if current:
             chunks.append(self._make_chunk(current, doc_id, len(chunks)))
         return chunks
+
+    def _overlap_tail(self, sentences: list[str]) -> list[str]:
+        """Returns trailing sentences that fit within the overlap budget.
+
+        Args:
+            sentences: Sentences of the chunk just closed.
+
+        Returns:
+            tail: Trailing sentences carried into the next chunk.
+        """
+        tail: list[str] = []
+        carried = 0
+        for sentence in reversed(sentences):
+            sentence_tokens = self.count_tokens(sentence)
+            if carried + sentence_tokens > self.config.overlap_tokens:
+                break
+            tail.insert(0, sentence)
+            carried += sentence_tokens
+        return tail
 
     def _make_chunk(self, sentences: list[str], doc_id: str, index: int) -> Chunk:
         """Builds one chunk from packed sentences.
