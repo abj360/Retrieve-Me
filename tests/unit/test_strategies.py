@@ -112,3 +112,10 @@ def test_hybrid_returns_reranked_list(indexed_stores, stub_embedder, stub_rerank
     )
     results = pipeline.retrieve("indemnify vendor", top_k=2)
     assert len(results) <= 2
+
+
+def test_registry_has_expected_strategies() -> None:
+    """Asserts the registry exposes sparse, dense, and hybrid."""
+    from src.retrieval.strategies import STRATEGY_REGISTRY
+
+    assert set(STRATEGY_REGISTRY) == {"sparse", "dense", "hybrid"}
