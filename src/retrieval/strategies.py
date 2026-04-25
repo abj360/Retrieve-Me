@@ -185,5 +185,5 @@ class HybridRetriever:
 STRATEGY_REGISTRY: dict[str, type] = {
     "sparse": SparseRetrievalStrategy,
     "dense": DenseRetrievalStrategy,
-    "hybrid": HybridRetriever,
+    "hybrid": HybridRetriever,  # default for the config-driven pipeline
 }
