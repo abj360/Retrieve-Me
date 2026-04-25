@@ -119,3 +119,11 @@ def test_registry_has_expected_strategies() -> None:
     from src.retrieval.strategies import STRATEGY_REGISTRY
 
     assert set(STRATEGY_REGISTRY) == {"sparse", "dense", "hybrid"}
+
+
+def test_registry_values_are_classes() -> None:
+    """Asserts registry entries are instantiable classes."""
+    from src.retrieval.strategies import STRATEGY_REGISTRY
+
+    for name, klass in STRATEGY_REGISTRY.items():
+        assert isinstance(klass, type), name
