@@ -3,7 +3,7 @@
 strategies.py --- pluggable retrieval strategy interface and legs
 
 Contains:
-    RetrievalStrategy: interface all retrieval strategies implement
+    RetrievalStrategy: protocol all retrieval strategies implement
     SparseRetrievalStrategy: BM25 leg of the hybrid pipeline
     DenseRetrievalStrategy: dense vector leg of the hybrid pipeline
     HybridRetriever: orchestrates legs, fusion, and rerank into one call
