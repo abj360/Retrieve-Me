@@ -37,7 +37,7 @@ class RetrieveRequest(BaseModel):
         filters: Optional exact-match metadata filters on chunk payloads.
     """
 
-    query: str = Field(min_length=1)
+    query: str = Field(min_length=1, description="Query text")
     top_k: int = Field(default=10, ge=1, le=100, description="Max chunks returned")
     page: int = Field(default=1, ge=1)
     page_size: int = Field(default=10, ge=1, le=100)
