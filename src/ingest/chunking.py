@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-chunking.py --- token-aware chunking for the ingestion pipeline
+chunking.py --- token-aware chunking with tail merging for the ingestion pipeline
 
 Contains:
     ChunkConfig: tunable token budget and overlap for the chunker
