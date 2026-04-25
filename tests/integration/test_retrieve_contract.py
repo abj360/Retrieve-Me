@@ -112,3 +112,10 @@ def test_retrieve_rejects_empty_query() -> None:
     """Asserts a missing query field fails validation with 422."""
     response = client().post("/retrieve", json={})
     assert response.status_code == 422
+
+
+def test_top_k_larger_than_matches_returns_all() -> None:
+    """Asserts a top_k above the match count returns every match."""
+    response = client().post("/retrieve", json={"query": "clause", "top_k": 100})
+    assert response.status_code == 200
+    assert response.json()["total"] == 30
