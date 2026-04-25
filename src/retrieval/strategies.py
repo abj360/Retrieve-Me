@@ -7,6 +7,7 @@ Contains:
     SparseRetrievalStrategy: BM25 leg of the hybrid pipeline
     DenseRetrievalStrategy: dense vector leg of the hybrid pipeline
     HybridRetriever: orchestrates legs, fusion, and rerank into one call
+    STRATEGY_REGISTRY: strategy names to implementation classes
 """
 
 import logging
@@ -179,3 +180,10 @@ class HybridRetriever:
             fused = self.fuser.fuse(sparse_hits, dense_hits)
         with self.tracer.span("rerank"):
             return self.reranker.rerank(query, fused)[:top_k]
+
+
+STRATEGY_REGISTRY: dict[str, type] = {
+    "sparse": SparseRetrievalStrategy,
+    "dense": DenseRetrievalStrategy,
+    "hybrid": HybridRetriever,
+}
