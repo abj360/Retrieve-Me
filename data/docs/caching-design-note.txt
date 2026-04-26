@@ -6,3 +6,6 @@ metadata filters; the TTL trades freshness against hit rate.
 
 The cache must degrade gracefully: if the cache backend is unreachable, the
 service treats every request as a miss and keeps serving from the indexes.
+
+A short TTL (minutes, not hours) keeps benchmark numbers honest while
+still absorbing the repeated identical queries a dashboard generates.
