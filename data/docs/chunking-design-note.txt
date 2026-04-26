@@ -6,3 +6,6 @@ and clause boundaries intact and packs text up to the token budget instead.
 
 Overlapping consecutive chunks by a sentence or two preserves context across
 boundaries without doubling the index size.
+
+Clause references (Section 3.1, Article 7) are extracted into chunk
+metadata so exact-clause queries can be boosted at fusion time later.
