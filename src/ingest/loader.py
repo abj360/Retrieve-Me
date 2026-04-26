@@ -6,6 +6,7 @@ Contains:
     Document: one raw document loaded from a corpus directory
     CorpusIngestor: chunks, embeds, and indexes documents in batches
     load_corpus(): loads all supported documents from a directory
+    load_benchmark_corpus(): loads the 500-doc legal/tech benchmark set
     main(): CLI entrypoint for one-off ingestion runs
 """
 
@@ -25,6 +26,7 @@ logger = logging.getLogger(__name__)
 
 TEXT_SUFFIXES = {".txt", ".md"}  # everything else is skipped with a warning
 JSONL_SUFFIX = ".jsonl"
+BENCHMARK_CORPUS_DIR = Path("data/benchmark")
 
 
 @dataclass(frozen=True)
@@ -158,6 +160,23 @@ def _load_jsonl(file_path: Path) -> list[Document]:
             )
         )
     return documents
+
+
+def load_benchmark_corpus(path: Path | None = None) -> list[Document]:
+    """Loads the 500-doc legal/tech benchmark corpus.
+
+    Args:
+        path: Corpus directory; defaults to BENCHMARK_CORPUS_DIR.
+
+    Returns:
+        documents: Benchmark documents sorted by file name.
+    """
+    corpus_dir = path or BENCHMARK_CORPUS_DIR
+    if not corpus_dir.exists():
+        raise FileNotFoundError(
+            f"benchmark corpus not found at {corpus_dir}; mount it or pass --corpus"
+        )
+    return load_corpus(corpus_dir)
 
 
 def main() -> None:

@@ -1,0 +1,8 @@
+Design Note — Query Result Caching
+
+Repeated benchmark queries should hit a cache instead of re-running the full
+hybrid pipeline. Cache keys must cover the query text, top_k, pagination, and
+metadata filters; the TTL trades freshness against hit rate.
+
+The cache must degrade gracefully: if the cache backend is unreachable, the
+service treats every request as a miss and keeps serving from the indexes.

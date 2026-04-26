@@ -1,0 +1,8 @@
+Design Note — Clause-Aware Chunking
+
+Fixed-size token windows split legal clauses mid-sentence, which destroys
+exact-match recall for clause lookups. A clause-aware splitter keeps sentence
+and clause boundaries intact and packs text up to the token budget instead.
+
+Overlapping consecutive chunks by a sentence or two preserves context across
+boundaries without doubling the index size.
