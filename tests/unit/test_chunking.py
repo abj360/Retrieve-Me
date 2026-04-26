@@ -96,3 +96,10 @@ def test_chunks_end_at_sentence_boundaries(token_chunker) -> None:
     text = "Alpha one. Beta two. Gamma three. Delta four. Epsilon five."
     chunks = token_chunker.split(text, "doc-1")
     assert all(chunk.text.rstrip().endswith((".", "!", "?")) for chunk in chunks)
+
+
+def test_budget_boundary_exact_fit(token_chunker) -> None:
+    """Asserts text exactly at budget yields one chunk."""
+    text = " ".join(["token"] * 48) + "."
+    chunks = token_chunker.split(text, "doc-1")
+    assert len(chunks) == 1
