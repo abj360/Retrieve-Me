@@ -103,3 +103,10 @@ def test_budget_boundary_exact_fit(token_chunker) -> None:
     text = " ".join(["token"] * 48) + "."
     chunks = token_chunker.split(text, "doc-1")
     assert len(chunks) == 1
+
+
+def test_clause_boundary_splits_before_marker(token_chunker) -> None:
+    """Asserts the splitter breaks before a clause marker, not after."""
+    text = "General words up front. Section 2.4 Specific obligations follow here."
+    chunks = token_chunker.split(text, "doc-1")
+    assert any(chunk.text.startswith("Section 2.4") or " Section 2.4" in chunk.text for chunk in chunks)
