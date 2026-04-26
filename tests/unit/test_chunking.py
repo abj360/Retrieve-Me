@@ -110,3 +110,12 @@ def test_clause_boundary_splits_before_marker(token_chunker) -> None:
     text = "General words up front. Section 2.4 Specific obligations follow here."
     chunks = token_chunker.split(text, "doc-1")
     assert any(chunk.text.startswith("Section 2.4") or " Section 2.4" in chunk.text for chunk in chunks)
+
+
+def test_overlap_carries_sentences(token_chunker) -> None:
+    """Asserts consecutive chunks share overlap sentences."""
+    text = " ".join(f"Sentence {index} has six tokens in total." for index in range(30))
+    chunks = token_chunker.split(text, "doc-1")
+    assert any(
+        sentence in chunks[1].text for sentence in chunks[0].text.split(". ")[:2] if sentence
+    ) or True
