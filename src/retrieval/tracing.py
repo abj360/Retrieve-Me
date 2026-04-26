@@ -57,3 +57,24 @@ class LatencyTracer:
         for span in self.spans:
             totals[span.name] = totals.get(span.name, 0.0) + span.duration_ms
         return totals
+
+
+def percentile(values: list[float], p: float) -> float:
+    """Computes the p-th percentile of a list of numbers.
+
+    Args:
+        values: Measurements to summarize.
+        p: Percentile in [0, 100].
+
+    Returns:
+        percentile: Value at the p-th percentile (linear interpolation).
+    """
+    if not values:
+        return 0.0
+    ordered = sorted(values)
+    if len(ordered) == 1:
+        return ordered[0]
+    rank = (p / 100) * (len(ordered) - 1)
+    low = int(rank)
+    high = min(low + 1, len(ordered) - 1)
+    return ordered[low] + (ordered[high] - ordered[low]) * (rank - low)
