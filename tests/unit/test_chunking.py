@@ -89,3 +89,10 @@ def test_regression_clause_marker_kept_with_clause() -> None:
     text = "Intro words here. Section 12.1 The licensee shall indemnify the vendor fully."
     chunks = chunker.split(text, "doc-1")
     assert any("Section 12.1" in chunk.text for chunk in chunks)
+
+
+def test_chunks_end_at_sentence_boundaries(token_chunker) -> None:
+    """Asserts semantic chunks do not end mid-sentence."""
+    text = "Alpha one. Beta two. Gamma three. Delta four. Epsilon five."
+    chunks = token_chunker.split(text, "doc-1")
+    assert all(chunk.text.rstrip().endswith((".", "!", "?")) for chunk in chunks)
