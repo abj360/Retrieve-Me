@@ -96,3 +96,10 @@ def test_percentile_of_empty_is_zero() -> None:
     from src.retrieval.tracing import percentile
 
     assert percentile([], 95) == 0.0
+
+
+def test_percentile_interpolates() -> None:
+    """Asserts percentile interpolates between neighbors."""
+    from src.retrieval.tracing import percentile
+
+    assert percentile([10.0, 20.0], 50) == 15.0
