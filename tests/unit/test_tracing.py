@@ -103,3 +103,10 @@ def test_percentile_interpolates() -> None:
     from src.retrieval.tracing import percentile
 
     assert percentile([10.0, 20.0], 50) == 15.0
+
+
+def test_percentile_single_value() -> None:
+    """Asserts a single value is its own percentile."""
+    from src.retrieval.tracing import percentile
+
+    assert percentile([42.0], 95) == 42.0
