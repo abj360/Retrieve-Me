@@ -137,7 +137,7 @@ def load_corpus(path: Path) -> list[Document]:
     return documents
 
 
-def _load_jsonl(file_path: Path) -> list[Document]:
+def _load_jsonl(file_path: Path) -> list[Document]:  # one document per line
     """Loads documents from one JSONL corpus file.
 
     Args:
