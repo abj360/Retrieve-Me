@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 
 TEXT_SUFFIXES = {".txt", ".md"}  # everything else is skipped with a warning
 JSONL_SUFFIX = ".jsonl"
-BENCHMARK_CORPUS_DIR = Path("data/benchmark")
+BENCHMARK_CORPUS_DIR = Path("data/benchmark")  # mounted, not committed
 
 
 @dataclass(frozen=True)
