@@ -23,6 +23,28 @@ interface LatencyRecallChartProps {
   runs: BenchmarkRun[];
 }
 
+interface ChartPoint {
+  name: string;
+  p95Ms: number;
+  ndcgAt10: number;
+  recallAt50: number;
+}
+
+/**
+ * Maps benchmark runs to chart points.
+ *
+ * @param runs - Benchmark runs to transform.
+ * @returns points - Points ready for the composed chart.
+ */
+function toChartPoints(runs: BenchmarkRun[]): ChartPoint[] {
+  return runs.map((run) => ({
+    name: run.name,
+    p95Ms: run.p95Ms,
+    ndcgAt10: run.ndcgAt10,
+    recallAt50: run.recallAt50,
+  }));
+}
+
 /**
  * Plots p95 latency bars and nDCG line for each benchmark run.
  *
@@ -31,11 +53,7 @@ interface LatencyRecallChartProps {
  */
 export function LatencyRecallChart({ runs }: LatencyRecallChartProps) {
   const latest = runs[runs.length - 1];
-  const points = runs.map((run) => ({
-    name: run.name,
-    p95Ms: run.p95Ms,
-    ndcgAt10: run.ndcgAt10,
-  }));
+  const points = toChartPoints(runs);
 
   return (
     <section className="panel chart-container" aria-label="latency and recall chart">
@@ -54,6 +72,7 @@ export function LatencyRecallChart({ runs }: LatencyRecallChartProps) {
         <Tooltip />
         <Legend />
         <Bar yAxisId="left" dataKey="p95Ms" name="p95 latency (ms)" fill="var(--chart-bar)" />
+        <Bar yAxisId="left" dataKey="recallAt50" name="recall@50" fill="var(--chart-bar-alt)" />
         <Line yAxisId="right" dataKey="ndcgAt10" name="nDCG@10" stroke="var(--chart-line)" />
       </ComposedChart>
     </section>
