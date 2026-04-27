@@ -194,3 +194,11 @@ def test_fuse_many_three_legs() -> None:
         ]
     )
     assert {result.chunk_id for result in fused} == {"a", "b", "c"}
+
+
+def test_zero_weight_on_one_leg() -> None:
+    """Asserts a zero-weight leg cannot lift its chunks to the top."""
+    fused = ResultFuser(
+        FusionConfig(sparse_weight=0.0, normalize_scores=False)
+    ).fuse([make_result("top-sparse", 0.99)], [make_result("top-dense", 0.01, "dense")])
+    assert fused[0].chunk_id == "top-dense"
