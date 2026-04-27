@@ -42,6 +42,7 @@ function toChartPoints(runs: BenchmarkRun[]): ChartPoint[] {
     p95Ms: run.p95Ms,
     ndcgAt10: run.ndcgAt10,
     recallAt50: run.recallAt50,
+    delta: run.deltaNdcgVsBaseline,
   }));
 }
 
