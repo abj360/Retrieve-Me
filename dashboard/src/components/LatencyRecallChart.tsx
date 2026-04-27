@@ -28,6 +28,7 @@ interface ChartPoint {
   p95Ms: number;
   ndcgAt10: number;
   recallAt50: number;
+  delta: number;
 }
 
 /**
