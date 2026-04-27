@@ -66,7 +66,7 @@ export function ResultsTable<T>({ data, columns, rowKey, pageSize = 25 }: Result
       </table>
       <div className="pagination">
         <select
-          aria-label="rows per page"
+          aria-label="results per page"
           value={rowsPerPage}
           onChange={(event) => setRowsPerPage(Number(event.target.value))}
         >
