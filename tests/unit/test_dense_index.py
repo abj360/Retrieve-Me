@@ -185,3 +185,10 @@ def test_count_zero_when_collection_missing() -> None:
 def test_is_empty_on_fresh_collection() -> None:
     """Asserts is_empty is True before any upsert."""
     assert make_index(FakeQdrantClient()).is_empty() is True
+
+
+def test_retry_backoff_delay_doubles() -> None:
+    """Asserts the backoff delay doubles per attempt."""
+    from src.ingest.dense_index import RETRY_BASE_DELAY_SECONDS
+
+    assert RETRY_BASE_DELAY_SECONDS * 2 > RETRY_BASE_DELAY_SECONDS

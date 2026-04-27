@@ -40,7 +40,7 @@ class PoolExhaustedError(RuntimeError):
 
 
 def retry_with_backoff(operation: Callable[[], T], retries: int = MAX_RETRIES) -> T:
-    """Retries a transient Qdrant operation with exponential backoff.
+    """Retries a transient Qdrant operation with exponential backoff (max 3 attempts).
 
     Args:
         operation: Zero-argument callable to attempt.
