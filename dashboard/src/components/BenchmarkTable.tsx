@@ -28,7 +28,7 @@ export function BenchmarkTable({ runs }: BenchmarkTableProps) {
         { label: "Run", render: (run) => run.name },
         { label: "Dataset", render: (run) => run.dataset },
         { label: "nDCG@10", render: (run) => run.ndcgAt10.toFixed(3) },
-        { label: "Recall@50", render: (run) => run.recallAt50.toFixed(2) },
+        { label: "Recall@50", render: (run) => run.recallAt50.toFixed(3) },
         { label: "p95 latency (ms)", render: (run) => run.p95Ms },
         {
           label: "Δ nDCG",
