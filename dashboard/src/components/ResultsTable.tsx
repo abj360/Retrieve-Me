@@ -35,6 +35,13 @@ export function ResultsTable<T>({ data, columns, rowKey, pageSize = 25 }: Result
   }, [data, rowsPerPage]);
 
   const totalPages = Math.max(1, Math.ceil(data.length / rowsPerPage));
+
+  useEffect(() => {
+    if (page >= totalPages) {
+      setPage(totalPages - 1);
+    }
+  }, [page, totalPages]);
+
   const visibleRows = data.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
 
   return (
