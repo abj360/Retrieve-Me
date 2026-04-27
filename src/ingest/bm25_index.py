@@ -117,7 +117,7 @@ class BM25Index:
         ]
 
     def save(self, path: Path) -> None:
-        """Pickles the built index to disk.
+        """Pickles the built index to disk for fast service startup.
 
         Args:
             path: Destination file for the pickled index.
