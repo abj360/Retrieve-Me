@@ -96,7 +96,7 @@ class DenseHit:
 
 
 class QdrantClientPool:
-    """Lends a bounded set of Qdrant clients to concurrent callers.
+    """Lends a bounded set of Qdrant clients to concurrent ingest workers.
 
     Attributes:
         config: Connection settings shared by pooled clients.
