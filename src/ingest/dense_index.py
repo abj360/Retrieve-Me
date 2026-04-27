@@ -256,7 +256,7 @@ class DenseIndex:
             hits: Scored dense hits, best first.
         """
         if self.is_empty():
-            logger.debug("dense search skipped: collection is empty")
+            logger.debug("dense search skipped: collection empty")
             return []
         with self.pool.acquire() as client:
             try:
