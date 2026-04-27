@@ -24,7 +24,7 @@ TOKEN_PATTERN = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")  # hyphens stay whole
 
 
 def tokenize(text: str) -> list[str]:
-    """Splits text into lowercase search terms.
+    """Splits text into lowercase search terms for indexing and queries.
 
     Args:
         text: Raw chunk or query text.
