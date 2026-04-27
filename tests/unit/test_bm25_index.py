@@ -84,3 +84,8 @@ def test_blank_query_returns_no_hits() -> None:
     index = BM25Index()
     index.build([make_chunk("a-0", "alpha beta")])
     assert index.search("   ", top_k=2) == []
+
+
+def test_tokenize_strips_punctuation() -> None:
+    """Asserts punctuation is dropped from terms."""
+    assert tokenize("clause, section; article.") == ["clause", "section", "article"]
