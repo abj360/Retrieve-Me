@@ -38,7 +38,7 @@ interface ChartPoint {
  */
 function toChartPoints(runs: BenchmarkRun[]): ChartPoint[] {
   return runs.map((run) => ({
-    name: run.name,
+    name: run.name.replace("hybrid-rrf", "hybrid"),
     p95Ms: run.p95Ms,
     ndcgAt10: run.ndcgAt10,
     recallAt50: run.recallAt50,
