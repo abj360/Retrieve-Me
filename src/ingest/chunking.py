@@ -161,7 +161,7 @@ class SemanticClauseChunker:
         return chunks
 
     def _overlap_tail(self, sentences: list[str]) -> list[str]:
-        """Returns trailing sentences that fit within the overlap budget.
+        """Returns trailing sentences that fit within the overlap token budget.
 
         Args:
             sentences: Sentences of the chunk just closed.
