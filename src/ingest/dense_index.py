@@ -191,6 +191,7 @@ class DenseIndex:
         """
         with self.pool.acquire() as client:
             if not client.collection_exists(self.config.collection):
+                logger.debug("count on missing collection, returning 0")
                 return 0
             return int(client.count(self.config.collection).count)
 
