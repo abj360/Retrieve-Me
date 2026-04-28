@@ -166,3 +166,16 @@ def test_batch_size_respected_in_scoring() -> None:
     candidates = [make_candidate(f"c-{index}", f"text {index}") for index in range(5)]
     reranker.rerank("query", candidates)
     assert recorder.batch_sizes == [2, 2, 1]
+
+
+def test_threshold_sweep_returns_pairs() -> None:
+    """Asserts the sweep returns one pair per threshold."""
+    from src.eval.judge import EvalQuery
+    from src.retrieval.rerank import RerankerTuner
+
+    tuner = RerankerTuner(make_reranker())
+    queries = [
+        EvalQuery(query_id="q", query="text query", relevant_doc_ids=set(), reference_answer="")
+    ]
+    sweep = tuner.threshold_sweep(queries, lambda _query: [], [-5.0, -3.0, 0.0])
+    assert len(sweep) == 3
