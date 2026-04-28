@@ -179,3 +179,16 @@ def test_threshold_sweep_returns_pairs() -> None:
     ]
     sweep = tuner.threshold_sweep(queries, lambda _query: [], [-5.0, -3.0, 0.0])
     assert len(sweep) == 3
+
+
+def test_threshold_sweep_threshold_order() -> None:
+    """Asserts sweep results come back in grid order."""
+    from src.eval.judge import EvalQuery
+    from src.retrieval.rerank import RerankerTuner
+
+    tuner = RerankerTuner(make_reranker())
+    queries = [
+        EvalQuery(query_id="q", query="text query", relevant_doc_ids=set(), reference_answer="")
+    ]
+    sweep = tuner.threshold_sweep(queries, lambda _query: [], [-5.0, -3.0, 0.0])
+    assert [threshold for threshold, _score in sweep] == [-5.0, -3.0, 0.0]
