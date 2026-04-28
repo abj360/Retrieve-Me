@@ -90,7 +90,7 @@ export async function postRetrieve(query: string): Promise<RetrieveResponse> {
     total: payload.total,
     page: payload.page,
     pageSize: payload.page_size,
-    appliedFilters: payload.applied_filters,
+    appliedFilters: payload.applied_filters ?? null,
     hasNext: payload.has_next,
     tookMs: payload.took_ms,
   };
