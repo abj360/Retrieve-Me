@@ -8,10 +8,10 @@
 
 import { useEffect, useState } from "react";
 
-import { getBenchmarkRuns } from "./api/client";
+import { getBenchmarkRuns, postRetrieve } from "./api/client";
 import { BenchmarkTable } from "./components/BenchmarkTable";
 import { QueryInspector } from "./components/QueryInspector";
-import type { BenchmarkRun } from "./types";
+import type { BenchmarkRun, RetrievedChunk } from "./types";
 
 const BENCHMARK_RUNS: BenchmarkRun[] = [
   {
@@ -50,6 +50,23 @@ export function App() {
   const [runs, setRuns] = useState<BenchmarkRun[]>(BENCHMARK_RUNS);
   const [isLoading, setIsLoading] = useState(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [inspectionResults, setInspectionResults] = useState<RetrievedChunk[] | null>(null);
+  const [isInspecting, setIsInspecting] = useState(false);
+  const [inspectError, setInspectError] = useState<string | null>(null);
+
+  const handleInspect = (query: string) => {
+    setIsInspecting(true);
+    setInspectError(null);
+    postRetrieve(query)
+      .then((response) => {
+        setInspectionResults(response.results);
+        setIsInspecting(false);
+      })
+      .catch((error: unknown) => {
+        setInspectError(error instanceof Error ? error.message : "retrieval failed");
+        setIsInspecting(false);
+      });
+  };
 
   useEffect(() => {
     let isCancelled = false;
@@ -95,7 +112,12 @@ export function App() {
       </nav>
       <main>
         {activeTab === "inspector" ? (
-          <QueryInspector />
+          <QueryInspector
+            onInspect={handleInspect}
+            results={inspectionResults}
+            isLoading={isInspecting}
+            error={inspectError}
+          />
         ) : (
         <section className="panel">
           <h2>Benchmark runs</h2>
