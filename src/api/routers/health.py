@@ -4,6 +4,8 @@ health.py --- liveness and readiness endpoints
 
 Contains:
     healthz(): reports whether the process is alive
+    check_qdrant(): returns ok when Qdrant answers within the ping timeout
+    check_redis(): returns ok when Redis answers within the ping timeout
     readyz(): reports whether backing services are reachable
 """
 
@@ -28,6 +30,38 @@ def healthz() -> dict[str, str]:
     return {"status": "ok"}
 
 
+def check_qdrant(settings) -> str:
+    """Returns ok when Qdrant answers within the ping timeout.
+
+    Args:
+        settings: Service settings carrying the Qdrant URL.
+
+    Returns:
+        state: "ok" or "unreachable".
+    """
+    try:
+        QdrantClient(url=settings.qdrant_url, timeout=PING_TIMEOUT_SECONDS).get_collections()
+    except Exception:
+        return "unreachable"
+    return "ok"
+
+
+def check_redis(settings) -> str:
+    """Returns ok when Redis answers within the ping timeout.
+
+    Args:
+        settings: Service settings carrying the Redis URL.
+
+    Returns:
+        state: "ok" or "unreachable".
+    """
+    try:
+        redis.from_url(settings.redis_url, socket_timeout=PING_TIMEOUT_SECONDS).ping()
+    except Exception:
+        return "unreachable"
+    return "ok"
+
+
 @router.get("/readyz")
 def readyz() -> dict[str, str]:
     """Reports readiness by pinging Qdrant and Redis.
@@ -36,15 +70,7 @@ def readyz() -> dict[str, str]:
         status: ready plus per-dependency check results.
     """
     settings = get_settings()
-    checks = {"qdrant": "ok", "redis": "ok"}
-    try:
-        QdrantClient(url=settings.qdrant_url, timeout=PING_TIMEOUT_SECONDS).get_collections()
-    except Exception:
-        checks["qdrant"] = "unreachable"
-    try:
-        redis.from_url(settings.redis_url, socket_timeout=PING_TIMEOUT_SECONDS).ping()
-    except Exception:
-        checks["redis"] = "unreachable"
+    checks = {"qdrant": check_qdrant(settings), "redis": check_redis(settings)}
     degraded = {name for name, state in checks.items() if state != "ok"}
     if degraded:
         raise HTTPException(
