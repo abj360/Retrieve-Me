@@ -57,7 +57,7 @@ export function App() {
   const handleInspect = (query: string) => {
     setIsInspecting(true);
     setInspectError(null);
-    postRetrieve(query)
+    postRetrieve(query.trim())
       .then((response) => {
         setInspectionResults(response.results);
         setIsInspecting(false);
