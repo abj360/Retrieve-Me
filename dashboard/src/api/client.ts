@@ -75,7 +75,7 @@ interface ApiRetrieveResponse {
 export async function postRetrieve(query: string): Promise<RetrieveResponse> {
   const payload = await apiFetch<ApiRetrieveResponse>(`${API_BASE}/retrieve`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify({ query, top_k: 20 }),
   });
   return {
