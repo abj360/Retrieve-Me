@@ -20,7 +20,7 @@ export class ApiError extends Error {
   status: number;
 
   constructor(path: string, status: number) {
-    super(`request to ${path} failed with ${status}`);
+    super(`${path} responded ${status}`);
     this.status = status;
   }
 }
