@@ -207,3 +207,40 @@ class RerankerTuner:  # offline tool; never on the query path
             marker = " *" if row.top_k == report.best_top_k else ""
             lines.append(f"{row.top_k:>6} | {row.ndcg_at_10:.4f}{marker}")
         return "\n".join(lines)
+
+
+    def threshold_sweep(
+        self,
+        queries: list,
+        candidates_fn,
+        min_score_grid: list[float],
+        top_k: int = 12,
+    ) -> list[tuple[float, float]]:
+        """Sweeps min_score thresholds at a fixed top_k.
+
+        Args:
+            queries: Golden-set queries with relevant_doc_ids.
+            candidates_fn: Callable mapping a query to its fused candidates.
+            min_score_grid: Thresholds to evaluate.
+            top_k: Fixed candidate cutoff.
+
+        Returns:
+            sweep: (threshold, mean nDCG@10) pairs.
+        """
+        from dataclasses import replace
+
+        from src.eval.metrics import ndcg_at_k
+
+        sweep: list[tuple[float, float]] = []
+        for threshold in min_score_grid:
+            self.reranker.config = replace(
+                self.reranker.config, min_score=threshold, top_k=top_k
+            )
+            scores = []
+            for query in queries:
+                ranked = self.reranker.rerank(query.query, candidates_fn(query))
+                scores.append(
+                    ndcg_at_k([hit.doc_id for hit in ranked], query.relevant_doc_ids, k=10)
+                )
+            sweep.append((threshold, sum(scores) / len(scores) if scores else 0.0))
+        return sweep
