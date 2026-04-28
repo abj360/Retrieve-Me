@@ -3,44 +3,34 @@
  * QueryInspector.tsx --- inspection view for ad-hoc retrieval queries
  *
  * Contains:
- *   QueryInspector: renders a query box and mock inspection results
+ *   QueryInspector: renders a query box and live inspection results
  */
 
 import { useState } from "react";
 
 import type { RetrievedChunk } from "../types";
 
-const MOCK_RESULTS: RetrievedChunk[] = [
-  {
-    chunkId: "license-agreement-chunk-0",
-    docId: "license-agreement",
-    text: "Section 3.1 The licensee shall indemnify the vendor against claims.",
-    score: 0.92,
-    source: "fused",
-  },
-  {
-    chunkId: "rfc-7807-chunk-0",
-    docId: "rfc-7807",
-    text: "RFC 7807 defines problem details for HTTP APIs.",
-    score: 0.74,
-    source: "sparse",
-  },
-];
-
 /**
  * Renders the query inspection view with mock results.
  *
  * @returns element - Query inspection panel.
  */
-export function QueryInspector() {
+interface QueryInspectorProps {
+  onInspect: (query: string) => void;
+  results: RetrievedChunk[] | null;
+  isLoading: boolean;
+  error: string | null;
+}
+
+/**
+ * Renders the query inspection view driven by the live retrieval API.
+ *
+ * @param props - Inspection handler, results, and request state.
+ * @returns element - Query inspection panel.
+ */
+export function QueryInspector({ onInspect, results, isLoading, error }: QueryInspectorProps) {
   const [query, setQuery] = useState("");
-  const [submitted, setSubmitted] = useState<string | null>(null);
-  const visibleResults =
-    submitted === null
-      ? MOCK_RESULTS
-      : MOCK_RESULTS.filter((chunk) =>
-          chunk.text.toLowerCase().includes(submitted.toLowerCase().trim()),
-        );
+  const visibleResults = results ?? [];
   const stageCounts = visibleResults.reduce(
     (counts, chunk) => ({ ...counts, [chunk.source]: (counts[chunk.source] ?? 0) + 1 }),
     {} as Record<string, number>  // stage counts start empty,
@@ -56,12 +46,13 @@ export function QueryInspector() {
           aria-label="query"
           value={query}
           onChange={(event) => setQuery(event.target.value)}
-          onKeyDown={(event) => event.key === "Enter" && setSubmitted(query)}
+          onKeyDown={(event) => event.key === "Enter" && onInspect(query)}
         />
-        <button type="button" onClick={() => setSubmitted(query)}>
-          Inspect
+        <button type="button" onClick={() => onInspect(query)} disabled={isLoading}>
+          {isLoading ? "Inspecting…" : "Inspect"}
         </button>
       </div>
+      {error !== null && <p className="error-banner">Inspection failed: {error}</p>}
       <div className="stage-breakdown" aria-label="stage counts">
         {(["sparse", "dense", "fused"] as const).map((stage) => (
           <span key={stage} className={`badge source-${stage}`}>

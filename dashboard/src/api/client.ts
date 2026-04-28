@@ -6,9 +6,10 @@
  *   ApiError: error carrying the HTTP status of a failed request
  *   apiFetch: fetch wrapper with JSON handling and error propagation
  *   getBenchmarkRuns: loads benchmark runs from the static export
+ *   postRetrieve: runs one query against the live retrieval endpoint
  */
 
-import type { BenchmarkRun } from "../types";
+import type { BenchmarkRun, RetrieveResponse } from "../types";
 
 const API_BASE = "/api";
 
@@ -46,6 +47,53 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
  */
 export function getBenchmarkRuns(): Promise<BenchmarkRun[]> {
   return apiFetch<BenchmarkRun[]>("/benchmarks.json");
+}
+
+interface ApiRetrieveResponse {
+  query: string;
+  results: {
+    chunk_id: string;
+    doc_id: string;
+    text: string;
+    score: number;
+    source: "sparse" | "dense" | "fused";
+  }[];
+  total: number;
+  page: number;
+  page_size: number;
+  applied_filters: Record<string, string> | null;
+  has_next: boolean;
+  took_ms: number;
+}
+
+/**
+ * Runs one query against the live retrieval endpoint.
+ *
+ * @param query - Query text to inspect.
+ * @returns response - Retrieval response mapped to camelCase fields.
+ */
+export async function postRetrieve(query: string): Promise<RetrieveResponse> {
+  const payload = await apiFetch<ApiRetrieveResponse>(`${API_BASE}/retrieve`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query }),
+  });
+  return {
+    query: payload.query,
+    results: payload.results.map((chunk) => ({
+      chunkId: chunk.chunk_id,
+      docId: chunk.doc_id,
+      text: chunk.text,
+      score: chunk.score,
+      source: chunk.source,
+    })),
+    total: payload.total,
+    page: payload.page,
+    pageSize: payload.page_size,
+    appliedFilters: payload.applied_filters,
+    hasNext: payload.has_next,
+    tookMs: payload.took_ms,
+  };
 }
 
 export { API_BASE };

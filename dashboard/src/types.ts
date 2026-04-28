@@ -4,6 +4,8 @@
  *
  * Contains:
  *   BenchmarkRun: one recorded benchmark run with retrieval metrics
+ *   RetrievedChunk: one scored chunk returned by the retrieval API
+ *   RetrieveResponse: retrieval API response payload
  */
 
 export interface BenchmarkRun {
@@ -16,4 +18,29 @@ export interface BenchmarkRun {
   p95Ms: number;
   deltaNdcgVsBaseline: number;
   ranAt: string;
+}
+
+/**
+ * RetrievedChunk: one scored chunk returned by the retrieval API.
+ */
+export interface RetrievedChunk {
+  chunkId: string;
+  docId: string;
+  text: string;
+  score: number;
+  source: "sparse" | "dense" | "fused";
+}
+
+/**
+ * RetrieveResponse: response payload of POST /retrieve.
+ */
+export interface RetrieveResponse {
+  query: string;
+  results: RetrievedChunk[];
+  total: number;
+  page: number;
+  pageSize: number;
+  appliedFilters: Record<string, string> | null;
+  hasNext: boolean;
+  tookMs: number;
 }
