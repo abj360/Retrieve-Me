@@ -72,3 +72,10 @@ def test_system_prompt_forbids_outside_knowledge() -> None:
     from src.generation.prompts.citation import CITATION_SYSTEM_PROMPT
 
     assert "outside knowledge" in CITATION_SYSTEM_PROMPT
+
+
+def test_prompt_instructs_cite_every_claim() -> None:
+    """Asserts the prompt requires citing every claim."""
+    from src.generation.prompts.citation import CITATION_SYSTEM_PROMPT
+
+    assert "Every factual claim" in CITATION_SYSTEM_PROMPT
