@@ -24,6 +24,7 @@ from qdrant_client import QdrantClient
 from qdrant_client.http.exceptions import UnexpectedResponse
 from qdrant_client.models import Distance, PointStruct, VectorParams
 
+# stable ids: re-ingest overwrites, never duplicates
 POINT_ID_NAMESPACE = uuid.UUID("6f1c2b3a-9a5b-4c6d-8e7f-0a1b2c3d4e5f")
 
 logger = logging.getLogger(__name__)
