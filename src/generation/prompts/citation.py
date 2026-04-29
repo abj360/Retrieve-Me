@@ -11,7 +11,8 @@ Contains:
 from src.retrieval.fusion import RankedResult
 
 CITATION_SYSTEM_PROMPT = """You answer questions using only the provided sources.
-Cite every claim with the source number in square brackets, like [1] or [2].
+Every factual claim must carry a citation to its source in square brackets, like [1] or [2].
+Never rely on outside knowledge, even for well-known facts.
 If the sources do not contain the answer, say you do not know."""
 
 MAX_CONTEXT_CHUNKS = 5  # five sources fit the model's comfortable context
