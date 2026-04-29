@@ -192,3 +192,13 @@ def test_retry_backoff_delay_doubles() -> None:
     from src.ingest.dense_index import RETRY_BASE_DELAY_SECONDS
 
     assert RETRY_BASE_DELAY_SECONDS * 2 > RETRY_BASE_DELAY_SECONDS
+
+
+def test_point_ids_are_deterministic() -> None:
+    """Asserts re-ingesting the same chunk ids overwrites rather than duplicates."""
+    client = FakeQdrantClient()
+    index = make_index(client)
+    index.upsert(["c1"], [[0.1] * 8], [{"doc_id": "d"}])
+    first_id = client.points[0].id
+    index.upsert(["c1"], [[0.2] * 8], [{"doc_id": "d"}])
+    assert client.points[1].id == first_id
