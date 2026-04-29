@@ -21,6 +21,7 @@ from src.retrieval.fusion import RankedResult
 logger = logging.getLogger(__name__)
 
 DEFAULT_JUDGE_MODEL = "gpt-4o-mini"  # cheap, deterministic at temperature 0
+FAITHFULNESS_THRESHOLD = 0.8
 SCORE_PATTERN = re.compile(
     r"relevance:\s*([0-9]*\.?[0-9]+).*?faithfulness:\s*([0-9]*\.?[0-9]+)",
     re.DOTALL | re.IGNORECASE,
@@ -212,6 +213,10 @@ def summarize(verdicts: list[JudgeVerdict]) -> dict[str, float]:
     return {
         "relevance": sum(verdict.relevance for verdict in verdicts) / len(verdicts),
         "faithfulness": sum(verdict.faithfulness for verdict in verdicts) / len(verdicts),
+        "grounded_share": sum(
+            1.0 for verdict in verdicts if verdict.faithfulness >= FAITHFULNESS_THRESHOLD
+        )
+        / len(verdicts),
     }
 
 
