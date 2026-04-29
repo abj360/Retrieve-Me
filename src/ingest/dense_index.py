@@ -14,6 +14,7 @@ Contains:
 import logging
 import queue
 import time
+import uuid
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
@@ -22,6 +23,8 @@ from typing import TypeVar
 from qdrant_client import QdrantClient
 from qdrant_client.http.exceptions import UnexpectedResponse
 from qdrant_client.models import Distance, PointStruct, VectorParams
+
+POINT_ID_NAMESPACE = uuid.UUID("6f1c2b3a-9a5b-4c6d-8e7f-0a1b2c3d4e5f")
 
 logger = logging.getLogger(__name__)
 
@@ -222,10 +225,12 @@ class DenseIndex:
             upserted: Number of points written.
         """
         points = [
-            PointStruct(id=index, vector=vector, payload={"chunk_id": chunk_id, **payload})
-            for index, (chunk_id, vector, payload) in enumerate(
-                zip(chunk_ids, vectors, payloads, strict=True)
+            PointStruct(
+                id=str(uuid.uuid5(POINT_ID_NAMESPACE, chunk_id)),
+                vector=vector,
+                payload={"chunk_id": chunk_id, **payload},
             )
+            for chunk_id, vector, payload in zip(chunk_ids, vectors, payloads, strict=True)
         ]
         if not points:
             logger.debug("upsert called with no points, skipping")
@@ -235,7 +240,9 @@ class DenseIndex:
                 batch = points[start : start + batch_size]
                 retry_with_backoff(
                     lambda: client.upsert(
-                        collection_name=self.config.collection, points=batch
+                        collection_name=self.config.collection,
+                        points=batch,
+                        wait=True,
                     )
                 )
                 logger.debug(

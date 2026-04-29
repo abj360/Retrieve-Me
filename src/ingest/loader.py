@@ -19,7 +19,7 @@ from pathlib import Path
 
 from src.ingest.bm25_index import BM25Index
 from src.ingest.chunking import Chunker
-from src.ingest.dense_index import DenseIndex
+from src.ingest.dense_index import DenseIndex, retry_with_backoff
 from src.retrieval.embeddings import SentenceTransformerEmbedder
 
 logger = logging.getLogger(__name__)
@@ -101,11 +101,14 @@ class CorpusIngestor:
             end = min(start + self.batch_size, total - 1)
             batch = chunks[start:end]
             vectors = self.embedder.encode([chunk.text for chunk in batch])
-            self.dense_index.upsert(
-                [chunk.chunk_id for chunk in batch],
-                vectors,
-                [{"doc_id": chunk.doc_id, "text": chunk.text} for chunk in batch],
+            retry_with_backoff(
+                lambda: self.dense_index.upsert(
+                    [chunk.chunk_id for chunk in batch],
+                    vectors,
+                    [{"doc_id": chunk.doc_id, "text": chunk.text} for chunk in batch],
+                )
             )
+            logger.info("ingested chunks %d-%d of %d", start, end, total)
         self.bm25_index.build(chunks)
         elapsed = time.perf_counter() - started
         logger.info("ingested %d chunks in %.1fs", len(chunks), elapsed)
