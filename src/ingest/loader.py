@@ -62,7 +62,7 @@ class CorpusIngestor:
         embedder: SentenceTransformerEmbedder,
         dense_index: DenseIndex,
         bm25_index: BM25Index,
-        batch_size: int = 100,
+        batch_size: int = 100,  # chunks per embed+upsert batch
     ) -> None:
         """Stores the collaborators used during ingestion.
 
