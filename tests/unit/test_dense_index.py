@@ -202,3 +202,101 @@ def test_point_ids_are_deterministic() -> None:
     first_id = client.points[0].id
     index.upsert(["c1"], [[0.2] * 8], [{"doc_id": "d"}])
     assert client.points[1].id == first_id
+
+
+class FakeQdrantClient:
+    """Records upsert calls and answers collection queries in memory."""
+
+    def __init__(self) -> None:
+        """Creates an empty fake with one collection."""
+        self.points = []
+        self.upsert_calls = 0
+
+    def collection_exists(self, collection: str) -> bool:
+        """Returns whether the fake collection exists.
+
+        Args:
+            collection: Collection name to check.
+
+        Returns:
+            exists: Always True for the fake.
+        """
+        return True
+
+    def upsert(self, collection_name: str, points: list, wait: bool = True) -> None:
+        """Records one upsert call.
+
+        Args:
+            collection_name: Target collection.
+            points: Points being written.
+            wait: Whether to wait for indexing; ignored.
+        """
+        self.upsert_calls += 1
+        self.points.extend(points)
+
+    def count(self, collection: str):
+        """Counts stored fake points.
+
+        Args:
+            collection: Collection name to count.
+
+        Returns:
+            result: Object with a count attribute.
+        """
+        return type("CountResult", (), {"count": len(self.points)})()
+
+    def get_collections(self) -> list:
+        """Returns a stub collections listing.
+
+        Returns:
+            collections: Empty list.
+        """
+        return []
+
+
+class FakePool:
+    """Yields one fake client with the pool acquire protocol."""
+
+    def __init__(self, client: FakeQdrantClient) -> None:
+        """Stores the fake client to yield.
+
+        Args:
+            client: Fake client yielded on every acquire.
+        """
+        self._client = client
+
+    def acquire(self):
+        """Yields the fake client as a context manager."""
+        from contextlib import contextmanager
+
+        @contextmanager
+        def _acquire():
+            yield self._client
+
+        return _acquire()
+
+
+def make_index(client: FakeQdrantClient):
+    """Builds a DenseIndex over a fake client.
+
+    Args:
+        client: Fake client the index talks to.
+
+    Returns:
+        index: DenseIndex wired to the fake.
+    """
+    from src.ingest.dense_index import DenseIndex, QdrantConfig
+
+    return DenseIndex(QdrantConfig(), FakePool(client))
+
+
+def test_upsert_writes_in_batches() -> None:
+    """Asserts a 250-point upsert lands as three batch calls of 100/100/50."""
+    client = FakeQdrantClient()
+    ids = [f"chunk-{index}" for index in range(250)]
+    vectors = [[0.1] * 8 for _ in ids]
+    payloads = [{"doc_id": "doc"} for _ in ids]
+    written = make_index(client).upsert(ids, vectors, payloads, batch_size=100)
+    assert written == 250
+    assert client.upsert_calls == 3
+    assert len(client.points) == 250
