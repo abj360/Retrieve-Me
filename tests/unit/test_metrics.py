@@ -41,3 +41,10 @@ def test_citation_faithfulness_all_grounded() -> None:
 def test_citation_faithfulness_vacuous_when_no_citations() -> None:
     """Asserts no citations is vacuously fully faithful."""
     assert citation_faithfulness([], {"c-1"}) == 1.0
+
+
+def test_precision_at_k() -> None:
+    """Asserts precision counts relevant hits in the top-k."""
+    from src.eval.metrics import precision_at_k
+
+    assert precision_at_k(["a", "x", "b"], {"a", "b"}, k=3) == 2 / 3
