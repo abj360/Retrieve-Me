@@ -171,3 +171,11 @@ def test_top_k_one_returns_single_result() -> None:
     """Asserts top_k of 1 yields exactly one result."""
     response = client().post("/retrieve", json={"query": "clause", "top_k": 1})
     assert len(response.json()["results"]) == 1
+
+
+def test_page_size_one_paginates() -> None:
+    """Asserts page_size of 1 paginates one result per page."""
+    page_one = client().post("/retrieve", json={"query": "clause", "page_size": 1})
+    page_two = client().post("/retrieve", json={"query": "clause", "page_size": 1, "page": 2})
+    assert len(page_one.json()["results"]) == 1
+    assert page_one.json()["results"][0]["chunk_id"] != page_two.json()["results"][0]["chunk_id"]
