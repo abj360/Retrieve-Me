@@ -153,3 +153,9 @@ def test_results_have_nonempty_text() -> None:
     """Asserts every returned chunk carries non-empty text."""
     response = client().post("/retrieve", json={"query": "clause"})
     assert all(chunk["text"] for chunk in response.json()["results"])
+
+
+def test_took_ms_is_nonnegative() -> None:
+    """Asserts took_ms is a non-negative number."""
+    response = client().post("/retrieve", json={"query": "clause"})
+    assert response.json()["took_ms"] >= 0
