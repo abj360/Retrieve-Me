@@ -159,3 +159,9 @@ def test_took_ms_is_nonnegative() -> None:
     """Asserts took_ms is a non-negative number."""
     response = client().post("/retrieve", json={"query": "clause"})
     assert response.json()["took_ms"] >= 0
+
+
+def test_filters_default_to_null() -> None:
+    """Asserts applied_filters is null when no filters are sent."""
+    response = client().post("/retrieve", json={"query": "clause"})
+    assert response.json()["applied_filters"] is None
