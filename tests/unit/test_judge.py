@@ -210,3 +210,11 @@ def test_scores_parsed_as_floats() -> None:
     verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
     assert isinstance(verdict.relevance, float)
     assert isinstance(verdict.faithfulness, float)
+
+
+def test_rationale_missing_still_parses() -> None:
+    """Asserts a reply without rationale still parses scores."""
+    reply = "relevance: 0.6\nfaithfulness: 0.5"
+    judge = LLMJudge(CannedJudgeClient(reply=reply))
+    verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
+    assert verdict.relevance == 0.6
