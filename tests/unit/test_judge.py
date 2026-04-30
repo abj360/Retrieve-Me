@@ -196,3 +196,9 @@ def test_summarize_empty_returns_zeros() -> None:
     from src.eval.judge import summarize
 
     assert summarize([]) == {"relevance": 0.0, "faithfulness": 0.0}
+
+
+def test_judge_default_model() -> None:
+    """Asserts the judge defaults to the cheap deterministic model."""
+    judge = LLMJudge(CannedJudgeClient())
+    assert judge.model == "gpt-4o-mini"
