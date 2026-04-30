@@ -53,6 +53,7 @@ export function App() {
   const [inspectionResults, setInspectionResults] = useState<RetrievedChunk[] | null>(null);
   const [isInspecting, setIsInspecting] = useState(false);
   const [inspectError, setInspectError] = useState<string | null>(null);
+  const [inspectionTookMs, setInspectionTookMs] = useState<number | null>(null);
 
   const handleInspect = (query: string) => {
     setIsInspecting(true);
@@ -60,6 +61,7 @@ export function App() {
     postRetrieve(query.trim())
       .then((response) => {
         setInspectionResults(response.results);
+        setInspectionTookMs(response.tookMs);
         setIsInspecting(false);
       })
       .catch((error: unknown) => {
@@ -115,6 +117,7 @@ export function App() {
           <QueryInspector
             onInspect={handleInspect}
             results={inspectionResults}
+            tookMs={inspectionTookMs}
             isLoading={isInspecting}
             error={inspectError}
           />
