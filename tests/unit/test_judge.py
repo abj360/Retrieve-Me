@@ -183,3 +183,9 @@ def test_golden_indemnity_case_scores_high() -> None:
     verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
     assert verdict.relevance >= 0.8
     assert verdict.faithfulness >= 0.8
+
+
+def test_batch_empty_queries_returns_empty() -> None:
+    """Asserts an empty batch yields an empty verdict list."""
+    judge = LLMJudge(CannedJudgeClient())
+    assert judge.judge_batch([], lambda _q: make_answer(), lambda _q: []) == []
