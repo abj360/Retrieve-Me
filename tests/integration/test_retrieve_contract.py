@@ -147,3 +147,9 @@ def test_top_k_larger_than_matches_returns_all() -> None:
     response = client().post("/retrieve", json={"query": "clause", "top_k": 100})
     assert response.status_code == 200
     assert response.json()["total"] == 30
+
+
+def test_results_have_nonempty_text() -> None:
+    """Asserts every returned chunk carries non-empty text."""
+    response = client().post("/retrieve", json={"query": "clause"})
+    assert all(chunk["text"] for chunk in response.json()["results"])
