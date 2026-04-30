@@ -65,7 +65,7 @@ export function App() {
         setIsInspecting(false);
       })
       .catch((error: unknown) => {
-        setInspectError(error instanceof Error ? error.message : "retrieval failed");
+        setInspectError(error instanceof Error ? error.message : "retrieval request failed");
         setIsInspecting(false);
       });
   };
