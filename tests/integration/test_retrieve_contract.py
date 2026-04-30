@@ -179,3 +179,9 @@ def test_page_size_one_paginates() -> None:
     page_two = client().post("/retrieve", json={"query": "clause", "page_size": 1, "page": 2})
     assert len(page_one.json()["results"]) == 1
     assert page_one.json()["results"][0]["chunk_id"] != page_two.json()["results"][0]["chunk_id"]
+
+
+def test_results_carry_source_field() -> None:
+    """Asserts every chunk reports which retrieval stage produced it."""
+    response = client().post("/retrieve", json={"query": "clause"})
+    assert all(chunk["source"] for chunk in response.json()["results"])
