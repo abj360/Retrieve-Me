@@ -175,3 +175,11 @@ def test_verdict_keeps_query_id() -> None:
     judge = LLMJudge(CannedJudgeClient())
     verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
     assert verdict.query_id == "q-test"
+
+
+def test_golden_indemnity_case_scores_high() -> None:
+    """Asserts the golden indemnity case parses to the canned high scores."""
+    judge = LLMJudge(CannedJudgeClient())
+    verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
+    assert verdict.relevance >= 0.8
+    assert verdict.faithfulness >= 0.8
