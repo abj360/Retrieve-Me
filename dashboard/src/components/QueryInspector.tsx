@@ -18,6 +18,7 @@ import type { RetrievedChunk } from "../types";
 interface QueryInspectorProps {
   onInspect: (query: string) => void;
   results: RetrievedChunk[] | null;
+  tookMs: number | null;
   isLoading: boolean;
   error: string | null;
 }
@@ -28,7 +29,7 @@ interface QueryInspectorProps {
  * @param props - Inspection handler, results, and request state.
  * @returns element - Query inspection panel.
  */
-export function QueryInspector({ onInspect, results, isLoading, error }: QueryInspectorProps) {
+export function QueryInspector({ onInspect, results, tookMs, isLoading, error }: QueryInspectorProps) {
   const [query, setQuery] = useState("");
   const visibleResults = results ?? [];
   const stageCounts = visibleResults.reduce(
@@ -48,10 +49,12 @@ export function QueryInspector({ onInspect, results, isLoading, error }: QueryIn
           onChange={(event) => setQuery(event.target.value)}
           onKeyDown={(event) => event.key === "Enter" && onInspect(query)}
         />
+        <input type="text" placeholder="filter: source=legal" aria-label="filters" className="filters-input" />
         <button type="button" onClick={() => onInspect(query)} disabled={isLoading}>
           {isLoading ? "Inspecting…" : "Inspect"}
         </button>
       </div>
+      {tookMs !== null && <span className="timing-chip">{tookMs.toFixed(0)} ms</span>}
       {error !== null && <p className="error-banner">Inspection failed: {error}</p>}
       <div className="stage-breakdown" aria-label="stage counts">
         {(["sparse", "dense", "fused"] as const).map((stage) => (
