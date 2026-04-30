@@ -202,3 +202,11 @@ def test_judge_default_model() -> None:
     """Asserts the judge defaults to the cheap deterministic model."""
     judge = LLMJudge(CannedJudgeClient())
     assert judge.model == "gpt-4o-mini"
+
+
+def test_scores_parsed_as_floats() -> None:
+    """Asserts parsed scores are floats, not strings."""
+    judge = LLMJudge(CannedJudgeClient())
+    verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
+    assert isinstance(verdict.relevance, float)
+    assert isinstance(verdict.faithfulness, float)
