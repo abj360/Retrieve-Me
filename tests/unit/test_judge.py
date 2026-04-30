@@ -189,3 +189,10 @@ def test_batch_empty_queries_returns_empty() -> None:
     """Asserts an empty batch yields an empty verdict list."""
     judge = LLMJudge(CannedJudgeClient())
     assert judge.judge_batch([], lambda _q: make_answer(), lambda _q: []) == []
+
+
+def test_summarize_empty_returns_zeros() -> None:
+    """Asserts summarizing no verdicts yields zeroed means."""
+    from src.eval.judge import summarize
+
+    assert summarize([]) == {"relevance": 0.0, "faithfulness": 0.0}
