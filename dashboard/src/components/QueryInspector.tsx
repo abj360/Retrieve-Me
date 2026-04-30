@@ -49,7 +49,7 @@ export function QueryInspector({ onInspect, results, tookMs, isLoading, error }:
           onChange={(event) => setQuery(event.target.value)}
           onKeyDown={(event) => event.key === "Enter" && onInspect(query)}
         />
-        <input type="text" placeholder="filters, e.g. source=legal" aria-label="metadata filters" className="filters-input" />
+        <input type="text" placeholder="filters, e.g. source=legal" aria-label="metadata filters (optional)" className="filters-input" />
         <button type="button" onClick={() => onInspect(query)} disabled={isLoading}>
           {isLoading ? "Inspecting…" : "Inspect"}
         </button>
