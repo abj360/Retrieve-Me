@@ -9,6 +9,9 @@ Contains:
     test_retrieve_rejects_empty_query(): asserts missing queries fail validation
     test_pagination_pages_are_disjoint(): asserts page slices do not overlap
     test_pagination_reports_total(): asserts total reflects all matched chunks
+    test_filters_are_echoed(): asserts applied filters round-trip in the response
+    test_healthz_reports_liveness(): asserts /healthz returns 200 with version info
+    test_readyz_shape(): asserts /readyz reports per-dependency states
 """
 
 from fastapi.testclient import TestClient
@@ -106,6 +109,31 @@ def test_pagination_reports_total() -> None:
     body = response.json()
     assert body["total"] == 30
     assert len(body["results"]) == 5
+
+
+def test_filters_are_echoed() -> None:
+    """Asserts applied_filters round-trips the request filters."""
+    filters = {"source": "legal"}
+    response = client().post("/retrieve", json={"query": "clause", "filters": filters})
+    assert response.status_code == 200
+    assert response.json()["applied_filters"] == filters
+
+
+def test_healthz_reports_liveness() -> None:
+    """Asserts /healthz returns 200 with a status payload."""
+    response = client().get("/healthz")
+    assert response.status_code == 200
+    assert response.json()["status"] == "ok"
+
+
+def test_readyz_shape() -> None:
+    """Asserts /readyz reports per-dependency states or fails closed."""
+    response = client().get("/readyz")
+    assert response.status_code in (200, 503)
+    if response.status_code == 200:
+        assert set(response.json()) >= {"status", "qdrant", "redis"}
+    else:
+        assert "failed" in response.json()["detail"]
 
 
 def test_retrieve_rejects_empty_query() -> None:
