@@ -165,3 +165,9 @@ def test_filters_default_to_null() -> None:
     """Asserts applied_filters is null when no filters are sent."""
     response = client().post("/retrieve", json={"query": "clause"})
     assert response.json()["applied_filters"] is None
+
+
+def test_top_k_one_returns_single_result() -> None:
+    """Asserts top_k of 1 yields exactly one result."""
+    response = client().post("/retrieve", json={"query": "clause", "top_k": 1})
+    assert len(response.json()["results"]) == 1
