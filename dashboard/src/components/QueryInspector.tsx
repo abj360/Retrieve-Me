@@ -55,7 +55,7 @@ export function QueryInspector({ onInspect, results, tookMs, isLoading, error }:
         </button>
       </div>
       {tookMs !== null && <span className="timing-chip" title="end-to-end">{tookMs.toFixed(0)} ms</span>}
-      {error !== null && <p className="error-banner">Inspection failed: {error}</p>}
+      {error !== null && <p className="error-banner">Retrieval failed: {error}</p>}
       <div className="stage-breakdown" aria-label="stage counts">
         {(["sparse", "dense", "fused"] as const).map((stage) => (
           <span key={stage} className={`badge stage-badge source-${stage}`}>
