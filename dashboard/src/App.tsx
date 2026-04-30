@@ -63,6 +63,7 @@ export function App() {
         setInspectionResults(response.results);
         setInspectionTookMs(response.tookMs);
         setIsInspecting(false);
+        setInspectionTookMs(null);
       })
       .catch((error: unknown) => {
         setInspectError(error instanceof Error ? error.message : "retrieval request failed");
