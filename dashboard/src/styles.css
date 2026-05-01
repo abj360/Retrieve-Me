@@ -131,6 +131,6 @@ body {
   margin-top: 8px;
 }
 
-.health-dot.ok { background: #39c98e; }
+.health-dot.ok { background: #3ddc97; }
 .health-dot.down { background: #e05c5c; }
 .health-dot.unknown { background: #9aa5bd; }
