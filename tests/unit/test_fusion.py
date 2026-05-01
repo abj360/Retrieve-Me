@@ -202,3 +202,11 @@ def test_zero_weight_on_one_leg() -> None:
         FusionConfig(sparse_weight=0.0, normalize_scores=False)
     ).fuse([make_result("top-sparse", 0.99)], [make_result("top-dense", 0.01, "dense")])
     assert fused[0].chunk_id == "top-dense"
+
+
+def test_normalization_changes_fused_order_fairly() -> None:
+    """Asserts a dominant raw scale no longer swamps the other leg."""
+    sparse = [make_result("s1", 100.0), make_result("s2", 50.0)]
+    dense = [make_result("d1", 0.9, "dense"), make_result("d2", 0.8, "dense")]
+    fused = ResultFuser(FusionConfig(normalize_scores=True)).fuse(sparse, dense)
+    assert {result.chunk_id for result in fused} == {"s1", "s2", "d1", "d2"}
