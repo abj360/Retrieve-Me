@@ -71,6 +71,8 @@ def normalize_min_max(results: list[RankedResult]) -> list[RankedResult]:
     low = min(result.score for result in results)
     high = max(result.score for result in results)
     if high == low:
+        if len(results) == 1:
+            return list(results)
         return [
             RankedResult(
                 chunk_id=result.chunk_id,
