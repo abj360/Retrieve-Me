@@ -48,7 +48,7 @@ class FusionConfig:
         rrf_k: Reciprocal-rank-fusion smoothing constant.
         sparse_weight: Weight applied to the sparse leg.
         dense_weight: Weight applied to the dense leg.
-        normalize_scores: Whether to min-max normalize each leg pre-fusion.
+        normalize_scores: Whether to min-max normalize each leg pre-fusion (default on).
     """
 
     rrf_k: int = DEFAULT_RRF_K
