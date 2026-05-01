@@ -49,6 +49,8 @@ class Settings(BaseSettings):
         log_level: Root log level for the service.
         embedding_model: Sentence-transformers model for dense embeddings.
         reranker_model: Cross-encoder model used for reranking.
+        reranker_top_k: Candidates kept after cross-encoder reranking.
+        fusion_rrf_k: Reciprocal-rank-fusion smoothing constant.
     """
 
     model_config = SettingsConfigDict(env_prefix="RETRIEVAL_")
@@ -62,6 +64,8 @@ class Settings(BaseSettings):
     log_level: str = DEFAULT_LOG_LEVEL
     embedding_model: str = "sentence-transformers/all-MiniLM-L6-v2"
     reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    reranker_top_k: int = 20
+    fusion_rrf_k: int = 60
 
 
 @lru_cache(maxsize=1)
@@ -128,8 +132,10 @@ def build_pipeline(settings: Settings) -> HybridRetriever:
         get_qdrant_pool(settings),
     )
     dense = DenseRetrievalStrategy(dense_index, embedder)
-    fuser = ResultFuser(FusionConfig())
-    reranker = CrossEncoderReranker(RerankerConfig(model_name=settings.reranker_model))
+    fuser = ResultFuser(FusionConfig(rrf_k=settings.fusion_rrf_k))
+    reranker = CrossEncoderReranker(
+        RerankerConfig(model_name=settings.reranker_model, top_k=settings.reranker_top_k)
+    )
     return HybridRetriever(sparse, dense, fuser, reranker, candidate_k=settings.candidate_k)
 
 

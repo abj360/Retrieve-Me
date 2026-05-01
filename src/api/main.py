@@ -12,6 +12,7 @@ from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.middleware import RequestLoggingMiddleware
 from src.api.dependencies import get_settings
@@ -37,6 +38,12 @@ def create_app() -> FastAPI:
     """
     app = FastAPI(title="Retrieve-Me", lifespan=lifespan)
     app.add_middleware(RequestLoggingMiddleware)
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:5173"],
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
     app.include_router(retrieve.router)
     app.include_router(health.router)
 

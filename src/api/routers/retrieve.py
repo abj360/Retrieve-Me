@@ -13,7 +13,7 @@ Contains:
 import logging
 import time
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field
 
 from src.api.cache import QueryCache
@@ -120,7 +120,11 @@ def retrieve(
         logger.debug("cache hit for %s", key)
         return cached
     logger.info("retrieve q=%r top_k=%d page=%d", payload.query, payload.top_k, payload.page)
-    ranked = pipeline.retrieve(payload.query, top_k=payload.top_k, filters=payload.filters)
+    try:
+        ranked = pipeline.retrieve(payload.query, top_k=payload.top_k, filters=payload.filters)
+    except Exception as exc:
+        logger.exception("retrieval pipeline failed for query %r", payload.query)
+        raise HTTPException(status_code=502, detail="retrieval backend unavailable") from exc
     matches = [
         RetrievedChunk(
             chunk_id=hit.chunk_id,
