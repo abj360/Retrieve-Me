@@ -175,3 +175,10 @@ def test_encode_uses_batched_iteration() -> None:
     embedder, fake = make_embedder()
     embedder.encode([f"text-{index}" for index in range(9)])
     assert fake.encode_calls and sum(fake.encode_calls) == 9
+
+
+def test_encode_concatenates_batch_results() -> None:
+    """Asserts batch results concatenate into one array."""
+    embedder, _fake = make_embedder()
+    vectors = embedder.encode([f"text-{index}" for index in range(9)])
+    assert vectors.shape == (9, 8)
