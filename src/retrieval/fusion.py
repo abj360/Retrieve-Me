@@ -135,7 +135,11 @@ class ResultFuser:
                 scores[result.chunk_id] = scores.get(result.chunk_id, 0.0) + weight / (
                     self.config.rrf_k + rank
                 )  # accumulate per-chunk RRF score
-                by_id.setdefault(result.chunk_id, result)
+                if (
+                    result.chunk_id not in by_id
+                    or result.score > by_id[result.chunk_id].score
+                ):
+                    by_id[result.chunk_id] = result
         fused = [
             RankedResult(
                 chunk_id=chunk_id,
@@ -194,7 +198,11 @@ class ResultFuser:
                 scores[result.chunk_id] = scores.get(result.chunk_id, 0.0) + weight / (
                     self.config.rrf_k + rank
                 )
-                by_id.setdefault(result.chunk_id, result)
+                if (
+                    result.chunk_id not in by_id
+                    or result.score > by_id[result.chunk_id].score
+                ):
+                    by_id[result.chunk_id] = result
         fused = [
             RankedResult(
                 chunk_id=chunk_id,
