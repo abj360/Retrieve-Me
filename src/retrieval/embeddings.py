@@ -94,12 +94,17 @@ class SentenceTransformerEmbedder:
             return np.empty((0, self.dimension), dtype=np.float32)
         model = self._load_model()
         logger.debug("encoding %d texts (batch_size=%d)", len(texts), self.config.batch_size)
-        return model.encode(
-            list(texts),
-            batch_size=self.config.batch_size,
-            normalize_embeddings=self.config.normalize,
-            convert_to_numpy=True,
-        )
+        vectors = []
+        for batch in batched(texts, self.config.batch_size):
+            vectors.append(
+                model.encode(
+                    list(batch),
+                    batch_size=self.config.batch_size,
+                    normalize_embeddings=self.config.normalize,
+                    convert_to_numpy=True,
+                )
+            )
+        return np.concatenate(vectors)
 
     def _load_model(self) -> SentenceTransformer:
         """Loads the model on first use.
