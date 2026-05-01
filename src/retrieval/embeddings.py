@@ -33,7 +33,7 @@ class EmbeddingConfig:
         model_name: Hugging Face identifier of the sentence-transformers model.
         batch_size: Maximum number of texts encoded per forward pass.
         normalize: Whether to L2-normalize output vectors for cosine scoring.
-        device: Torch device identifier, or None to let the library pick.
+        device: Torch device identifier; None lets sentence-transformers choose.
     """
 
     model_name: str = DEFAULT_MODEL_NAME
