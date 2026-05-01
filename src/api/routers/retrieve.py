@@ -123,7 +123,7 @@ def retrieve(
     try:
         ranked = pipeline.retrieve(payload.query, top_k=payload.top_k, filters=payload.filters)
     except Exception as exc:
-        logger.exception("retrieval pipeline failed for query %r", payload.query)
+        logger.exception("pipeline failed for query %r", payload.query)
         raise HTTPException(status_code=502, detail="retrieval backend unavailable") from exc
     matches = [
         RetrievedChunk(
