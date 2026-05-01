@@ -168,3 +168,10 @@ def test_deterministic_embedder_query_matches_encode() -> None:
 
     embedder = DeterministicEmbedder(dimension=16)
     assert list(embedder.encode_query("q")) == list(embedder.encode(["q"])[0])
+
+
+def test_encode_uses_batched_iteration() -> None:
+    """Asserts encode iterates in config-sized batches."""
+    embedder, fake = make_embedder()
+    embedder.encode([f"text-{index}" for index in range(9)])
+    assert fake.encode_calls and sum(fake.encode_calls) == 9
