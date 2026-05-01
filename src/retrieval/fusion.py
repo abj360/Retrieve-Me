@@ -127,7 +127,7 @@ class ResultFuser:
         """
         if self.config.normalize_scores:
             sparse = normalize_min_max(sparse)
-            dense = normalize_min_max(dense)
+            dense = normalize_min_max(dense)  # per-leg, before weights apply
         scores: dict[str, float] = {}
         by_id: dict[str, RankedResult] = {}
         for leg, weight in ((sparse, self.config.sparse_weight), (dense, self.config.dense_weight)):
