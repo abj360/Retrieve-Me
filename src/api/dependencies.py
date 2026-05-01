@@ -49,7 +49,7 @@ class Settings(BaseSettings):
         log_level: Root log level for the service.
         embedding_model: Sentence-transformers model for dense embeddings.
         reranker_model: Cross-encoder model used for reranking.
-        reranker_top_k: Candidates kept after cross-encoder reranking.
+        reranker_top_k: Candidates kept after cross-encoder reranking (tuned).
         fusion_rrf_k: Reciprocal-rank-fusion smoothing constant.
     """
 
