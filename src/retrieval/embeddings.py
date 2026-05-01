@@ -95,6 +95,7 @@ class SentenceTransformerEmbedder:
         model = self._load_model()
         logger.debug("encoding %d texts (batch_size=%d)", len(texts), self.config.batch_size)
         vectors = []
+        logger.debug("encoding %d texts in batches of %d", len(texts), self.config.batch_size)
         for batch in batched(texts, self.config.batch_size):
             vectors.append(
                 model.encode(
