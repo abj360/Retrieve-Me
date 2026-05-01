@@ -106,3 +106,31 @@ body {
   color: var(--text);
   border-color: var(--accent);
 }
+
+:root {
+  --chart-bar: #4f8ef7;
+  --chart-bar-alt: #7c5ce0;
+  --chart-line: #39c98e;
+  --chart-target: #e0b44a;
+}
+
+.chart-container {
+  overflow-x: auto;
+}
+
+.chart-subtitle {
+  color: var(--text-muted);
+  margin-top: 0;
+}
+
+.health-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-top: 8px;
+}
+
+.health-dot.ok { background: #39c98e; }
+.health-dot.down { background: #e05c5c; }
+.health-dot.unknown { background: #9aa5bd; }
