@@ -229,3 +229,28 @@ def test_dense_no_filters_returns_all(indexed_stores, stub_embedder) -> None:
     _bm25, dense = indexed_stores
     hits = dense.search(stub_embedder.encode(["clause"])[0], top_k=10)
     assert len(hits) == 4
+
+
+def test_tracer_summary_totals(indexed_stores, stub_embedder, stub_reranker) -> None:
+    """Asserts the tracer summary reports one total per span name."""
+    from src.retrieval.fusion import FusionConfig, ResultFuser
+    from src.retrieval.strategies import (
+        DenseRetrievalStrategy,
+        HybridRetriever,
+        SparseRetrievalStrategy,
+    )
+    from src.retrieval.tracing import LatencyTracer
+
+    bm25, dense = indexed_stores
+    tracer = LatencyTracer()
+    pipeline = HybridRetriever(
+        SparseRetrievalStrategy(bm25),
+        DenseRetrievalStrategy(dense, stub_embedder),
+        ResultFuser(FusionConfig()),
+        stub_reranker,
+        tracer=tracer,
+    )
+    pipeline.retrieve("summary check", top_k=2)
+    summary = tracer.summary()
+    assert summary
+    assert all(total >= 0 for total in summary.values())
