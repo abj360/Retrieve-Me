@@ -98,3 +98,10 @@ def test_stats_reports_chunk_count() -> None:
     stats = index.stats()
     assert stats["chunks"] == 2
     assert stats["avg_tokens"] == 2.5
+
+
+def test_token_count_matches_tokenize_length() -> None:
+    """Asserts token_count agrees with len(tokenize())."""
+    from src.ingest.bm25_index import token_count
+
+    assert token_count("one two three") == len(tokenize("one two three"))
