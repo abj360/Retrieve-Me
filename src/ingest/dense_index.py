@@ -22,7 +22,14 @@ from typing import TypeVar
 
 from qdrant_client import QdrantClient
 from qdrant_client.http.exceptions import UnexpectedResponse
-from qdrant_client.models import Distance, PointStruct, VectorParams
+from qdrant_client.models import (
+    Distance,
+    FieldCondition,
+    Filter,
+    MatchValue,
+    PointStruct,
+    VectorParams,
+)
 
 # stable ids: re-ingest overwrites, never duplicates
 POINT_ID_NAMESPACE = uuid.UUID("6f1c2b3a-9a5b-4c6d-8e7f-0a1b2c3d4e5f")
@@ -97,6 +104,25 @@ class DenseHit:
     chunk_id: str
     score: float
     payload: dict
+
+
+def _build_filter(filters: dict[str, str] | None) -> Filter | None:
+    """Builds a Qdrant filter from exact-match payload filters.
+
+    Args:
+        filters: Payload field/value pairs to match exactly.
+
+    Returns:
+        query_filter: Qdrant Filter, or None when no filters given.
+    """
+    if not filters:
+        return None
+    return Filter(
+        must=[
+            FieldCondition(key=field, match=MatchValue(value=value))
+            for field, value in filters.items()
+        ]
+    )
 
 
 class QdrantClientPool:
@@ -254,12 +280,20 @@ class DenseIndex:
                 )
         return len(points)
 
-    def search(self, vector: list[float], top_k: int) -> list[DenseHit]:
+    def search(
+        self,
+        vector: list[float],
+        top_k: int,
+        filters: dict[str, str] | None = None,
+        score_threshold: float | None = None,
+    ) -> list[DenseHit]:
         """Searches the collection for the nearest vectors.
 
         Args:
             vector: Query vector.
             top_k: Maximum number of hits to return.
+            filters: Optional exact-match payload filters.
+            score_threshold: Minimum cosine score for a hit to be returned.
 
         Returns:
             hits: Scored dense hits, best first.
@@ -274,6 +308,8 @@ class DenseIndex:
                         collection_name=self.config.collection,
                         query=vector,
                         limit=top_k,
+                        query_filter=_build_filter(filters),
+                        score_threshold=score_threshold,
                     )
                 )
             except UnexpectedResponse as exc:
