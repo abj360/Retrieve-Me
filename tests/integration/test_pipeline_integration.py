@@ -214,3 +214,11 @@ def test_semantic_pack_order_preserved(sample_documents, token_chunker) -> None:
     _doc_id, text = sample_documents[0]
     chunks = token_chunker.split(text, "license-agreement")
     assert [chunk.index for chunk in chunks] == sorted(chunk.index for chunk in chunks)
+
+
+def test_dense_filters_exclude_nonmatching(indexed_stores, stub_embedder) -> None:
+    """Asserts payload filters narrow dense hits to matching documents."""
+    _bm25, dense = indexed_stores
+    query_vector = stub_embedder.encode(["indemnify"])[0]
+    hits = dense.search(query_vector, top_k=4, filters={"doc_id": "rfc-7807"})
+    assert all(hit.payload["doc_id"] == "rfc-7807" for hit in hits)
