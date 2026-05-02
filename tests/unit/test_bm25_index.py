@@ -89,3 +89,12 @@ def test_blank_query_returns_no_hits() -> None:
 def test_tokenize_strips_punctuation() -> None:
     """Asserts punctuation is dropped from terms."""
     assert tokenize("clause, section; article.") == ["clause", "section", "article"]
+
+
+def test_stats_reports_chunk_count() -> None:
+    """Asserts stats() counts chunks and average tokens."""
+    index = BM25Index()
+    index.build([make_chunk("a-0", "one two three"), make_chunk("b-0", "four five")])
+    stats = index.stats()
+    assert stats["chunks"] == 2
+    assert stats["avg_tokens"] == 2.5
