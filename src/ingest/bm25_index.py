@@ -82,7 +82,7 @@ class BM25Index:
         Returns:
             indexed: Number of chunks indexed.
         """
-        logger.info("building BM25 index over %d chunks", len(chunks))
+        logger.info("building BM25 index over %d chunks (k1=%.2f b=%.2f)", len(chunks), self._k1, self._b)
         self._chunks = list(chunks)
         self.chunk_ids = [chunk.chunk_id for chunk in chunks]
         self._index = BM25Okapi(
