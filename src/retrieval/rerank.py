@@ -93,7 +93,7 @@ class CrossEncoderReranker:
             model: Loaded cross-encoder model.
         """
         if self._model is None:
-            logger.info("loading reranker model %s", self.config.model_name)
+            logger.info("loading reranker model %s onto device %s", self.config.model_name, self.config.device)
             self._model = CrossEncoder(self.config.model_name, device=self.config.device)
         return self._model
 
