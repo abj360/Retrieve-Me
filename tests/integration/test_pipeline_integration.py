@@ -222,3 +222,10 @@ def test_dense_filters_exclude_nonmatching(indexed_stores, stub_embedder) -> Non
     query_vector = stub_embedder.encode(["indemnify"])[0]
     hits = dense.search(query_vector, top_k=4, filters={"doc_id": "rfc-7807"})
     assert all(hit.payload["doc_id"] == "rfc-7807" for hit in hits)
+
+
+def test_dense_no_filters_returns_all(indexed_stores, stub_embedder) -> None:
+    """Asserts a filterless dense search can hit every document."""
+    _bm25, dense = indexed_stores
+    hits = dense.search(stub_embedder.encode(["clause"])[0], top_k=10)
+    assert len(hits) == 4
