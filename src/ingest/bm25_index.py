@@ -8,6 +8,7 @@ Contains:
     BM25Index: builds and searches the sparse index
     BM25Index.save(): pickles the built index to disk
     BM25Index.load(): restores a pickled index from disk
+    BM25Index.stats(): reports index size and average document length
 """
 
 import logging
@@ -101,8 +102,8 @@ class BM25Index:
         """
         if self._index is None:
             raise RuntimeError("BM25Index.search called before build()")
-        if not self.chunk_ids:
-            logger.debug("bm25 search on empty index, returning no hits")
+        if not self.chunk_ids or not query.strip():
+            logger.debug("bm25 search skipped: empty index or blank query")
             return []
         scores = self._index.get_scores(tokenize(query))
         ranked = sorted(enumerate(scores), key=lambda pair: pair[1], reverse=True)
@@ -115,6 +116,20 @@ class BM25Index:
             )
             for position, score in ranked[:top_k]
         ]
+
+    def stats(self) -> dict[str, float]:
+        """Reports index size and average document length.
+
+        Returns:
+            stats: Chunk count and average token count per chunk.
+        """
+        if self._index is None:
+            return {"chunks": 0, "avg_tokens": 0.0}
+        lengths = [len(tokenize(chunk.text)) for chunk in self._chunks]
+        return {
+            "chunks": len(self.chunk_ids),
+            "avg_tokens": sum(lengths) / len(lengths) if lengths else 0.0,
+        }
 
     def save(self, path: Path) -> None:
         """Pickles the built index to disk for fast service startup.
