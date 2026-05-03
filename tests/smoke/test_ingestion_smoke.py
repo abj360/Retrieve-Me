@@ -237,3 +237,16 @@ def test_ingest_exactly_one_batch(whole_doc_chunker, fake_dense_index) -> None:
     ]
     CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
     assert embedder.calls == 1
+
+
+def test_ingest_batch_boundary_corpus(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts a corpus spanning multiple batches ingests without errors."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    documents = [
+        Document(doc_id=f"bulk-{index:03d}", title=f"bulk-{index:03d}", text=f"Clause {index}.1 bulk text.")
+        for index in range(120)
+    ]
+    ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
+    ingestor.ingest(documents)
+    assert embedder.calls >= 2
