@@ -195,3 +195,10 @@ def test_faithfulness_vacuous_without_citations() -> None:
     results = make_results()
     answer = generator.generate("clause?", results)
     assert generator.faithfulness(answer, results) == 1.0
+
+
+def test_prompt_includes_refusal_guidance() -> None:
+    """Asserts the prompt tells the model to say when it does not know."""
+    client = StubLLM()
+    CitationGenerator(client).generate("clause?", make_results())
+    assert "do not know" in client.prompts[0].lower()
