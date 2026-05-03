@@ -131,3 +131,21 @@ class CitationGenerator:
         except Exception as exc:
             logger.warning("generation call failed, one retry: %s", exc)
             return self.llm_client(prompt, max_tokens=self.max_tokens)
+
+
+    def faithfulness(self, answer: GeneratedAnswer, results: list[RankedResult]) -> float:
+        """Scores how grounded an answer's citations are.
+
+        Args:
+            answer: Generated answer to score.
+            results: Retrieved chunks the answer should be grounded in.
+
+        Returns:
+            score: Fraction of citations that map to retrieved chunks.
+        """
+        from src.eval.metrics import citation_faithfulness
+
+        return citation_faithfulness(
+            [citation.chunk_id for citation in answer.citations],
+            {result.chunk_id for result in results},
+        )
