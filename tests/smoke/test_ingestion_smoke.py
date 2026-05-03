@@ -250,3 +250,15 @@ def test_ingest_batch_boundary_corpus(whole_doc_chunker, fake_dense_index) -> No
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
     ingestor.ingest(documents)
     assert embedder.calls >= 2
+
+
+def test_ingest_two_hundred_fifty_chunks(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts a 250-chunk corpus ingests across three batches."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    documents = [
+        Document(doc_id=f"bulk-{index:03d}", title="t", text=f"clause {index} text")
+        for index in range(250)
+    ]
+    CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
+    assert embedder.calls == 3
