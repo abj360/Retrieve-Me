@@ -262,3 +262,12 @@ def test_ingest_two_hundred_fifty_chunks(whole_doc_chunker, fake_dense_index) ->
     ]
     CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
     assert embedder.calls == 3
+
+
+def test_ingest_returns_positive_count(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts ingest reports a positive chunk count for a small corpus."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    documents = [Document(doc_id=f"r-{index}", title="t", text=f"text {index}") for index in range(3)]
+    ingested = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
+    assert ingested > 0
