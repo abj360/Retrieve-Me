@@ -202,3 +202,10 @@ def test_prompt_includes_refusal_guidance() -> None:
     client = StubLLM()
     CitationGenerator(client).generate("clause?", make_results())
     assert "do not know" in client.prompts[0].lower()
+
+
+def test_answer_without_markers_has_no_citations() -> None:
+    """Asserts a marker-free answer yields an empty citation list."""
+    client = StubLLM("Plain prose answer, no markers.")
+    answer = CitationGenerator(client).generate("clause?", make_results())
+    assert answer.citations == []
