@@ -281,3 +281,10 @@ def test_bm25_built_after_ingest(whole_doc_chunker, fake_dense_index) -> None:
     CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
     hits = bm25.search("queryable", top_k=1)
     assert hits[0].doc_id == "q-1"
+
+
+def test_ingest_recreates_collection_when_asked(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts ensure_collection(recreate=True) clears before ingest."""
+    fake_dense_index.upsert(["stale"], [[0.1] * 16], [{"doc_id": "stale"}])
+    fake_dense_index.ensure_collection(recreate=True)
+    assert fake_dense_index.count() == 0
