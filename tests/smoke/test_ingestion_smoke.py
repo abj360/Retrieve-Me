@@ -288,3 +288,15 @@ def test_ingest_recreates_collection_when_asked(whole_doc_chunker, fake_dense_in
     fake_dense_index.upsert(["stale"], [[0.1] * 16], [{"doc_id": "stale"}])
     fake_dense_index.ensure_collection(recreate=True)
     assert fake_dense_index.count() == 0
+
+
+def test_second_ingest_overwrites_deterministic_ids(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts re-ingesting the same corpus does not grow the index."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    documents = [Document(doc_id="redo", title="t", text="redo text here")]
+    ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
+    ingestor.ingest(documents)
+    first = fake_dense_index.count()
+    ingestor.ingest(documents)
+    assert fake_dense_index.count() == first
