@@ -271,3 +271,13 @@ def test_ingest_returns_positive_count(whole_doc_chunker, fake_dense_index) -> N
     documents = [Document(doc_id=f"r-{index}", title="t", text=f"text {index}") for index in range(3)]
     ingested = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
     assert ingested > 0
+
+
+def test_bm25_built_after_ingest(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts the sparse index is queryable after ingest."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    documents = [Document(doc_id="q-1", title="t", text="clause 7.1 queryable text")]
+    CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
+    hits = bm25.search("queryable", top_k=1)
+    assert hits[0].doc_id == "q-1"
