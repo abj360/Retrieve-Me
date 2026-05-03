@@ -12,8 +12,19 @@ services:
       RETRIEVAL_REDIS_URL: redis://redis:6379
     restart: unless-stopped
     depends_on:
-      - qdrant
-      - redis
+      qdrant:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - import urllib.request; urllib.request.urlopen("http://localhost:8000/healthz")
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   qdrant:
     image: qdrant/qdrant:v1.11.3
@@ -22,6 +33,13 @@ services:
       - qdrant_storage:/qdrant/storage
     ports:
       - "6333:6333"  # qdrant HTTP API
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - wget -q -O /dev/null http://localhost:6333/healthz || exit 1
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
   redis:
     image: redis:7-alpine
@@ -31,6 +49,14 @@ services:
     command: redis-server --appendonly yes
     ports:
       - "6379:6379"  # redis cache
+    healthcheck:
+      test:
+        - CMD
+        - redis-cli
+        - ping
+      interval: 10s
+      timeout: 3s
+      retries: 5
 
   dashboard:
     build:
@@ -40,7 +66,8 @@ services:
     ports:
       - "5173:80"
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
 volumes:
   qdrant_storage:
