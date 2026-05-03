@@ -300,3 +300,12 @@ def test_second_ingest_overwrites_deterministic_ids(whole_doc_chunker, fake_dens
     first = fake_dense_index.count()
     ingestor.ingest(documents)
     assert fake_dense_index.count() == first
+
+
+def test_stats_report_documents_and_seconds(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
+    """Asserts ingest stats include document count and elapsed seconds."""
+    bm25 = BM25Index()
+    documents = [Document(doc_id="s-1", title="t", text="stats text")]
+    stats = CorpusIngestor(whole_doc_chunker, real_embedder, fake_dense_index, bm25).ingest(documents)
+    assert stats.documents == 1
+    assert stats.seconds >= 0
