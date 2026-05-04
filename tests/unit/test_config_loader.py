@@ -96,3 +96,9 @@ def test_eval_section_parsed(tmp_path) -> None:
     config = load_pipeline_config(write_config(tmp_path, FULL_CONFIG))
     assert config.eval.ndcg_k == 10
     assert config.eval.recall_k == 50
+
+
+def test_fusion_normalize_flag(tmp_path) -> None:
+    """Asserts the score-normalization flag defaults to true."""
+    config = load_pipeline_config(write_config(tmp_path, FULL_CONFIG))
+    assert config.fusion.normalize_scores is True
