@@ -163,7 +163,10 @@ class LLMJudge:
         """
         match = SCORE_PATTERN.search(raw)
         if match is None:
-            logger.warning("judge reply did not parse; scoring zero: %r", raw[:120])
+            logger.info("judge reply did not parse, retrying once: %r", raw[:120])
+            match = SCORE_PATTERN.search(self.llm_client(self._repair_prompt(raw)))
+        if match is None:
+            logger.warning("judge reply still unparseable; scoring zero")
             return JudgeVerdict(query_id=query_id, relevance=0.0, faithfulness=0.0, rationale=raw)
         rationale = raw.split("rationale:", 1)[-1].strip()
         return JudgeVerdict(
@@ -234,3 +237,19 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
+
+    def _repair_prompt(self, raw: str) -> str:
+        """Builds a repair prompt asking the judge to reformat its reply.
+
+        Args:
+            raw: Unparseable judge reply.
+
+        Returns:
+            prompt: Reformatting instruction with the offending reply.
+        """
+        return (
+            "Reformat the following judgement exactly as:\n"
+            "relevance: <score>\nfaithfulness: <score>\nrationale: <one paragraph>\n\n"
+            f"Judgement:\n{raw}"
+        )
