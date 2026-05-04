@@ -30,7 +30,7 @@ chunking:
   overlap_tokens: 64
 
 cache:
-  ttl_seconds: 300
+  ttl_seconds: 600
 
 strategy:
   type: hybrid
