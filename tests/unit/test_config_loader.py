@@ -102,3 +102,10 @@ def test_fusion_normalize_flag(tmp_path) -> None:
     """Asserts the score-normalization flag defaults to true."""
     config = load_pipeline_config(write_config(tmp_path, FULL_CONFIG))
     assert config.fusion.normalize_scores is True
+
+
+def test_fusion_weights_parsed(tmp_path) -> None:
+    """Asserts fusion leg weights load from the YAML definition."""
+    config = load_pipeline_config(write_config(tmp_path, FULL_CONFIG))
+    assert config.fusion.sparse_weight == 1.1
+    assert config.fusion.dense_weight == 0.9
