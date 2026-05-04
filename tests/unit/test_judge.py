@@ -248,3 +248,11 @@ def test_repair_retry_still_failing_scores_zero() -> None:
     judge = LLMJudge(CannedJudgeClient(reply="total garbage"))
     verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
     assert verdict.relevance == 0.0
+
+
+def test_case_insensitive_parse() -> None:
+    """Asserts score parsing tolerates capitalized labels."""
+    reply = "Relevance: 0.7\nFaithfulness: 0.8\nrationale: fine."
+    judge = LLMJudge(CannedJudgeClient(reply=reply))
+    verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
+    assert verdict.relevance == 0.7
