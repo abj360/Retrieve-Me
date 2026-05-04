@@ -52,7 +52,7 @@ jobs:
         run: pytest tests/integration tests/smoke -q
 
   dashboard:
-    name: Dashboard
+    name: Dashboard (Node 20)
     runs-on: ubuntu-latest
     defaults:
       run:
