@@ -218,3 +218,26 @@ def test_rationale_missing_still_parses() -> None:
     judge = LLMJudge(CannedJudgeClient(reply=reply))
     verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
     assert verdict.relevance == 0.6
+
+
+def test_repair_prompt_retry_parses() -> None:
+    """Asserts an unparseable first reply triggers the repair retry."""
+
+    class MessyJudgeClient(CannedJudgeClient):
+        """Returns garbage first, then a formatted reply."""
+
+        def __init__(self) -> None:
+            """Creates the messy client."""
+            super().__init__(reply="scores are great, ten out of ten")
+            self.calls = 0
+
+        def __call__(self, prompt: str) -> str:
+            """Returns garbage on the first call, formatted after."""
+            self.calls += 1
+            if self.calls == 1:
+                return self.reply
+            return CANNED_REPLY
+
+    judge = LLMJudge(MessyJudgeClient())
+    verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
+    assert verdict.relevance == 0.9
