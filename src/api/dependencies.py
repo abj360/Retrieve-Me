@@ -18,6 +18,7 @@ import redis
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 from src.api.cache import QueryCache, RedisQueryCache
+from src.config.pipeline import load_pipeline_config
 from src.ingest.bm25_index import BM25Index
 from src.ingest.dense_index import DenseIndex, QdrantClientPool, QdrantConfig
 from src.retrieval.embeddings import EmbeddingConfig, SentenceTransformerEmbedder
@@ -51,6 +52,7 @@ class Settings(BaseSettings):
         reranker_model: Cross-encoder model used for reranking.
         reranker_top_k: Candidates kept after cross-encoder reranking (tuned).
         fusion_rrf_k: Reciprocal-rank-fusion smoothing constant.
+        pipeline_config_path: Path to the YAML pipeline definition.
     """
 
     model_config = SettingsConfigDict(env_prefix="RETRIEVAL_")
@@ -66,6 +68,7 @@ class Settings(BaseSettings):
     reranker_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
     reranker_top_k: int = 20
     fusion_rrf_k: int = 60
+    pipeline_config_path: str = "src/config/pipeline.yaml"
 
 
 @lru_cache(maxsize=1)
@@ -125,18 +128,28 @@ def build_pipeline(settings: Settings) -> HybridRetriever:
     Returns:
         pipeline: Hybrid retriever combining sparse, dense, fusion, rerank.
     """
-    embedder = SentenceTransformerEmbedder(EmbeddingConfig(model_name=settings.embedding_model))
+    config = load_pipeline_config(settings.pipeline_config_path)
+    embedder = SentenceTransformerEmbedder(
+        EmbeddingConfig(model_name=config.embedder.model_name, batch_size=config.embedder.batch_size)
+    )
     sparse = SparseRetrievalStrategy(BM25Index())
     dense_index = DenseIndex(
         QdrantConfig(url=settings.qdrant_url, collection=settings.qdrant_collection),
         get_qdrant_pool(settings),
     )
     dense = DenseRetrievalStrategy(dense_index, embedder)
-    fuser = ResultFuser(FusionConfig(rrf_k=settings.fusion_rrf_k))
-    reranker = CrossEncoderReranker(
-        RerankerConfig(model_name=settings.reranker_model, top_k=settings.reranker_top_k)
+    fuser = ResultFuser(
+        FusionConfig(
+            rrf_k=config.fusion.rrf_k,
+            sparse_weight=config.fusion.sparse_weight,
+            dense_weight=config.fusion.dense_weight,
+            normalize_scores=config.fusion.normalize_scores,
+        )
     )
-    return HybridRetriever(sparse, dense, fuser, reranker, candidate_k=settings.candidate_k)
+    reranker = CrossEncoderReranker(
+        RerankerConfig(model_name=config.reranker.model_name, top_k=config.reranker.top_k)
+    )
+    return HybridRetriever(sparse, dense, fuser, reranker, candidate_k=config.strategy.candidate_k)
 
 
 @lru_cache(maxsize=1)

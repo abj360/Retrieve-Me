@@ -79,11 +79,13 @@ class FusionSection:
         rrf_k: Reciprocal-rank-fusion smoothing constant.
         sparse_weight: Weight applied to the sparse leg.
         dense_weight: Weight applied to the dense leg.
+        normalize_scores: Whether to min-max normalize each leg pre-fusion.
     """
 
     rrf_k: int = 60
     sparse_weight: float = 1.0
     dense_weight: float = 1.0
+    normalize_scores: bool = True
 
 
 @dataclass(frozen=True)
