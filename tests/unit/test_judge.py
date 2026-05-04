@@ -241,3 +241,10 @@ def test_repair_prompt_retry_parses() -> None:
     judge = LLMJudge(MessyJudgeClient())
     verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
     assert verdict.relevance == 0.9
+
+
+def test_repair_retry_still_failing_scores_zero() -> None:
+    """Asserts persistent garbage scores zero after the retry."""
+    judge = LLMJudge(CannedJudgeClient(reply="total garbage"))
+    verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
+    assert verdict.relevance == 0.0
