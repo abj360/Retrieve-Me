@@ -182,6 +182,33 @@ class HybridRetriever:
             return self.reranker.rerank(query, fused)[:top_k]
 
 
+    def retrieve_with_candidate_k(
+        self,
+        query: str,
+        top_k: int = 10,
+        candidate_k: int | None = None,
+        filters: dict[str, str] | None = None,
+    ) -> list[RankedResult]:
+        """Runs the hybrid pipeline with a per-query candidate_k override.
+
+        Args:
+            query: Raw query text.
+            top_k: Final number of results to return.
+            candidate_k: Candidate pool size for this query, or the default.
+            filters: Optional exact-match metadata filters.
+
+        Returns:
+            results: Reranked results, best first, at most top_k.
+        """
+        original = self.candidate_k
+        if candidate_k is not None:
+            self.candidate_k = candidate_k
+        try:
+            return self.retrieve(query, top_k=top_k, filters=filters)
+        finally:
+            self.candidate_k = original
+
+
 STRATEGY_REGISTRY: dict[str, type] = {
     "sparse": SparseRetrievalStrategy,
     "dense": DenseRetrievalStrategy,
