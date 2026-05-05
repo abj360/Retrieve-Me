@@ -28,6 +28,6 @@ mypy==1.13.0
 anyio==4.7.0
 starlette==0.41.2
 typing-extensions==4.12.2
-certifi==2024.8.30
+certifi==2024.12.14
 h11==0.14.0
 idna==3.10
