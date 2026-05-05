@@ -206,7 +206,7 @@ class HybridRetriever:
         try:
             return self.retrieve(query, top_k=top_k, filters=filters)
         finally:
-            self.candidate_k = original
+            self.candidate_k = original  # restore even on failure
 
 
 STRATEGY_REGISTRY: dict[str, type] = {
