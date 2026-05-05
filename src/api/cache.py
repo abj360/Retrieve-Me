@@ -46,6 +46,8 @@ class RedisQueryCache:
 
     Attributes:
         ttl_seconds: Time-to-live applied to every cached entry.
+        hits: Number of cache hits since startup.
+        misses: Number of cache misses since startup.
     """
 
     def __init__(
@@ -64,6 +66,8 @@ class RedisQueryCache:
         self._client = client
         self.ttl_seconds = ttl_seconds
         self._key_prefix = key_prefix
+        self.hits = 0
+        self.misses = 0
 
     def get(self, key: str) -> str | None:
         """Returns the cached payload for key, or None on a miss.
@@ -78,8 +82,13 @@ class RedisQueryCache:
             value = self._client.get(self._key_prefix + key)
         except redis.RedisError as exc:
             logger.warning("cache get failed, treating as miss: %s", exc)
+            self.misses += 1
             return None
-        return value if isinstance(value, str) else None
+        if isinstance(value, str):
+            self.hits += 1
+            return value
+        self.misses += 1
+        return None
 
     def set(self, key: str, payload: str) -> None:
         """Stores a serialized response under key with the configured TTL.
