@@ -156,3 +156,13 @@ def test_ttl_passed_to_setex() -> None:
     cache = RedisQueryCache(TtlRecordingRedis(), ttl_seconds=42)
     cache.set("key-1", "payload-1")
     assert recorded["ttl"] == 42
+
+
+def test_hits_and_misses_counted() -> None:
+    """Asserts the cache tracks hit and miss counters."""
+    cache = RedisQueryCache(FakeRedis())
+    cache.set("key-1", "payload-1")
+    cache.get("key-1")
+    cache.get("key-2")
+    assert cache.hits == 1
+    assert cache.misses == 1
