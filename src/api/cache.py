@@ -15,7 +15,7 @@ import redis
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_TTL_SECONDS = 300
+DEFAULT_TTL_SECONDS = 300  # five minutes covers most repeated benchmarks
 KEY_PREFIX = "retrieval-core:q:"
 
 
