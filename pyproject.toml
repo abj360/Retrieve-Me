@@ -62,3 +62,6 @@ quote-style = "double"
 [[tool.mypy.overrides]]
 module = ["rank_bm25.*", "qdrant_client.*", "sentence_transformers.*"]
 ignore_missing_imports = true
+
+[tool.ruff.lint.mccabe]
+max-complexity = 10
