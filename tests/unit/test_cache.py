@@ -166,3 +166,10 @@ def test_hits_and_misses_counted() -> None:
     cache.get("key-2")
     assert cache.hits == 1
     assert cache.misses == 1
+
+
+def test_outage_miss_counts_as_miss() -> None:
+    """Asserts a Redis outage increments the miss counter."""
+    cache = RedisQueryCache(FakeRedis(fail=True))
+    cache.get("key-1")
+    assert cache.misses == 1
