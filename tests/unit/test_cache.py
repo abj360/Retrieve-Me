@@ -173,3 +173,10 @@ def test_outage_miss_counts_as_miss() -> None:
     cache = RedisQueryCache(FakeRedis(fail=True))
     cache.get("key-1")
     assert cache.misses == 1
+
+
+def test_counters_start_at_zero() -> None:
+    """Asserts a fresh cache starts with zeroed counters."""
+    cache = RedisQueryCache(FakeRedis())
+    assert cache.hits == 0
+    assert cache.misses == 0
