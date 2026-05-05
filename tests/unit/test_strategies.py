@@ -127,3 +127,24 @@ def test_registry_values_are_classes() -> None:
 
     for name, klass in STRATEGY_REGISTRY.items():
         assert isinstance(klass, type), name
+
+
+def test_candidate_k_override_scoped(indexed_stores, stub_embedder, stub_reranker) -> None:
+    """Asserts the candidate_k override restores the default afterwards."""
+    from src.retrieval.fusion import FusionConfig, ResultFuser
+    from src.retrieval.strategies import (
+        DenseRetrievalStrategy,
+        HybridRetriever,
+        SparseRetrievalStrategy,
+    )
+
+    bm25, dense = indexed_stores
+    pipeline = HybridRetriever(
+        SparseRetrievalStrategy(bm25),
+        DenseRetrievalStrategy(dense, stub_embedder),
+        ResultFuser(FusionConfig()),
+        stub_reranker,
+        candidate_k=50,
+    )
+    pipeline.retrieve_with_candidate_k("clause", top_k=2, candidate_k=5)
+    assert pipeline.candidate_k == 50
