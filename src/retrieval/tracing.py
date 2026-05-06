@@ -34,7 +34,7 @@ class LatencyTracer:
         spans: Timed spans recorded so far.
     """
 
-    spans: list[Span] = field(default_factory=list)
+    spans: list[Span] = field(default_factory=list)  # appended per traced stage
 
     @contextmanager
     def span(self, name: str) -> Iterator[None]:
