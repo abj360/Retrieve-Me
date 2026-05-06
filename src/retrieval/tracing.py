@@ -95,4 +95,4 @@ def percentile(values: list[float], p: float) -> float:
                 f"{name} | {len(durations)} | {percentile(durations, 50):.1f} "
                 f"| {percentile(durations, 95):.1f}"
             )
-        return "\n".join(lines)
+        return "\n".join(lines)  # one row per stage, sorted by name
