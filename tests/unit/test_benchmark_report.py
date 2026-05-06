@@ -46,3 +46,21 @@ def test_load_results_parses_fields(tmp_path) -> None:
 def test_delta_column_signed() -> None:
     """Asserts the delta column carries an explicit sign."""
     assert "+0.22" in render_table([RUN])
+
+
+def test_emit_dashboard_json_shape(tmp_path, monkeypatch) -> None:
+    """Asserts the dashboard export writes the run fields the UI expects."""
+    import json
+    import sys
+
+    target = tmp_path / "out.json"
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        ["benchmark_report.py", "--results", "data/benchmark_results_sample.json", "--emit-dashboard-json", str(target)],
+    )
+    from scripts.benchmark_report import main
+
+    main()
+    (first,) = json.loads(target.read_text(encoding="utf-8"))
+    assert {"id", "name", "dataset", "ndcgAt10", "p95Ms"} <= set(first)
