@@ -114,7 +114,8 @@ def paginate(
         page_results: The slice of matches belonging to the requested page.
     """
     start = (page - 1) * page_size
-    return matches[start : start + page_size]
+    end = start + page_size
+    return matches[start:end]
 
 
 @router.post("/retrieve", response_model=RetrieveResponse)
