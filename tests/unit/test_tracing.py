@@ -121,3 +121,8 @@ def test_report_lists_each_stage() -> None:
         pass
     report = tracer.report()
     assert "sparse" in report and "dense" in report
+
+
+def test_report_header() -> None:
+    """Asserts the report starts with the header row."""
+    assert LatencyTracer().report().startswith("stage | count")
