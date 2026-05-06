@@ -102,7 +102,7 @@ def main() -> None:
         results = sorted(results, key=lambda run: run.ndcg_at_10, reverse=True)
     else:
         results = sorted(results, key=lambda run: run.name)
-    print(render_table(results))
+    print(render_table(results))  # markdown to stdout; json via --emit-dashboard-json
     if args.emit_dashboard_json is not None:
         payload = [
             {
