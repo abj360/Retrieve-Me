@@ -193,3 +193,10 @@ def test_has_next_flags_more_pages() -> None:
     last = client().post("/retrieve", json={"query": "clause", "page": 3, "page_size": 10})
     assert first.json()["has_next"] is True
     assert last.json()["has_next"] is False
+
+
+def test_page_beyond_results_returns_empty_list() -> None:
+    """Asserts an out-of-range page yields an empty result list."""
+    response = client().post("/retrieve", json={"query": "clause", "page": 99})
+    assert response.status_code == 200
+    assert response.json()["results"] == []
