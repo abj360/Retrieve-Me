@@ -210,3 +210,12 @@ def test_normalization_changes_fused_order_fairly() -> None:
     dense = [make_result("d1", 0.9, "dense"), make_result("d2", 0.8, "dense")]
     fused = ResultFuser(FusionConfig(normalize_scores=True)).fuse(sparse, dense)
     assert {result.chunk_id for result in fused} == {"s1", "s2", "d1", "d2"}
+
+
+def test_rrf_k_large_flattens_scores() -> None:
+    """Asserts a large rrf_k compresses the fused score spread."""
+    fused = ResultFuser(FusionConfig(rrf_k=10_000, normalize_scores=False)).fuse(
+        [make_result("a", 0.9), make_result("b", 0.8)], []
+    )
+    scores = [result.score for result in fused]
+    assert scores[0] - scores[1] < 0.001
