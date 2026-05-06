@@ -7,7 +7,7 @@ Contains:
     RetrievedChunk: one scored chunk in the response
     RetrieveResponse: retrieval response payload
     cache_key(): builds the canonical cache key for a request
-    paginate(): slices one page out of the full match list
+    paginate(): slices one page out of the ranked match list
     retrieve(): runs retrieval for a query and returns scored chunks
 """
 
