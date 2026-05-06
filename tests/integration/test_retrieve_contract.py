@@ -185,3 +185,11 @@ def test_results_carry_source_field() -> None:
     """Asserts every chunk reports which retrieval stage produced it."""
     response = client().post("/retrieve", json={"query": "clause"})
     assert all(chunk["source"] for chunk in response.json()["results"])
+
+
+def test_has_next_flags_more_pages() -> None:
+    """Asserts has_next is true on page 1 and false on the last page."""
+    first = client().post("/retrieve", json={"query": "clause", "page_size": 10})
+    last = client().post("/retrieve", json={"query": "clause", "page": 3, "page_size": 10})
+    assert first.json()["has_next"] is True
+    assert last.json()["has_next"] is False
