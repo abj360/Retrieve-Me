@@ -110,3 +110,14 @@ def test_percentile_single_value() -> None:
     from src.retrieval.tracing import percentile
 
     assert percentile([42.0], 95) == 42.0
+
+
+def test_report_lists_each_stage() -> None:
+    """Asserts the report has one row per stage."""
+    tracer = LatencyTracer()
+    with tracer.span("sparse"):
+        pass
+    with tracer.span("dense"):
+        pass
+    report = tracer.report()
+    assert "sparse" in report and "dense" in report
