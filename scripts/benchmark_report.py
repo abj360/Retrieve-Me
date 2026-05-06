@@ -90,6 +90,12 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Render a benchmark table")
     parser.add_argument("--results", required=True, type=Path, help="results JSON file")
     parser.add_argument("--sort", choices=["name", "ndcg"], default="name")
+    parser.add_argument(
+        "--emit-dashboard-json",
+        type=Path,
+        default=None,
+        help="also write the runs JSON the dashboard serves",
+    )
     args = parser.parse_args()
     results = load_results(args.results)
     if args.sort == "ndcg":
@@ -97,6 +103,22 @@ def main() -> None:
     else:
         results = sorted(results, key=lambda run: run.name)
     print(render_table(results))
+    if args.emit_dashboard_json is not None:
+        payload = [
+            {
+                "id": f"run-{index:03d}",
+                "name": run.name,
+                "dataset": run.dataset,
+                "ndcgAt10": run.ndcg_at_10,
+                "recallAt50": run.recall_at_50,
+                "p50Ms": run.p50_ms,
+                "p95Ms": run.p95_ms,
+                "deltaNdcgVsBaseline": run.delta_ndcg,
+                "ranAt": "",
+            }
+            for index, run in enumerate(results, start=1)
+        ]
+        args.emit_dashboard_json.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
 
 if __name__ == "__main__":
