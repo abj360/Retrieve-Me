@@ -78,3 +78,21 @@ def percentile(values: list[float], p: float) -> float:
     low = int(rank)
     high = min(low + 1, len(ordered) - 1)
     return ordered[low] + (ordered[high] - ordered[low]) * (rank - low)
+
+
+    def report(self) -> str:
+        """Renders a per-stage latency report as text.
+
+        Returns:
+            report: Per-stage totals plus p50/p95 per span name.
+        """
+        by_name: dict[str, list[float]] = {}
+        for span in self.spans:
+            by_name.setdefault(span.name, []).append(span.duration_ms)
+        lines = ["stage | count | p50 (ms) | p95 (ms)", "------+-------+----------+----------"]
+        for name, durations in sorted(by_name.items()):
+            lines.append(
+                f"{name} | {len(durations)} | {percentile(durations, 50):.1f} "
+                f"| {percentile(durations, 95):.1f}"
+            )
+        return "\n".join(lines)
