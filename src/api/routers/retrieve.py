@@ -7,6 +7,7 @@ Contains:
     RetrievedChunk: one scored chunk in the response
     RetrieveResponse: retrieval response payload
     cache_key(): builds the canonical cache key for a request
+    paginate(): slices one page out of the full match list
     retrieve(): runs retrieval for a query and returns scored chunks
 """
 
@@ -72,6 +73,7 @@ class RetrieveResponse(BaseModel):
         page: One-based page number being returned.
         page_size: Number of results per page.
         applied_filters: Filters applied to the search, echoed back to the caller.
+        has_next: Whether a further page of results exists.
         took_ms: Wall-clock time spent serving the request.
     """
 
@@ -81,6 +83,7 @@ class RetrieveResponse(BaseModel):
     page: int
     page_size: int
     applied_filters: dict[str, str] | None
+    has_next: bool
     took_ms: float
 
 
@@ -95,6 +98,23 @@ def cache_key(payload: RetrieveRequest) -> str:
     """
     filters = tuple(sorted((payload.filters or {}).items()))
     return f"q:{payload.query}|k:{payload.top_k}|p:{payload.page}|s:{payload.page_size}|f:{filters}"
+
+
+def paginate(
+    matches: list[RetrievedChunk], page: int, page_size: int
+) -> list[RetrievedChunk]:
+    """Slices one page out of the full match list.
+
+    Args:
+        matches: All matched chunks in rank order.
+        page: One-based page number to return.
+        page_size: Number of results per page.
+
+    Returns:
+        page_results: The slice of matches belonging to the requested page.
+    """
+    start = (page - 1) * page_size
+    return matches[start : start + page_size]
 
 
 @router.post("/retrieve", response_model=RetrieveResponse)
@@ -135,8 +155,7 @@ def retrieve(
         )
         for hit in ranked
     ]
-    start = (payload.page - 1) * payload.page_size
-    page_results = matches[start : start + payload.page_size]
+    page_results = paginate(matches, payload.page, payload.page_size)
     response = RetrieveResponse(
         query=payload.query,
         results=page_results,
@@ -144,6 +163,7 @@ def retrieve(
         page=payload.page,
         page_size=payload.page_size,
         applied_filters=payload.filters,
+        has_next=payload.page * payload.page_size < len(matches),
         took_ms=(time.perf_counter() - started) * 1000,
     )
     cache.set(key, response)
