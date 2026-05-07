@@ -44,7 +44,13 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         response = await call_next(request)
         duration_ms = (time.perf_counter() - started) * 1000
         response.headers[REQUEST_ID_HEADER] = request_id
-        log = logger.error if response.status_code >= 500 else logger.info
+        log = (
+            logger.error
+            if response.status_code >= 500
+            else logger.warning
+            if response.status_code >= 400
+            else logger.info
+        )
         client_host = request.client.host if request.client else "-"
         log(
             "%s %s -> %d (%.1fms) rid=%s client=%s",
