@@ -3,7 +3,7 @@
 middleware.py --- HTTP middleware for request/response logging
 
 Contains:
-    RequestLoggingMiddleware: logs method, path, status, and duration per request
+    RequestLoggingMiddleware: logs one structured line per request with a request id
 """
 
 import logging
