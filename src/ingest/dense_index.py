@@ -76,7 +76,7 @@ class QdrantConfig:
     """Carries connection and collection settings for the dense index (frozen).
 
     Attributes:
-        url: Base URL of the Qdrant instance.
+        url: Base URL of the Qdrant instance (env: RETRIEVAL_QDRANT_URL).
         collection: Name of the collection that stores chunk vectors.
         vector_size: Dimensionality of the stored vectors.
         timeout: Per-request timeout in seconds.
