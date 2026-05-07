@@ -128,3 +128,12 @@ def test_zero_overlap_windows() -> None:
     first_tail = chunks[0].text.split()[-3:]
     second_head = chunks[1].text.split()[:3]
     assert first_tail != second_head
+
+
+def test_overlap_tail_within_budget(token_chunker) -> None:
+    """Asserts carried-over overlap sentences stay within the overlap budget."""
+    text = " ".join(f"Sentence {index} has six tokens in total." for index in range(30))
+    chunks = token_chunker.split(text, "doc-1")
+    for previous, following in zip(chunks, chunks[1:]):
+        shared = set(previous.text.split()) & set(following.text.split())
+        assert len(shared) <= 8
