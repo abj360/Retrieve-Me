@@ -13,7 +13,7 @@ import re
 from dataclasses import dataclass, field, replace
 from typing import Protocol
 
-SENTENCE_BOUNDARY = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9(\"'])")
+SENTENCE_BOUNDARY = re.compile  # split after terminal punctuation(r"(?<=[.!?])\s+(?=[A-Z0-9(\"'])")
 CLAUSE_BOUNDARY = re.compile(
     r"(?<=\s)(?=(?:section|clause|article)\s+\d)", re.IGNORECASE
 )
