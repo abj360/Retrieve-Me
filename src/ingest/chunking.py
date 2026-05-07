@@ -17,6 +17,9 @@ SENTENCE_BOUNDARY = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9(\"'])")
 CLAUSE_BOUNDARY = re.compile(
     r"(?<=\s)(?=(?:section|clause|article)\s+\d)", re.IGNORECASE
 )
+CLAUSE_REF_PATTERN = re.compile(
+    r"(?:section|clause|article)\s+\d+(?:\.\d+)*", re.IGNORECASE
+)
 TOKEN_PATTERN = re.compile(r"\S+")  # whitespace-delimited approximation
 DEFAULT_MAX_TOKENS = 512  # matches the embedder's comfortable context size
 DEFAULT_OVERLAP_TOKENS = 64  # ~12% of the window
@@ -197,7 +200,19 @@ class SemanticClauseChunker:
             text=text,
             token_count=self.count_tokens(text),
             index=index,
+            metadata={"clause_refs": self._clause_refs(text)},
         )
+
+    def _clause_refs(self, text: str) -> list[str]:
+        """Extracts legal clause references mentioned in chunk text.
+
+        Args:
+            text: Chunk text to scan.
+
+        Returns:
+            refs: Clause references such as "Section 3.1", in order.
+        """
+        return CLAUSE_REF_PATTERN.findall(text)
 
     def _merge_tail(self, chunks: list[Chunk]) -> list[Chunk]:
         """Merges a tiny final chunk into its predecessor.
