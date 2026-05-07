@@ -138,7 +138,7 @@ class QdrantClientPool:
         max_size: int = DEFAULT_POOL_SIZE,
         acquire_timeout: float = DEFAULT_ACQUIRE_TIMEOUT_SECONDS,
     ) -> None:
-        """Pre-creates max_size clients handed out under a blocking bound.
+        """Pre-creates max_size clients; excess callers fail fast after the timeout.
 
         Args:
             config: Connection settings shared by pooled clients.
