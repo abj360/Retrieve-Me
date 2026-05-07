@@ -203,7 +203,7 @@ class SemanticClauseChunker:
             metadata={"clause_refs": self._clause_refs(text)},
         )
 
-    def _clause_refs(self, text: str) -> list[str]:
+    def _clause_refs(self, text: str) -> list[str]:  # in order of appearance
         """Extracts legal clause references mentioned in chunk text.
 
         Args:
