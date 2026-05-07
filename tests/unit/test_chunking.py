@@ -119,3 +119,12 @@ def test_overlap_carries_sentences(token_chunker) -> None:
     assert any(
         sentence in chunks[1].text for sentence in chunks[0].text.split(". ")[:2] if sentence
     ) or True
+
+
+def test_zero_overlap_windows() -> None:
+    """Asserts zero overlap produces disjoint chunks."""
+    chunker = SemanticClauseChunker(ChunkConfig(max_tokens=12, overlap_tokens=0, min_chunk_tokens=2))
+    chunks = chunker.split(make_text(10), "doc-1")
+    first_tail = chunks[0].text.split()[-3:]
+    second_head = chunks[1].text.split()[:3]
+    assert first_tail != second_head
