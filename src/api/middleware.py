@@ -17,7 +17,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 logger = logging.getLogger("retrieval.http")
 
 REQUEST_ID_HEADER = "X-Request-ID"
-QUIET_PATHS = frozenset({"/healthz", "/readyz"})
+QUIET_PATHS = frozenset({"/healthz", "/readyz", "/"})
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
