@@ -145,3 +145,10 @@ def test_clause_refs_extracted_to_metadata(token_chunker) -> None:
     chunks = token_chunker.split(text, "doc-1")
     refs = [ref for chunk in chunks for ref in chunk.metadata["clause_refs"]]
     assert any(ref.lower().startswith("section 12") for ref in refs)
+
+
+def test_clause_split_keeps_marker_with_clause(token_chunker) -> None:
+    """Asserts a clause marker stays attached to its own clause text."""
+    text = "Intro sentence here. Section 5.1 The clause content follows."
+    chunks = token_chunker.split(text, "doc-1")
+    assert any("Section 5.1" in chunk.text for chunk in chunks)
