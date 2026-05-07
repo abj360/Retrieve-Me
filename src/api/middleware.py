@@ -51,7 +51,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             if response.status_code >= 400
             else logger.info
         )
-        client_host = request.client.host if request.client else "-"
+        client_host = request.client.host if request.client else "unknown"
         log(
             "%s %s -> %d (%.1fms) rid=%s client=%s",
             request.method,
