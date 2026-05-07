@@ -6,7 +6,7 @@ Contains:
     ChunkConfig: tunable token budget and overlap for the chunker
     Chunk: one chunk produced by the chunker
     Chunker: interface all chunkers implement
-    SemanticClauseChunker: splits text on sentence and clause boundaries
+    SemanticClauseChunker: splits on sentence and clause boundaries, packing to budget
 """
 
 import re
