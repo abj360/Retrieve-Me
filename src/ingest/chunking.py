@@ -136,7 +136,7 @@ class SemanticClauseChunker:
         return [piece for piece in pieces if piece]
 
     def _pack(self, sentences: list[str], doc_id: str) -> list[Chunk]:
-        """Packs sentences into chunks up to the token budget.
+        """Packs sentences into boundary-aligned chunks up to the token budget.
 
         Args:
             sentences: Sentence fragments in document order.

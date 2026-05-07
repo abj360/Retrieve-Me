@@ -4,3 +4,6 @@ Every retrieval request should carry a request id end to end, with per-stage
 latency spans for embed, sparse search, dense search, fusion, and rerank.
 Percentile summaries (p50, p95) per stage make latency regressions obvious
 before they show up in the benchmark numbers.
+
+Percentiles are computed client-side from raw span durations; the tracer
+keeps the raw spans so p50/p95 can both be derived after the fact.

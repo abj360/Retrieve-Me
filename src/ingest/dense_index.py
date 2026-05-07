@@ -107,7 +107,7 @@ class DenseHit:
 
 
 def _build_filter(filters: dict[str, str] | None) -> Filter | None:
-    """Builds a Qdrant filter from exact-match payload filters.
+    """Builds a Qdrant filter from exact-match payload filters (AND semantics).
 
     Args:
         filters: Payload field/value pairs to match exactly.
