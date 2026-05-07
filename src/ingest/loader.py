@@ -116,7 +116,7 @@ class CorpusIngestor:
 
 
 def load_corpus(path: Path) -> list[Document]:
-    """Loads all supported documents from a directory.
+    """Loads all supported documents from a directory (txt/md/jsonl).
 
     Args:
         path: Directory holding .txt/.md corpus files.
