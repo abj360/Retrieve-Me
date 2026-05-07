@@ -118,7 +118,7 @@ class BM25Index:
         ]
 
     def stats(self) -> dict[str, float]:
-        """Reports index size and average document length.
+        """Reports index size and average document length for ops dashboards.
 
         Returns:
             stats: Chunk count and average token count per chunk.
