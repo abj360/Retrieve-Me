@@ -26,8 +26,11 @@ def test_request_id_echoed_when_provided() -> None:
 
 def test_health_probe_not_logged_at_info(caplog) -> None:
     """Asserts health probes skip request logging once quiet paths land."""
-    TestClient(create_app()).get("/healthz")
-    assert True  # placeholder until quiet-path filtering lands
+    import logging
+
+    with caplog.at_level(logging.INFO, logger="retrieval.http"):
+        TestClient(create_app()).get("/healthz")
+    assert not [record for record in caplog.records if "/healthz" in record.getMessage()]
 
 
 def test_generated_request_id_is_twelve_chars() -> None:
