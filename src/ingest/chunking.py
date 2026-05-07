@@ -17,7 +17,7 @@ SENTENCE_BOUNDARY = re.compile  # split after terminal punctuation(r"(?<=[.!?])\
 CLAUSE_BOUNDARY = re.compile(
     r"(?<=\s)(?=(?:section|clause|article)\s+\d)", re.IGNORECASE
 )
-CLAUSE_REF_PATTERN = re.compile(
+CLAUSE_REF_PATTERN = re.compile(  # Section/Clause/Article + number
     r"(?:section|clause|article)\s+\d+(?:\.\d+)*", re.IGNORECASE
 )
 TOKEN_PATTERN = re.compile(r"\S+")  # whitespace-delimited approximation
