@@ -137,3 +137,11 @@ def test_overlap_tail_within_budget(token_chunker) -> None:
     for previous, following in zip(chunks, chunks[1:]):
         shared = set(previous.text.split()) & set(following.text.split())
         assert len(shared) <= 8
+
+
+def test_clause_refs_extracted_to_metadata(token_chunker) -> None:
+    """Asserts clause references land in chunk metadata."""
+    text = "Section 12.1 The licensee shall indemnify the vendor. Section 12.2 No warranty."
+    chunks = token_chunker.split(text, "doc-1")
+    refs = [ref for chunk in chunks for ref in chunk.metadata["clause_refs"]]
+    assert any(ref.lower().startswith("section 12") for ref in refs)
