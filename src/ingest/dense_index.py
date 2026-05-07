@@ -153,7 +153,7 @@ class QdrantClientPool:
 
     @contextmanager
     def acquire(self) -> Iterator[QdrantClient]:
-        """Yields a pooled client, blocking up to the acquire timeout.
+        """Yields a pooled client, blocking up to the acquire timeout before failing.
 
         Returns:
             client: Pooled Qdrant client the caller must yield back.
