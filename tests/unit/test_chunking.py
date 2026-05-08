@@ -182,3 +182,17 @@ def test_multiple_clause_refs_in_order(token_chunker) -> None:
     refs = [ref for chunk in chunks for ref in chunk.metadata["clause_refs"]]
     lowered = [ref.lower() for ref in refs]
     assert lowered == sorted(lowered)
+
+
+def test_config_defaults_match_module_constants() -> None:
+    """Asserts ChunkConfig defaults mirror the module constants."""
+    from src.ingest.chunking import (
+        DEFAULT_MAX_TOKENS,
+        DEFAULT_MIN_CHUNK_TOKENS,
+        DEFAULT_OVERLAP_TOKENS,
+    )
+
+    config = ChunkConfig()
+    assert config.max_tokens == DEFAULT_MAX_TOKENS
+    assert config.overlap_tokens == DEFAULT_OVERLAP_TOKENS
+    assert config.min_chunk_tokens == DEFAULT_MIN_CHUNK_TOKENS
