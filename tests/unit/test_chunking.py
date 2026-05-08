@@ -202,3 +202,10 @@ def test_empty_and_whitespace_semantic(token_chunker) -> None:
     """Asserts empty and whitespace input yield no semantic chunks."""
     assert token_chunker.split("", "doc-1") == []
     assert token_chunker.split("  \n ", "doc-1") == []
+
+
+def test_question_and_exclamation_boundaries(token_chunker) -> None:
+    """Asserts ? and ! also count as sentence boundaries."""
+    text = "Is this a question? It is! Now a statement."
+    chunks = token_chunker.split(text, "doc-1")
+    assert all(chunk.text.rstrip().endswith((".", "!", "?")) for chunk in chunks)
