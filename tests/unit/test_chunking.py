@@ -173,3 +173,12 @@ def test_unicode_text_chunks_cleanly(token_chunker) -> None:
     """Asserts unicode text splits without errors."""
     chunks = token_chunker.split("Café clause one. Naïve clause two.", "doc-1")
     assert chunks
+
+
+def test_multiple_clause_refs_in_order(token_chunker) -> None:
+    """Asserts multiple clause references keep document order."""
+    text = "Section 1.1 First. Section 1.2 Second. Section 1.3 Third."
+    chunks = token_chunker.split(text, "doc-1")
+    refs = [ref for chunk in chunks for ref in chunk.metadata["clause_refs"]]
+    lowered = [ref.lower() for ref in refs]
+    assert lowered == sorted(lowered)
