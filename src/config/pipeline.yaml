@@ -35,7 +35,7 @@ cache:
 
 strategy:
   type: hybrid
-  candidate_k: 50
+  candidate_k: 60
 
 generation:
   model_name: gpt-4o-mini
