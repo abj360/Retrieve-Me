@@ -152,3 +152,11 @@ def test_clause_split_keeps_marker_with_clause(token_chunker) -> None:
     text = "Intro sentence here. Section 5.1 The clause content follows."
     chunks = token_chunker.split(text, "doc-1")
     assert any("Section 5.1" in chunk.text for chunk in chunks)
+
+
+def test_single_long_sentence_gets_own_chunk(token_chunker) -> None:
+    """Asserts an over-budget single sentence still becomes a chunk."""
+    text = " ".join(["word"] * 120) + "."
+    chunks = token_chunker.split(text, "doc-1")
+    assert len(chunks) == 1
+    assert chunks[0].token_count > 48
