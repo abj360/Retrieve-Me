@@ -209,3 +209,10 @@ def test_question_and_exclamation_boundaries(token_chunker) -> None:
     text = "Is this a question? It is! Now a statement."
     chunks = token_chunker.split(text, "doc-1")
     assert all(chunk.text.rstrip().endswith((".", "!", "?")) for chunk in chunks)
+
+
+def test_chunk_token_count_matches_content(token_chunker) -> None:
+    """Asserts reported token_count matches the chunk text."""
+    chunks = token_chunker.split(make_text(20), "doc-1")
+    for chunk in chunks:
+        assert chunk.token_count == len(chunk.text.split())
