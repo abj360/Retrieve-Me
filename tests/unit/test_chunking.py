@@ -167,3 +167,9 @@ def test_newlines_normalized_before_splitting(token_chunker) -> None:
     text = "First sentence.\nSecond sentence.\n\nThird sentence."
     chunks = token_chunker.split(text, "doc-1")
     assert all("\n" not in chunk.text for chunk in chunks)
+
+
+def test_unicode_text_chunks_cleanly(token_chunker) -> None:
+    """Asserts unicode text splits without errors."""
+    chunks = token_chunker.split("Café clause one. Naïve clause two.", "doc-1")
+    assert chunks
