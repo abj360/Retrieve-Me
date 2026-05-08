@@ -160,3 +160,10 @@ def test_single_long_sentence_gets_own_chunk(token_chunker) -> None:
     chunks = token_chunker.split(text, "doc-1")
     assert len(chunks) == 1
     assert chunks[0].token_count > 48
+
+
+def test_newlines_normalized_before_splitting(token_chunker) -> None:
+    """Asserts newlines collapse before sentence splitting."""
+    text = "First sentence.\nSecond sentence.\n\nThird sentence."
+    chunks = token_chunker.split(text, "doc-1")
+    assert all("\n" not in chunk.text for chunk in chunks)
