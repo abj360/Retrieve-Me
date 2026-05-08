@@ -17,13 +17,14 @@ dense:
 
 fusion:
   rrf_k: 60
-  sparse_weight: 1.0
+  sparse_weight: 1.2
   dense_weight: 1.0
   normalize_scores: true
 
 reranker:
   model_name: cross-encoder/ms-marco-MiniLM-L-6-v2
-  top_k: 20
+  top_k: 12
+  min_score: -3.0
 
 chunking:
   max_tokens: 512
