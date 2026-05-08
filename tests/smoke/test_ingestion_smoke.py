@@ -49,8 +49,8 @@ def test_ingest_smoke_writes_chunks(smoke_documents, token_chunker, fake_dense_i
     embedder = MockEmbedder()
     bm25 = BM25Index()
     ingestor = CorpusIngestor(token_chunker, embedder, fake_dense_index, bm25)
-    ingested = ingestor.ingest(smoke_documents)
-    assert ingested > 0
+    stats = ingestor.ingest(smoke_documents)
+    assert stats.chunks > 0
     assert embedder.calls > 0
     assert fake_dense_index.count() > 0
 

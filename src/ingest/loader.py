@@ -4,6 +4,7 @@ loader.py --- corpus loader and batch upsert for the ingestion pipeline
 
 Contains:
     Document: one raw document loaded from a corpus directory
+    IngestStats: counts and timing for one ingestion run
     CorpusIngestor: chunks, embeds, and indexes documents in batches
     load_corpus(): loads all supported documents from a directory
     load_benchmark_corpus(): loads the 500-doc legal/tech benchmark set
@@ -46,6 +47,21 @@ class Document:
     metadata: dict = field(default_factory=dict)
 
 
+@dataclass(frozen=True)
+class IngestStats:
+    """Carries counts and timing for one ingestion run.
+
+    Attributes:
+        documents: Documents ingested after deduplication.
+        chunks: Chunks written to the indexes.
+        seconds: Wall-clock time the run took.
+    """
+
+    documents: int
+    chunks: int
+    seconds: float
+
+
 class CorpusIngestor:
     """Chunks, embeds, and indexes documents into the retrieval stores (dense + sparse).
 
@@ -79,16 +95,17 @@ class CorpusIngestor:
         self.bm25_index = bm25_index
         self.batch_size = batch_size
 
-    def ingest(self, documents: list[Document]) -> int:
+    def ingest(self, documents: list[Document]) -> IngestStats:
         """Ingests documents into the dense and sparse indexes.
 
         Args:
             documents: Raw documents to chunk, embed, and index.
 
         Returns:
-            indexed_chunks: Number of chunks written to the indexes.
+            stats: Document/chunk counts and timing for the run.
         """
         started = time.perf_counter()
+        documents = list({document.doc_id: document for document in documents}.values())
         chunks = [
             chunk
             for document in documents
@@ -112,7 +129,7 @@ class CorpusIngestor:
         self.bm25_index.build(chunks)
         elapsed = time.perf_counter() - started
         logger.info("ingested %d chunks in %.1fs", len(chunks), elapsed)
-        return len(chunks)
+        return IngestStats(documents=len(documents), chunks=len(chunks), seconds=elapsed)
 
 
 def load_corpus(path: Path) -> list[Document]:
