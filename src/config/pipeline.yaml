@@ -16,7 +16,7 @@ dense:
   collection: chunks
 
 fusion:
-  rrf_k: 60
+  rrf_k: 58
   sparse_weight: 1.2
   dense_weight: 1.0
   normalize_scores: true
