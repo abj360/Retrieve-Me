@@ -4,7 +4,7 @@ loader.py --- corpus loader and batch upsert for the ingestion pipeline
 
 Contains:
     Document: one raw document loaded from a corpus directory
-    IngestStats: counts and timing for one ingestion run
+    IngestStats: counts and timing for one ingestion run (post-dedupe)
     CorpusIngestor: chunks, embeds, and indexes documents in batches
     load_corpus(): loads all supported documents from a directory
     load_benchmark_corpus(): loads the 500-doc legal/tech benchmark set
