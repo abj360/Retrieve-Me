@@ -150,7 +150,7 @@ def load_corpus(path: Path) -> list[Document]:
             continue
         text = file_path.read_text(encoding="utf-8").strip()
         if not text:
-            logger.warning("skipping empty document %s", file_path.name)
+            logger.warning("skipping empty file %s", file_path.name)
             continue
         documents.append(Document(doc_id=file_path.stem, title=file_path.stem, text=text))
     logger.info("loaded %d documents from %s", len(documents), path)
