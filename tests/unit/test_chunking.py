@@ -196,3 +196,9 @@ def test_config_defaults_match_module_constants() -> None:
     assert config.max_tokens == DEFAULT_MAX_TOKENS
     assert config.overlap_tokens == DEFAULT_OVERLAP_TOKENS
     assert config.min_chunk_tokens == DEFAULT_MIN_CHUNK_TOKENS
+
+
+def test_empty_and_whitespace_semantic(token_chunker) -> None:
+    """Asserts empty and whitespace input yield no semantic chunks."""
+    assert token_chunker.split("", "doc-1") == []
+    assert token_chunker.split("  \n ", "doc-1") == []
