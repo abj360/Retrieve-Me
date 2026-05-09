@@ -12,6 +12,7 @@ import {
   Legend,
   Line,
   Bar,
+  ReferenceLine,
   Tooltip,
   XAxis,
   YAxis,
@@ -73,6 +74,13 @@ export function LatencyRecallChart({ runs }: LatencyRecallChartProps) {
         />
         <Tooltip />
         <Legend />
+        <ReferenceLine
+          yAxisId="left"
+          y={150}
+          stroke="var(--chart-target)"
+          strokeDasharray="4 4"
+          label="p95 target"
+        />
         <Bar yAxisId="left" dataKey="p95Ms" name="p95 latency (ms)" fill="var(--chart-bar)" />
         <Bar yAxisId="left" dataKey="recallAt50" name="recall@50" fill="var(--chart-bar-alt)" />
         <Line yAxisId="right" dataKey="ndcgAt10" name="nDCG@10" stroke="var(--chart-line)" />
