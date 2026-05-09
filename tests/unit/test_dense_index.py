@@ -396,3 +396,10 @@ def test_build_filter_maps_exact_matches() -> None:
     assert query_filter is not None
     assert len(query_filter.must) == 1
     assert _build_filter(None) is None
+
+
+def test_search_on_empty_index_returns_no_hits() -> None:
+    """Asserts searching an empty collection returns [] rather than raising."""
+    client = FakeQdrantClient()
+    client.collection_exists = lambda collection: False
+    assert make_index(client).search([0.1] * 384, top_k=5) == []
