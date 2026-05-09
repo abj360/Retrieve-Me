@@ -193,6 +193,12 @@ class DenseIndex:
         self.config = config
         self.pool = pool
 
+    def drop_collection(self) -> None:
+        """Drops the collection when it exists; no-op otherwise."""
+        with self.pool.acquire() as client:
+            if client.collection_exists(self.config.collection):
+                client.delete_collection(self.config.collection)
+
     def ensure_collection(self, recreate: bool = False) -> None:
         """Creates the collection when it does not exist yet.
 
