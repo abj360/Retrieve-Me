@@ -64,5 +64,16 @@
     "p95Ms": 143,
     "deltaNdcgVsBaseline": 0.28,
     "ranAt": "2026-04-26T10:37:00Z"
+  },
+  {
+    "id": "run-007",
+    "name": "hybrid-tuned-candidate60",
+    "dataset": "legal-500",
+    "ndcgAt10": 0.69,
+    "recallAt50": 0.85,
+    "p50Ms": 82,
+    "p95Ms": 149,
+    "deltaNdcgVsBaseline": 0.28,
+    "ranAt": "2026-05-08T16:44:00Z"
   }
 ]
