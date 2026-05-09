@@ -52,6 +52,15 @@ class JudgeVerdict:
     faithfulness: float
     rationale: str
 
+    @property
+    def is_faithful(self) -> bool:
+        """Returns whether the verdict clears the faithfulness threshold.
+
+        Returns:
+            faithful: True when faithfulness meets the threshold.
+        """
+        return self.faithfulness >= FAITHFULNESS_THRESHOLD
+
 
 @dataclass(frozen=True)
 class EvalQuery:
