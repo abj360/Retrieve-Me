@@ -48,3 +48,8 @@ def test_precision_at_k() -> None:
     from src.eval.metrics import precision_at_k
 
     assert precision_at_k(["a", "x", "b"], {"a", "b"}, k=3) == 2 / 3
+
+
+def test_citation_faithfulness_partial() -> None:
+    """Asserts partial grounding scores fractionally."""
+    assert citation_faithfulness(["c-1", "c-9"], {"c-1"}) == 0.5
