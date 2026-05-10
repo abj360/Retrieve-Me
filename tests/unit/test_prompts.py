@@ -93,3 +93,11 @@ def test_prompt_version_exists() -> None:
     from src.generation.prompts.citation import PROMPT_VERSION
 
     assert PROMPT_VERSION
+
+
+def test_prompt_version_format() -> None:
+    """Asserts the version constant looks like semver."""
+    from src.generation.prompts.citation import PROMPT_VERSION
+
+    parts = PROMPT_VERSION.split(".")
+    assert len(parts) == 3
