@@ -54,7 +54,9 @@ export function ResultsTable<T>({ data, columns, rowKey, pageSize = 25 }: Result
   };
 
   return (
-    <div className="results-table-wrap" onKeyDown={handleKeyDown} tabIndex={0}>
+    <div className="results-table-wrap" onKeyDown={handleKeyDown} tabIndex={0}
+    role="group"
+    aria-label="results pagination">
       <table className="results-table">
         <thead>
           <tr>
