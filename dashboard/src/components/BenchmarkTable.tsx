@@ -32,7 +32,12 @@ export function BenchmarkTable({ runs }: BenchmarkTableProps) {
         { label: "p95 latency (ms)", render: (run) => run.p95Ms },
         {
           label: "Δ nDCG",
-          render: (run) => (run.deltaNdcgVsBaseline > 0 ? `+${run.deltaNdcgVsBaseline.toFixed(2)}` : "—"),
+          render: (run) =>
+            run.deltaNdcgVsBaseline > 0 ? (
+              <span className="delta-positive">+{run.deltaNdcgVsBaseline.toFixed(2)}</span>
+            ) : (
+              <span className="delta-neutral">—</span>
+            ),
         },
       ]}
     />
