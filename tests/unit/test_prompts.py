@@ -86,3 +86,10 @@ def test_refusal_guidance_present() -> None:
     from src.generation.prompts.citation import CITATION_SYSTEM_PROMPT
 
     assert "do not know" in CITATION_SYSTEM_PROMPT
+
+
+def test_prompt_version_exists() -> None:
+    """Asserts the prompt template carries a version constant."""
+    from src.generation.prompts.citation import PROMPT_VERSION
+
+    assert PROMPT_VERSION
