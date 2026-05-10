@@ -34,7 +34,7 @@ export function BenchmarkTable({ runs }: BenchmarkTableProps) {
           label: "Δ nDCG",
           render: (run) =>
             run.deltaNdcgVsBaseline > 0 ? (
-              <span className="delta-positive">+{run.deltaNdcgVsBaseline.toFixed(2)}</span>
+              <span className="delta delta-positive">+{run.deltaNdcgVsBaseline.toFixed(2)}</span>
             ) : (
               <span className="delta-neutral">—</span>
             ),
