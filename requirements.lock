@@ -27,7 +27,7 @@ mypy==1.13.0
 
 # transitive
 anyio==4.7.0
-starlette==0.41.2
+starlette==0.41.3
 typing-extensions==4.12.2
 certifi==2024.12.14
 h11==0.14.0
