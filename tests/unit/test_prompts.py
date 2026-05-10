@@ -79,3 +79,10 @@ def test_prompt_instructs_cite_every_claim() -> None:
     from src.generation.prompts.citation import CITATION_SYSTEM_PROMPT
 
     assert "Every factual claim" in CITATION_SYSTEM_PROMPT
+
+
+def test_refusal_guidance_present() -> None:
+    """Asserts the refusal guidance survives rewording."""
+    from src.generation.prompts.citation import CITATION_SYSTEM_PROMPT
+
+    assert "do not know" in CITATION_SYSTEM_PROMPT
