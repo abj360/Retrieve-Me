@@ -44,8 +44,17 @@ export function ResultsTable<T>({ data, columns, rowKey, pageSize = 25 }: Result
 
   const visibleRows = data.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
 
+  const handleKeyDown = (event: React.KeyboardEvent) => {
+    if (event.key === "ArrowLeft" && page > 0) {
+      setPage(page - 1);
+    }
+    if (event.key === "ArrowRight" && page + 1 < totalPages) {
+      setPage(page + 1);
+    }
+  };
+
   return (
-    <div className="results-table-wrap" role="region">
+    <div className="results-table-wrap" onKeyDown={handleKeyDown} tabIndex={0}>
       <table className="results-table">
         <thead>
           <tr>
@@ -79,7 +88,7 @@ export function ResultsTable<T>({ data, columns, rowKey, pageSize = 25 }: Result
         <button onClick={() => setPage(page - 1)} disabled={page === 0}>
           Previous
         </button>
-        <span>
+        <span aria-current="page">
           Page {page + 1} of {totalPages}
         </span>
         <button onClick={() => setPage(page + 1)} disabled={page + 1 >= totalPages}>
