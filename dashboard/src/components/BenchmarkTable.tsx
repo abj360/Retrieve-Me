@@ -31,7 +31,7 @@ export function BenchmarkTable({ runs }: BenchmarkTableProps) {
         { label: "Recall@50", render: (run) => run.recallAt50.toFixed(3) },
         { label: "p95 latency (ms)", render: (run) => run.p95Ms },
         {
-          label: "Δ nDCG",
+          label: "Δ nDCG vs base",
           render: (run) =>
             run.deltaNdcgVsBaseline > 0 ? (
               <span className="delta delta-positive">+{run.deltaNdcgVsBaseline.toFixed(2)}</span>
