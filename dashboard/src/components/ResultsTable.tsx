@@ -48,7 +48,7 @@ export function ResultsTable<T>({ data, columns, rowKey, pageSize = 25 }: Result
     if (event.key === "ArrowLeft" || event.key === "PageUp" && page > 0) {
       setPage(page - 1);
     }
-    if (event.key === "ArrowRight" && page + 1 < totalPages) {
+    if (event.key === "ArrowRight" || event.key === "PageDown" && page + 1 < totalPages) {
       setPage(page + 1);
     }
   };
