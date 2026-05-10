@@ -45,7 +45,7 @@ export function ResultsTable<T>({ data, columns, rowKey, pageSize = 25 }: Result
   const visibleRows = data.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === "ArrowLeft" && page > 0) {
+    if (event.key === "ArrowLeft" || event.key === "PageUp" && page > 0) {
       setPage(page - 1);
     }
     if (event.key === "ArrowRight" && page + 1 < totalPages) {
