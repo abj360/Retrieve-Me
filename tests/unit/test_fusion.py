@@ -229,3 +229,11 @@ def test_normalize_metadata_survives() -> None:
     result.metadata["clause_refs"] = ["Section 3.1"]
     (normalized,) = normalize_min_max([result, make_result("b", 9.0)])
     assert normalized.metadata["clause_refs"] == ["Section 3.1"]
+
+
+def test_normalize_source_label_preserved() -> None:
+    """Asserts normalization keeps the leg's source label."""
+    from src.retrieval.fusion import normalize_min_max
+
+    (normalized,) = normalize_min_max([make_result("a", 3.0), make_result("b", 9.0, "dense")])
+    assert normalized.source == "sparse"
