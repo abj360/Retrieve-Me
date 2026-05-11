@@ -256,3 +256,10 @@ def test_case_insensitive_parse() -> None:
     judge = LLMJudge(CannedJudgeClient(reply=reply))
     verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
     assert verdict.relevance == 0.7
+
+
+def test_rationale_is_returned_trimmed() -> None:
+    """Asserts the rationale field has no surrounding whitespace."""
+    judge = LLMJudge(CannedJudgeClient())
+    verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
+    assert verdict.rationale == verdict.rationale.strip()
