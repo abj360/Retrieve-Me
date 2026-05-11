@@ -3,7 +3,7 @@
 health.py --- liveness and readiness endpoints
 
 Contains:
-    healthz(): reports whether the process is alive
+    healthz(): reports whether the process is alive, plus service version
     check_qdrant(): returns ok when Qdrant answers within the ping timeout
     check_redis(): returns ok when Redis answers within the ping timeout
     readyz(): reports whether backing services are reachable
@@ -27,7 +27,12 @@ def healthz() -> dict[str, str]:
     Returns:
         status: Static ok payload while the process runs.
     """
-    return {"status": "ok"}
+    settings = get_settings()
+    return {
+        "status": "ok",
+        "service": settings.app_title,
+        "version": settings.app_version,
+    }
 
 
 def check_qdrant(settings) -> str:
