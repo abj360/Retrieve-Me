@@ -132,7 +132,7 @@ class CorpusIngestor:
             logger.info("ingested chunks %d-%d of %d", start, end, total)
         self.bm25_index.build(chunks)
         elapsed = time.perf_counter() - started
-        logger.info("ingested %d chunks in %.1fs", len(chunks), elapsed)
+        logger.info("ingest done: %d chunks in %.1fs", len(chunks), elapsed)
         return IngestStats(documents=len(documents), chunks=len(chunks), seconds=elapsed)
 
 
