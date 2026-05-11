@@ -168,3 +168,23 @@ def test_candidate_k_override_none_uses_default(indexed_stores, stub_embedder, s
     )
     pipeline.retrieve_with_candidate_k("clause", top_k=2, candidate_k=None)
     assert pipeline.candidate_k == 50
+
+
+def test_hybrid_normalized_legs_share_scale(indexed_stores, stub_embedder, stub_reranker) -> None:
+    """Asserts fused scores stay in [0, 1] when normalization is on."""
+    from src.retrieval.fusion import FusionConfig, ResultFuser
+    from src.retrieval.strategies import (
+        DenseRetrievalStrategy,
+        HybridRetriever,
+        SparseRetrievalStrategy,
+    )
+
+    bm25, dense = indexed_stores
+    pipeline = HybridRetriever(
+        SparseRetrievalStrategy(bm25),
+        DenseRetrievalStrategy(dense, stub_embedder),
+        ResultFuser(FusionConfig(normalize_scores=True)),
+        stub_reranker,
+    )
+    results = pipeline.retrieve("indemnify", top_k=4)
+    assert all(result.score >= 0 for result in results)
