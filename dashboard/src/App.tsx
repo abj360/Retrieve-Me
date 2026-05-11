@@ -91,7 +91,7 @@ export function App() {
         });
     };
     loadRuns();
-    const pollHandle = window.setInterval(loadRuns, 30_000);
+    const pollHandle = window.setInterval(loadRuns, 45_000);
     return () => {
       isCancelled = true;
       window.clearInterval(pollHandle);
