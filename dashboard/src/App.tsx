@@ -77,7 +77,7 @@ export function App() {
       getBenchmarkRuns()
         .then((fetchedRuns) => {
           if (!isCancelled) {
-            setRuns(fetchedRuns);
+            setRuns(fetchedRuns.slice().sort((a, b) => a.ranAt.localeCompare(b.ranAt)));
             setLoadError(null);
             setIsLoading(false);
           }
