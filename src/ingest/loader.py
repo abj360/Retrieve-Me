@@ -117,12 +117,16 @@ class CorpusIngestor:
         for start in range(0, total, self.batch_size):  # sequential batches keep memory flat
             end = min(start + self.batch_size, total - 1)
             batch = chunks[start:end]
-            vectors = self.embedder.encode([chunk.text for chunk in batch])
+            batch_texts = [chunk.text for chunk in batch]
+            vectors = self.embedder.encode(batch_texts)
             retry_with_backoff(
                 lambda: self.dense_index.upsert(
                     [chunk.chunk_id for chunk in batch],
                     vectors,
-                    [{"doc_id": chunk.doc_id, "text": chunk.text} for chunk in batch],
+                    [
+                        {"doc_id": chunk.doc_id, "text": text}
+                        for chunk, text in zip(batch, batch_texts, strict=True)
+                    ],
                 )
             )
             logger.info("ingested chunks %d-%d of %d", start, end, total)

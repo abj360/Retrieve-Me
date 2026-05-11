@@ -106,6 +106,19 @@ class DenseHit:
     payload: dict
 
 
+def _build_payload(chunk_id: str, payload: dict) -> dict:
+    """Builds the stored payload for one chunk.
+
+    Args:
+        chunk_id: Stable identifier of the chunk.
+        payload: Caller-supplied metadata for the chunk.
+
+    Returns:
+        stored_payload: Metadata with the chunk identifier merged in.
+    """
+    return {"chunk_id": chunk_id, **payload}
+
+
 def _build_filter(filters: dict[str, str] | None) -> Filter | None:
     """Builds a Qdrant filter from exact-match payload filters (AND semantics).
 
@@ -261,7 +274,7 @@ class DenseIndex:
             PointStruct(
                 id=str(uuid.uuid5(POINT_ID_NAMESPACE, chunk_id)),
                 vector=vector,
-                payload={"chunk_id": chunk_id, **payload},
+                payload=_build_payload(chunk_id, payload),
             )
             for chunk_id, vector, payload in zip(chunk_ids, vectors, payloads, strict=True)
         ]
