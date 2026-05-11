@@ -403,3 +403,12 @@ def test_search_on_empty_index_returns_no_hits() -> None:
     client = FakeQdrantClient()
     client.collection_exists = lambda collection: False
     assert make_index(client).search([0.1] * 384, top_k=5) == []
+
+
+def test_batch_size_one_writes_each_point() -> None:
+    """Asserts batch_size of 1 still writes every point."""
+    client = FakeQdrantClient()
+    ids = ["a", "b", "c"]
+    make_index(client).upsert(ids, [[0.1] * 8] * 3, [{}] * 3, batch_size=1)
+    assert client.upsert_calls == 3
+    assert len(client.points) == 3
