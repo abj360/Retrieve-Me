@@ -73,23 +73,28 @@ export function App() {
 
   useEffect(() => {
     let isCancelled = false;
-    getBenchmarkRuns()
-      .then((fetchedRuns) => {
-        if (!isCancelled) {
-          setRuns(fetchedRuns);
-          setLoadError(null);
-          setIsLoading(false);
-        }
-      })
-      .catch((error: unknown) => {
-        if (!isCancelled) {
-          setLoadError(error instanceof Error ? error.message : "failed to load runs");
-          setRuns([]);
-          setIsLoading(false);
-        }
-      });
+    const loadRuns = () => {
+      getBenchmarkRuns()
+        .then((fetchedRuns) => {
+          if (!isCancelled) {
+            setRuns(fetchedRuns);
+            setLoadError(null);
+            setIsLoading(false);
+          }
+        })
+        .catch((error: unknown) => {
+          if (!isCancelled) {
+            setLoadError(error instanceof Error ? error.message : "failed to load runs");
+            setRuns([]);
+            setIsLoading(false);
+          }
+        });
+    };
+    loadRuns();
+    const pollHandle = window.setInterval(loadRuns, 30_000);
     return () => {
       isCancelled = true;
+      window.clearInterval(pollHandle);
     };
   }, []);
 
