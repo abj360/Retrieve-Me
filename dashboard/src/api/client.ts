@@ -12,7 +12,7 @@
 import type { BenchmarkRun, RetrieveResponse } from "../types";
 
 const API_BASE = "/api";
-const REQUEST_TIMEOUT_MS = 10_000;
+const REQUEST_TIMEOUT_MS = 8_000;
 
 /**
  * Error carrying the HTTP status of a failed API request.
