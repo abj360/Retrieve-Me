@@ -9,6 +9,8 @@ Contains:
     readyz(): reports whether backing services are reachable
 """
 
+import os
+
 import redis
 from fastapi import APIRouter, HTTPException
 from qdrant_client import QdrantClient
