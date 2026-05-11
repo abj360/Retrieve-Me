@@ -37,7 +37,8 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const controller = new AbortController();
   const timeoutHandle = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    const response = await fetch(path, { ...init, signal: controller.signal });
+    const response = await fetch(path, { ...init, signal: controller.signal,
+    credentials: "same-origin", });
     if (!response.ok) {
       throw new ApiError(path, response.status);
     }
