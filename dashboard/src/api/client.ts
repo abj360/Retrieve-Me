@@ -4,7 +4,7 @@
  *
  * Contains:
  *   ApiError: error carrying the HTTP status of a failed request
- *   apiFetch: fetch wrapper with JSON handling and error propagation
+ *   apiFetch: fetch wrapper with JSON handling, timeout, and error propagation
  *   getBenchmarkRuns: loads benchmark runs from the static export
  *   postRetrieve: runs one query against the live retrieval endpoint
  */
@@ -12,6 +12,7 @@
 import type { BenchmarkRun, RetrieveResponse } from "../types";
 
 const API_BASE = "/api";
+const REQUEST_TIMEOUT_MS = 10_000;
 
 /**
  * Error carrying the HTTP status of a failed API request.
@@ -33,11 +34,17 @@ export class ApiError extends Error {
  * @returns payload - Parsed JSON body.
  */
 async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, init);
-  if (!response.ok) {
-    throw new ApiError(path, response.status);
+  const controller = new AbortController();
+  const timeoutHandle = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+  try {
+    const response = await fetch(path, { ...init, signal: controller.signal });
+    if (!response.ok) {
+      throw new ApiError(path, response.status);
+    }
+    return (await response.json()) as T;
+  } finally {
+    window.clearTimeout(timeoutHandle);
   }
-  return (await response.json()) as T;
 }
 
 /**
