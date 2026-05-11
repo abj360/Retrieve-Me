@@ -263,3 +263,15 @@ def test_rationale_is_returned_trimmed() -> None:
     judge = LLMJudge(CannedJudgeClient())
     verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
     assert verdict.rationale == verdict.rationale.strip()
+
+
+def test_batch_preserves_individual_scores() -> None:
+    """Asserts batch verdicts keep their per-query scores."""
+    from src.eval.judge import EvalQuery
+
+    judge = LLMJudge(CannedJudgeClient())
+    queries = [
+        EvalQuery(query_id="q-x", query="q?", relevant_doc_ids=set(), reference_answer="")
+    ]
+    (verdict,) = judge.judge_batch(queries, lambda _q: make_answer(), lambda _q: [])
+    assert verdict.relevance == 0.9
