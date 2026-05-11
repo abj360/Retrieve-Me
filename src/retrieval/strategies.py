@@ -177,7 +177,7 @@ class HybridRetriever:
         with self.tracer.span("dense"):
             dense_hits = self.dense.retrieve(query, self.candidate_k, filters)
         with self.tracer.span("fuse"):
-            fused = self.fuser.fuse(sparse_hits, dense_hits)
+            fused = self.fuser.fuse(sparse_hits, dense_hits)  # legs normalized inside fuse
         with self.tracer.span("rerank"):
             return self.reranker.rerank(query, fused)[:top_k]
 
