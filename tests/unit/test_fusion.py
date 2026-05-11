@@ -219,3 +219,13 @@ def test_rrf_k_large_flattens_scores() -> None:
     )
     scores = [result.score for result in fused]
     assert scores[0] - scores[1] < 0.001
+
+
+def test_normalize_metadata_survives() -> None:
+    """Asserts normalization keeps result metadata intact."""
+    from src.retrieval.fusion import normalize_min_max
+
+    result = make_result("a", 3.0)
+    result.metadata["clause_refs"] = ["Section 3.1"]
+    (normalized,) = normalize_min_max([result, make_result("b", 9.0)])
+    assert normalized.metadata["clause_refs"] == ["Section 3.1"]
