@@ -246,3 +246,20 @@ def test_missing_body_rejected() -> None:
     """Asserts a request without a body fails validation."""
     response = client().post("/retrieve")
     assert response.status_code == 422
+
+
+def test_502_detail_is_string() -> None:
+    """Asserts the 502 error body carries a string detail."""
+    app = create_app()
+
+    class FailingPipeline:
+        """Raises on every retrieval call."""
+
+        def retrieve(self, query: str, top_k: int = 10, filters: dict | None = None) -> list:
+            """Raises a backend failure for the contract test."""
+            raise RuntimeError("backend down")
+
+    app.dependency_overrides[get_pipeline] = FailingPipeline()
+    app.dependency_overrides[get_query_cache] = InMemoryQueryCache()
+    response = TestClient(app).post("/retrieve", json={"query": "clause"})
+    assert isinstance(response.json()["detail"], str)
