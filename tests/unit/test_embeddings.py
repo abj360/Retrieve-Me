@@ -204,3 +204,10 @@ def test_unnormalized_option() -> None:
 
     vector = DeterministicEmbedder(dimension=16, normalize=False).encode(["raw"])[0]
     assert np.linalg.norm(vector) != pytest.approx(1.0)
+
+
+def test_deterministic_dimension_property() -> None:
+    """Asserts the deterministic embedder reports its dimension."""
+    from src.retrieval.embeddings import DeterministicEmbedder
+
+    assert DeterministicEmbedder(dimension=32).dimension == 32
