@@ -240,3 +240,9 @@ def test_empty_string_query_rejected() -> None:
     """Asserts a blank query string fails validation."""
     response = client().post("/retrieve", json={"query": ""})
     assert response.status_code == 422
+
+
+def test_missing_body_rejected() -> None:
+    """Asserts a request without a body fails validation."""
+    response = client().post("/retrieve")
+    assert response.status_code == 422
