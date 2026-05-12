@@ -194,3 +194,13 @@ def test_warmup_loads_model_once() -> None:
     first = embedder.encode(["warm"])[0]
     second = embedder.encode(["warm"])[0]
     assert list(first) == list(second)
+
+
+def test_unnormalized_option() -> None:
+    """Asserts normalization can be disabled."""
+    import numpy as np
+
+    from src.retrieval.embeddings import DeterministicEmbedder
+
+    vector = DeterministicEmbedder(dimension=16, normalize=False).encode(["raw"])[0]
+    assert np.linalg.norm(vector) != pytest.approx(1.0)
