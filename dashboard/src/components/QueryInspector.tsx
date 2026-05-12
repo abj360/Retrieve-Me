@@ -64,7 +64,7 @@ export function QueryInspector({ onInspect, results, tookMs, isLoading, error }:
         ))}
       </div>
       {results !== null && visibleResults.length === 0 && !isLoading && (
-        <p className="status-line">No chunks matched that query.</p>
+        <p className="status-line">No chunks matched that query — try widening the filters.</p>
       )}
       <ol className="result-list" aria-label="inspection results">
         {visibleResults.map((chunk) => (
