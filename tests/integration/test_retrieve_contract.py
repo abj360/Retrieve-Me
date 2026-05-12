@@ -12,6 +12,9 @@ Contains:
     test_filters_are_echoed(): asserts applied filters round-trip in the response
     test_healthz_reports_liveness(): asserts /healthz returns 200 with version info
     test_readyz_shape(): asserts /readyz reports per-dependency states
+    test_validation_error_body(): asserts 422 bodies carry a detail field
+    test_get_on_retrieve_is_405(): asserts the endpoint is POST-only
+    test_pipeline_failure_returns_502(): asserts backend failures surface as 502
 """
 
 from fastapi.testclient import TestClient
@@ -134,6 +137,37 @@ def test_readyz_shape() -> None:
         assert set(response.json()) >= {"status", "qdrant", "redis"}
     else:
         assert "failed" in response.json()["detail"]
+
+
+def test_validation_error_body() -> None:
+    """Asserts validation failures return a detail array."""
+    response = client().post("/retrieve", json={"query": "x", "page": 0})
+    assert response.status_code == 422
+    assert isinstance(response.json()["detail"], list)
+
+
+def test_get_on_retrieve_is_405() -> None:
+    """Asserts GET on /retrieve is rejected as method-not-allowed."""
+    response = client().get("/retrieve")
+    assert response.status_code == 405
+
+
+def test_pipeline_failure_returns_502() -> None:
+    """Asserts a failing pipeline surfaces as 502, not 500."""
+    app = create_app()
+
+    class FailingPipeline:
+        """Raises on every retrieval call."""
+
+        def retrieve(self, query: str, top_k: int = 10, filters: dict | None = None) -> list:
+            """Raises a backend failure for the contract test."""
+            raise RuntimeError("backend down")
+
+    app.dependency_overrides[get_pipeline] = FailingPipeline()
+    app.dependency_overrides[get_query_cache] = InMemoryQueryCache()
+    response = TestClient(app).post("/retrieve", json={"query": "clause"})
+    assert response.status_code == 502
+    assert response.json()["detail"] == "retrieval backend unavailable"
 
 
 def test_retrieve_rejects_empty_query() -> None:
