@@ -211,7 +211,7 @@ class DeterministicEmbedder:
         return self.encode(documents)
 
 
-    def warmup(self) -> None:
+    def warmup(self) -> None:  # call at startup, not on the query path
         """Loads the model up front so the first query is not cold.
 
         Loads the model and encodes a probe text, so later encode calls
