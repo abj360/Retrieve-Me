@@ -209,3 +209,13 @@ class DeterministicEmbedder:
             vectors: One deterministic vector per document.
         """
         return self.encode(documents)
+
+
+    def warmup(self) -> None:
+        """Loads the model up front so the first query is not cold.
+
+        Loads the model and encodes a probe text, so later encode calls
+        skip model-load latency entirely.
+        """
+        self._load_model()
+        self.encode(["warmup probe"])
