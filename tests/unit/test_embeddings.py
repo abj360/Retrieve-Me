@@ -211,3 +211,8 @@ def test_deterministic_dimension_property() -> None:
     from src.retrieval.embeddings import DeterministicEmbedder
 
     assert DeterministicEmbedder(dimension=32).dimension == 32
+
+
+def test_batched_size_one() -> None:
+    """Asserts batch_size of one yields singleton batches."""
+    assert [list(batch) for batch in batched(["a", "b"], 1)] == [["a"], ["b"]]
