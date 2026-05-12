@@ -12,6 +12,7 @@ Contains:
     bm25_index(): sparse index built over the sample chunks
     token_chunker(): real token-aware chunker with a small test budget
     stub_reranker(): deterministic reranker double scoring by text overlap
+    real_embedder(): the shared DeterministicEmbedder used by smoke tests
 """
 
 import hashlib
@@ -23,6 +24,7 @@ import pytest
 from src.ingest.bm25_index import BM25Index
 from src.ingest.chunking import ChunkConfig, SemanticClauseChunker
 from src.ingest.dense_index import DenseHit
+from src.retrieval.embeddings import DeterministicEmbedder
 
 
 @dataclass(frozen=True)
@@ -275,6 +277,12 @@ class StubReranker:
 def stub_reranker() -> StubReranker:
     """Returns the deterministic reranker double."""
     return StubReranker()
+
+
+@pytest.fixture
+def real_embedder() -> DeterministicEmbedder:
+    """Returns the shared deterministic embedder for smoke tests."""
+    return DeterministicEmbedder(dimension=16)
 
 
 @pytest.fixture
