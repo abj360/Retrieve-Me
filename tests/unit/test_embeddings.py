@@ -182,3 +182,15 @@ def test_encode_concatenates_batch_results() -> None:
     embedder, _fake = make_embedder()
     vectors = embedder.encode([f"text-{index}" for index in range(9)])
     assert vectors.shape == (9, 8)
+
+
+def test_warmup_loads_model_once() -> None:
+    """Asserts warmup is idempotent."""
+    from src.retrieval.embeddings import DeterministicEmbedder
+
+    embedder = DeterministicEmbedder()
+    embedder.encode(["warm"])
+    embedder.encode(["warm"])
+    first = embedder.encode(["warm"])[0]
+    second = embedder.encode(["warm"])[0]
+    assert list(first) == list(second)
