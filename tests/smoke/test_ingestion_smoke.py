@@ -3,36 +3,14 @@
 test_ingestion_smoke.py --- smoke tests for the ingestion pipeline
 
 Contains:
-    MockEmbedder: stand-in embedder that never inspects its input
     smoke_documents(): two small documents for smoke runs
-    test_ingest_smoke_writes_chunks(): asserts ingest writes without errors
+    test_ingest_smoke_writes_chunks(): asserts the real indexed chunk count
 """
 
-import numpy as np
 import pytest
 
 from src.ingest.bm25_index import BM25Index
 from src.ingest.loader import CorpusIngestor, Document
-
-
-class MockEmbedder:
-    """Stands in for the embedder during smoke runs; never inspects input."""
-
-    def __init__(self) -> None:
-        """Creates the mock with a call counter."""
-        self.calls = 0
-
-    def encode(self, texts: list[str]) -> np.ndarray:
-        """Returns a constant vector per text regardless of content.
-
-        Args:
-            texts: Ignored input texts.
-
-        Returns:
-            vectors: Constant vectors, one per text.
-        """
-        self.calls += 1
-        return np.full((len(texts), 16), 0.5, dtype=np.float32)
 
 
 @pytest.fixture
@@ -44,15 +22,17 @@ def smoke_documents() -> list[Document]:
     ]
 
 
-def test_ingest_smoke_writes_chunks(smoke_documents, token_chunker, fake_dense_index) -> None:
-    """Asserts an ingest run writes chunks and calls the embedder."""
-    embedder = MockEmbedder()
+def test_ingest_smoke_writes_chunks(smoke_documents, token_chunker, fake_dense_index, real_embedder) -> None:
+    """Asserts the indexed chunk count matches what the corpus actually yields."""
     bm25 = BM25Index()
-    ingestor = CorpusIngestor(token_chunker, embedder, fake_dense_index, bm25)
+    ingestor = CorpusIngestor(token_chunker, real_embedder, fake_dense_index, bm25)
     stats = ingestor.ingest(smoke_documents)
-    assert stats.chunks > 0
-    assert embedder.calls > 0
-    assert fake_dense_index.count() > 0
+    expected = sum(
+        len(token_chunker.split(document.text, document.doc_id))
+        for document in smoke_documents
+    )
+    assert fake_dense_index.count() == expected
+    assert stats.chunks == expected
 
 
 def test_ingest_crlf_document(whole_doc_chunker, fake_dense_index) -> None:
