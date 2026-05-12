@@ -216,3 +216,10 @@ def test_deterministic_dimension_property() -> None:
 def test_batched_size_one() -> None:
     """Asserts batch_size of one yields singleton batches."""
     assert [list(batch) for batch in batched(["a", "b"], 1)] == [["a"], ["b"]]
+
+
+def test_config_custom_values() -> None:
+    """Asserts EmbeddingConfig accepts overrides."""
+    config = EmbeddingConfig(model_name="other-model", batch_size=8, normalize=False)
+    assert config.model_name == "other-model"
+    assert config.batch_size == 8
