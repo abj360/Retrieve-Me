@@ -234,3 +234,9 @@ def test_page_beyond_results_returns_empty_list() -> None:
     response = client().post("/retrieve", json={"query": "clause", "page": 99})
     assert response.status_code == 200
     assert response.json()["results"] == []
+
+
+def test_empty_string_query_rejected() -> None:
+    """Asserts a blank query string fails validation."""
+    response = client().post("/retrieve", json={"query": ""})
+    assert response.status_code == 422
