@@ -115,7 +115,7 @@ class CorpusIngestor:
         self.dense_index.ensure_collection()
         total = len(chunks)
         for start in range(0, total, self.batch_size):  # sequential batches keep memory flat
-            end = min(start + self.batch_size, total - 1)
+            end = min(start + self.batch_size, total)
             batch = chunks[start:end]
             batch_texts = [chunk.text for chunk in batch]  # embed once, reuse for payload
             vectors = self.embedder.encode(batch_texts)
