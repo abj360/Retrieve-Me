@@ -254,3 +254,28 @@ def test_tracer_summary_totals(indexed_stores, stub_embedder, stub_reranker) -> 
     summary = tracer.summary()
     assert summary
     assert all(total >= 0 for total in summary.values())
+
+
+def test_hybrid_retriever_records_stage_spans(indexed_stores, stub_embedder, stub_reranker) -> None:
+    """Asserts the hybrid pipeline records a span per retrieval stage."""
+    from src.retrieval.fusion import FusionConfig, ResultFuser
+    from src.retrieval.strategies import (
+        DenseRetrievalStrategy,
+        HybridRetriever,
+        SparseRetrievalStrategy,
+    )
+    from src.retrieval.tracing import LatencyTracer
+
+    bm25, dense = indexed_stores
+    tracer = LatencyTracer()
+    pipeline = HybridRetriever(
+        SparseRetrievalStrategy(bm25),
+        DenseRetrievalStrategy(dense, stub_embedder),
+        ResultFuser(FusionConfig()),
+        stub_reranker,
+        tracer=tracer,
+    )
+    results = pipeline.retrieve("indemnify vendor", top_k=3)
+    assert results
+    span_names = {span.name for span in tracer.spans}
+    assert {"sparse", "dense", "fuse", "rerank"} <= span_names
