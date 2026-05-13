@@ -9,6 +9,7 @@ Contains:
     QdrantClientPool: lends a bounded set of Qdrant clients
     DenseHit: one scored hit from the dense index
     DenseIndex: builds and searches the Qdrant collection
+    DenseIndex.health_check(): reports whether Qdrant answers within the timeout
 """
 
 import logging
@@ -298,6 +299,19 @@ class DenseIndex:
                     len(points),
                 )
         return len(points)
+
+    def health_check(self) -> bool:
+        """Reports whether Qdrant answers within the configured timeout.
+
+        Returns:
+            healthy: True when the server answers a collections listing.
+        """
+        try:
+            with self.pool.acquire() as client:
+                client.get_collections()
+        except Exception:
+            return False
+        return True
 
     def search(
         self,
