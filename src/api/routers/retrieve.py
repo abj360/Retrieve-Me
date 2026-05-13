@@ -23,7 +23,7 @@ from src.retrieval.strategies import HybridRetriever
 
 logger = logging.getLogger("retrieval.retrieve")
 
-router = APIRouter()
+router = APIRouter(tags=["retrieval"])
 DEFAULT_PAGE_SIZE = 10
 
 
@@ -118,7 +118,7 @@ def paginate(
     return matches[start:end]
 
 
-@router.post("/retrieve", response_model=RetrieveResponse)
+@router.post("/retrieve", response_model=RetrieveResponse, summary="Hybrid retrieval search")
 def retrieve(
     payload: RetrieveRequest,
     cache: QueryCache = Depends(get_query_cache),
