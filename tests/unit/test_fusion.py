@@ -246,3 +246,11 @@ def test_fused_result_keeps_better_provenance() -> None:
     )
     assert len(fused) == 1
     assert fused[0].score > 0
+
+
+def test_post_init_rejects_bad_config() -> None:
+    """Asserts invalid fusion config is rejected."""
+    import pytest
+
+    with pytest.raises(ValueError):
+        ResultFuser(FusionConfig(rrf_k=0))
