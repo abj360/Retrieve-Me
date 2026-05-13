@@ -433,3 +433,12 @@ def test_health_check_false_when_pool_fails() -> None:
 
     index = DenseIndex(QdrantConfig(), FailingPool())
     assert index.health_check() is False
+
+
+def test_pool_close_drains_idle_clients() -> None:
+    """Asserts close() empties the pool so later acquires fail."""
+    pool = make_pool(max_size=1)
+    pool.close()
+    with pytest.raises(PoolExhaustedError):
+        with pool.acquire():
+            pass
