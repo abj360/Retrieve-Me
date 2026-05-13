@@ -36,7 +36,8 @@ def create_app() -> FastAPI:
     Returns:
         app: Configured FastAPI application instance.
     """
-    app = FastAPI(title="retrieval-core", lifespan=lifespan)
+    settings = get_settings()
+    app = FastAPI(title=settings.app_title, version=settings.app_version, lifespan=lifespan)
     app.add_middleware(RequestLoggingMiddleware)
     app.add_middleware(
         CORSMiddleware,

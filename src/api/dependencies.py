@@ -53,6 +53,8 @@ class Settings(BaseSettings):
         reranker_top_k: Candidates kept after cross-encoder reranking (tuned).
         fusion_rrf_k: Reciprocal-rank-fusion smoothing constant.
         pipeline_config_path: Path to the YAML pipeline definition.
+        app_title: Human-readable service title for the OpenAPI docs.
+        app_version: Service version reported by the API and /healthz.
     """
 
     model_config = SettingsConfigDict(env_prefix="RETRIEVAL_")
@@ -69,6 +71,8 @@ class Settings(BaseSettings):
     reranker_top_k: int = 20
     fusion_rrf_k: int = 60
     pipeline_config_path: str = "src/config/pipeline.yaml"
+    app_title: str = "retrieval-core"
+    app_version: str = "1.0.0"
 
 
 @lru_cache(maxsize=1)
