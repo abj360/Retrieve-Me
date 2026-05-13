@@ -298,3 +298,9 @@ def test_retrieve_respects_top_k(indexed_stores, stub_embedder, stub_reranker) -
         stub_reranker,
     )
     assert len(pipeline.retrieve("clause", top_k=2)) <= 2
+
+
+def test_bm25_fixture_is_queryable(bm25_index) -> None:
+    """Asserts the shared bm25 fixture answers exact-term queries."""
+    hits = bm25_index.search("indemnify", top_k=1)
+    assert hits[0].doc_id == "license-agreement"
