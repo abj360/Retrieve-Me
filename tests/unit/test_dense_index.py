@@ -412,3 +412,24 @@ def test_batch_size_one_writes_each_point() -> None:
     make_index(client).upsert(ids, [[0.1] * 8] * 3, [{}] * 3, batch_size=1)
     assert client.upsert_calls == 3
     assert len(client.points) == 3
+
+
+def test_health_check_true_when_server_answers() -> None:
+    """Asserts health_check reports True when Qdrant responds."""
+    client = FakeQdrantClient()
+    assert make_index(client).health_check() is True
+
+
+def test_health_check_false_when_pool_fails() -> None:
+    """Asserts health_check reports False when the pool raises."""
+    from src.ingest.dense_index import DenseIndex, QdrantConfig
+
+    class FailingPool:
+        """Raises on every acquire."""
+
+        def acquire(self):
+            """Raises a connection failure."""
+            raise ConnectionError("qdrant down")
+
+    index = DenseIndex(QdrantConfig(), FailingPool())
+    assert index.health_check() is False
