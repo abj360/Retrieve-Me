@@ -301,7 +301,7 @@ class DenseIndex:
         return len(points)
 
     def health_check(self) -> bool:
-        """Reports whether Qdrant answers within the configured timeout.
+        """Reports whether Qdrant answers a collections listing within the timeout.
 
         Returns:
             healthy: True when the server answers a collections listing.
