@@ -280,7 +280,7 @@ class DenseIndex:
             for chunk_id, vector, payload in zip(chunk_ids, vectors, payloads, strict=True)
         ]
         if not points:
-            logger.debug("upsert called with no points, skipping")
+            logger.debug("upsert skipped: no points to write")
             return 0
         with self.pool.acquire() as client:
             for start in range(0, len(points), batch_size):
