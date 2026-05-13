@@ -56,6 +56,17 @@ class FusionConfig:
     dense_weight: float = 1.0
     normalize_scores: bool = True
 
+    def __post_init__(self) -> None:
+        """Validates the fusion configuration.
+
+        Raises:
+            ValueError: When rrf_k is not positive or a weight is negative.
+        """
+        if self.rrf_k <= 0:
+            raise ValueError("rrf_k must be positive")
+        if self.sparse_weight < 0 or self.dense_weight < 0:
+            raise ValueError("fusion weights must be non-negative")
+
 
 def normalize_min_max(results: list[RankedResult]) -> list[RankedResult]:
     """Rescales scores into [0, 1] per leg.
