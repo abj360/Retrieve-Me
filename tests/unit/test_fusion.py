@@ -237,3 +237,12 @@ def test_normalize_source_label_preserved() -> None:
 
     (normalized,) = normalize_min_max([make_result("a", 3.0), make_result("b", 9.0, "dense")])
     assert normalized.source == "sparse"
+
+
+def test_fused_result_keeps_better_provenance() -> None:
+    """Asserts dedupe keeps the higher-scoring copy of a duplicate chunk."""
+    fused = ResultFuser(FusionConfig(normalize_scores=False)).fuse(
+        [make_result("a", 0.3)], [make_result("a", 0.9, "dense")]
+    )
+    assert len(fused) == 1
+    assert fused[0].score > 0
