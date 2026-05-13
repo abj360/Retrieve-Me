@@ -279,3 +279,22 @@ def test_hybrid_retriever_records_stage_spans(indexed_stores, stub_embedder, stu
     assert results
     span_names = {span.name for span in tracer.spans}
     assert {"sparse", "dense", "fuse", "rerank"} <= span_names
+
+
+def test_retrieve_respects_top_k(indexed_stores, stub_embedder, stub_reranker) -> None:
+    """Asserts the pipeline returns at most top_k results."""
+    from src.retrieval.fusion import FusionConfig, ResultFuser
+    from src.retrieval.strategies import (
+        DenseRetrievalStrategy,
+        HybridRetriever,
+        SparseRetrievalStrategy,
+    )
+
+    bm25, dense = indexed_stores
+    pipeline = HybridRetriever(
+        SparseRetrievalStrategy(bm25),
+        DenseRetrievalStrategy(dense, stub_embedder),
+        ResultFuser(FusionConfig()),
+        stub_reranker,
+    )
+    assert len(pipeline.retrieve("clause", top_k=2)) <= 2
