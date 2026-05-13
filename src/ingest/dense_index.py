@@ -8,7 +8,7 @@ Contains:
     retry_with_backoff(): retries a transient Qdrant call with exponential backoff
     QdrantClientPool: lends a bounded set of Qdrant clients
     DenseHit: one scored hit from the dense index
-    DenseIndex: builds and searches the Qdrant collection
+    DenseIndex: builds, searches, and health-checks the Qdrant collection
     DenseIndex.health_check(): reports whether Qdrant answers within the timeout
 """
 
