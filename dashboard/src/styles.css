@@ -134,3 +134,25 @@ body {
 .health-dot.ok { background: #3ddc97; }
 .health-dot.down { background: #e05c5c; }
 .health-dot.unknown { background: #9aa5bd; }
+
+:root {
+  --text-muted: #aeb8cf;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.error-banner {
+  background: #4a1f24;
+  border: 1px solid #e05c5c;
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.status-line {
+  color: var(--text-muted);
+}
