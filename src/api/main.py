@@ -37,7 +37,9 @@ def create_app() -> FastAPI:
         app: Configured FastAPI application instance.
     """
     settings = get_settings()
-    app = FastAPI(title=settings.app_title, version=settings.app_version, lifespan=lifespan)
+    app = FastAPI(
+        title=settings.app_title, version=settings.app_version, lifespan=lifespan
+    )
     app.add_middleware(RequestLoggingMiddleware)
     app.add_middleware(
         CORSMiddleware,
