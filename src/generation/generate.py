@@ -6,6 +6,7 @@ Contains:
     Citation: one grounded citation back to a retrieved chunk (chunk, doc, quote)
     GeneratedAnswer: an answer with its grounded citations
     CitationGenerator: generates citation-grounded answers
+    CitationGenerator.faithfulness(): scores citation grounding against results
 
 Prompt templates live in src/generation/prompts/citation.py.
 """
