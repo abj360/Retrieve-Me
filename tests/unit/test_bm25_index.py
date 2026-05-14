@@ -8,6 +8,7 @@ Contains:
     test_tokenize_lowercases_and_keeps_hyphens(): asserts tokenizer behavior
     test_search_ranks_relevant_chunk_first(): asserts bm25 ranks exact terms well
     test_search_before_build_raises(): asserts the index must be built first
+    test_save_load_roundtrip(): asserts pickled indexes keep ranking
 """
 
 from types import SimpleNamespace
