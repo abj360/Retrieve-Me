@@ -192,3 +192,13 @@ def test_threshold_sweep_threshold_order() -> None:
     ]
     sweep = tuner.threshold_sweep(queries, lambda _query: [], [-5.0, -3.0, 0.0])
     assert [threshold for threshold, _score in sweep] == [-5.0, -3.0, 0.0]
+
+
+def test_ties_break_by_chunk_id() -> None:
+    """Asserts equal scores order deterministically by chunk_id."""
+    candidates = [
+        make_candidate("b", "same length!!"),
+        make_candidate("a", "same length!!"),
+    ]
+    reranked = make_reranker().rerank("query", candidates)
+    assert [candidate.chunk_id for candidate in reranked] == ["a", "b"]
