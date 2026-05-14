@@ -209,3 +209,10 @@ def test_answer_without_markers_has_no_citations() -> None:
     client = StubLLM("Plain prose answer, no markers.")
     answer = CitationGenerator(client).generate("clause?", make_results())
     assert answer.citations == []
+
+
+def test_citation_carries_doc_id() -> None:
+    """Asserts citations carry the source document id."""
+    generator = CitationGenerator(StubLLM())
+    answer = generator.generate("clause?", make_results())
+    assert answer.citations[0].doc_id == "doc-0"
