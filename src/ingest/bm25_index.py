@@ -3,8 +3,9 @@
 bm25_index.py --- BM25 sparse index over chunk text using rank_bm25
 
 Contains:
-    tokenize(): splits text into lowercase search terms
+    tokenize(): splits text into lowercase search terms, keeping hyphens whole
     BM25Hit: one scored hit from the sparse index
+    token_count(): counts search terms in text
     BM25Index: builds and searches the sparse index
     BM25Index.save(): pickles the built index to disk
     BM25Index.load(): restores a pickled index from disk
@@ -34,6 +35,18 @@ def tokenize(text: str) -> list[str]:
         terms: Lowercase tokens; hyphenated terms stay whole.
     """
     return TOKEN_PATTERN.findall(text.lower())
+
+
+def token_count(text: str) -> int:
+    """Counts search terms in text.
+
+    Args:
+        text: Raw text to count.
+
+    Returns:
+        count: Number of tokens found.
+    """
+    return len(tokenize(text))
 
 
 @dataclass(frozen=True)
