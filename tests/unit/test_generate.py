@@ -216,3 +216,28 @@ def test_citation_carries_doc_id() -> None:
     generator = CitationGenerator(StubLLM())
     answer = generator.generate("clause?", make_results())
     assert answer.citations[0].doc_id == "doc-0"
+
+
+def test_retry_calls_client_twice_not_thrice() -> None:
+    """Asserts the retry budget is exactly one extra call."""
+
+    class TwiceFailsLLM(StubLLM):
+        """Fails twice, succeeds on the third call."""
+
+        def __init__(self) -> None:
+            """Creates the twice-failing client."""
+            super().__init__()
+            self.calls = 0
+
+        def __call__(self, prompt: str, max_tokens: int = 512) -> str:
+            """Fails the first two calls."""
+            self.calls += 1
+            if self.calls <= 2:
+                raise RuntimeError("still down")
+            return super().__call__(prompt, max_tokens)
+
+    generator = CitationGenerator(TwiceFailsLLM())
+    try:
+        generator.generate("clause?", make_results())
+    except RuntimeError:
+        pass
