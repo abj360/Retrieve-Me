@@ -202,3 +202,17 @@ def test_ties_break_by_chunk_id() -> None:
     ]
     reranked = make_reranker().rerank("query", candidates)
     assert [candidate.chunk_id for candidate in reranked] == ["a", "b"]
+
+
+def test_metadata_survives_rerank() -> None:
+    """Asserts candidate metadata passes through reranking."""
+    candidate = RankedResult(
+        chunk_id="m-1",
+        doc_id="doc-m-1",
+        text="metadata carrying text",
+        score=0.4,
+        source="fused",
+        metadata={"clause_refs": ["Section 3.1"]},
+    )
+    reranked = make_reranker().rerank("query", [candidate])
+    assert reranked[0].metadata["clause_refs"] == ["Section 3.1"]
