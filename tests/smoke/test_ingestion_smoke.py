@@ -360,3 +360,13 @@ def test_load_corpus_skips_empty_files(tmp_path) -> None:
     (tmp_path / "full.txt").write_text("content", encoding="utf-8")
     documents = load_corpus(tmp_path)
     assert [document.doc_id for document in documents] == ["full"]
+
+
+def test_load_corpus_sorts_by_filename(tmp_path) -> None:
+    """Asserts the corpus loader returns documents in filename order."""
+    from src.ingest.loader import load_corpus
+
+    for name in ("b-doc", "a-doc", "c-doc"):
+        (tmp_path / f"{name}.txt").write_text(f"text {name}", encoding="utf-8")
+    documents = load_corpus(tmp_path)
+    assert [document.doc_id for document in documents] == ["a-doc", "b-doc", "c-doc"]
