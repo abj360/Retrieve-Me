@@ -6,7 +6,7 @@ Contains:
     tokenize(): splits text into lowercase search terms, keeping hyphens whole
     BM25Hit: one scored hit from the sparse index
     token_count(): counts search terms in text
-    BM25Index: builds and searches the sparse index
+    BM25Index: builds, searches, and persists the sparse index
     BM25Index.save(): pickles the built index to disk
     BM25Index.load(): restores a pickled index from disk
     BM25Index.stats(): reports index size and average document length
