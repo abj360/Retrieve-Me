@@ -306,3 +306,18 @@ def test_exact_count_small_corpus(token_chunker, fake_dense_index, real_embedder
     )
     assert fake_dense_index.count() == expected
     assert stats.chunks == expected
+
+
+def test_exact_count_seven_documents(token_chunker, fake_dense_index, real_embedder) -> None:
+    """Asserts a seven-document corpus indexes exactly seven chunks."""
+    from src.ingest.loader import Document as SmokeDocument
+
+    bm25 = BM25Index()
+    documents = [
+        SmokeDocument(doc_id=f"seven-{index}", title="t", text=f"clause {index} text")
+        for index in range(7)
+    ]
+    stats = CorpusIngestor(token_chunker, real_embedder, fake_dense_index, bm25).ingest(documents)
+    expected = sum(len(token_chunker.split(d.text, d.doc_id)) for d in documents)
+    assert fake_dense_index.count() == expected
+    assert stats.chunks == expected
