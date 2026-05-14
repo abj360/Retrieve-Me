@@ -340,3 +340,13 @@ def test_real_embedder_deterministic_per_text(real_embedder) -> None:
     first = real_embedder.encode(["identical input text"])[0]
     second = real_embedder.encode(["identical input text"])[0]
     assert list(first) == list(second)
+
+
+def test_load_corpus_skips_non_text_files(tmp_path) -> None:
+    """Asserts the corpus loader ignores non-text files."""
+    from src.ingest.loader import load_corpus
+
+    (tmp_path / "keep.txt").write_text("keep me", encoding="utf-8")
+    (tmp_path / "skip.bin").write_bytes(b"\x00\x01")
+    documents = load_corpus(tmp_path)
+    assert [document.doc_id for document in documents] == ["keep"]
