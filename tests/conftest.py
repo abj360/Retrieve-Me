@@ -13,6 +13,7 @@ Contains:
     token_chunker(): real token-aware chunker with a small test budget
     stub_reranker(): deterministic reranker double scoring by text overlap
     real_embedder(): the shared DeterministicEmbedder used by smoke tests
+    mini_corpus(): thirty-document corpus sized to cross batch boundaries
 """
 
 import hashlib
@@ -283,6 +284,19 @@ def stub_reranker() -> StubReranker:
 def real_embedder() -> DeterministicEmbedder:
     """Returns the shared deterministic embedder for smoke tests."""
     return DeterministicEmbedder(dimension=16)
+
+
+@pytest.fixture
+def mini_corpus() -> list[tuple[str, str]]:
+    """Returns thirty small documents sized to cross batch boundaries."""
+    return [
+        (
+            f"mini-doc-{index:02d}",
+            f"Section {index}.1 Mini document {index} covers clause {index} obligations. "
+            f"The party shall comply with clause {index} at all times.",
+        )
+        for index in range(30)
+    ]
 
 
 @pytest.fixture
