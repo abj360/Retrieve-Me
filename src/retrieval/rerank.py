@@ -244,3 +244,9 @@ class RerankerTuner:  # offline tool; never on the query path
                 )
             sweep.append((threshold, sum(scores) / len(scores) if scores else 0.0))
         return sweep
+
+
+    def warmup(self) -> None:
+        """Loads the reranker up front so the first query is not cold."""
+        self._load_model()
+        self._score_pairs([("warmup", "warmup probe text")])
