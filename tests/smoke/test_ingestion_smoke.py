@@ -289,3 +289,20 @@ def test_stats_report_documents_and_seconds(whole_doc_chunker, fake_dense_index,
     stats = CorpusIngestor(whole_doc_chunker, real_embedder, fake_dense_index, bm25).ingest(documents)
     assert stats.documents == 1
     assert stats.seconds >= 0
+
+
+def test_exact_count_small_corpus(token_chunker, fake_dense_index, real_embedder, mini_corpus) -> None:
+    """Asserts the mini corpus indexes exactly as many chunks as produced."""
+    from src.ingest.loader import Document
+
+    bm25 = BM25Index()
+    documents = [
+        Document(doc_id=doc_id, title=doc_id, text=text) for doc_id, text in mini_corpus
+    ]
+    ingestor = CorpusIngestor(token_chunker, real_embedder, fake_dense_index, bm25)
+    stats = ingestor.ingest(documents)
+    expected = sum(
+        len(token_chunker.split(document.text, document.doc_id)) for document in documents
+    )
+    assert fake_dense_index.count() == expected
+    assert stats.chunks == expected
