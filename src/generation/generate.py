@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-generate.py --- citation-grounded generation over retrieved chunks
+generate.py --- citation-grounded generation over retrieved chunks (with retry)
 
 Contains:
     Citation: one grounded citation back to a retrieved chunk (chunk, doc, quote)
