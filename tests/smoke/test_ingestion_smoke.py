@@ -321,3 +321,15 @@ def test_exact_count_seven_documents(token_chunker, fake_dense_index, real_embed
     expected = sum(len(token_chunker.split(d.text, d.doc_id)) for d in documents)
     assert fake_dense_index.count() == expected
     assert stats.chunks == expected
+
+
+def test_bm25_ids_match_dense_ids(token_chunker, fake_dense_index, real_embedder, mini_corpus) -> None:
+    """Asserts sparse and dense indexes hold the same chunk ids."""
+    from src.ingest.loader import Document as SmokeDocument
+
+    bm25 = BM25Index()
+    documents = [
+        SmokeDocument(doc_id=doc_id, title="t", text=text) for doc_id, text in mini_corpus[:5]
+    ]
+    CorpusIngestor(token_chunker, real_embedder, fake_dense_index, bm25).ingest(documents)
+    assert len(bm25.chunk_ids) == fake_dense_index.count()
