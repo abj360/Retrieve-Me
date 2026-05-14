@@ -246,7 +246,7 @@ class RerankerTuner:  # offline tool; never on the query path
         return sweep
 
 
-    def warmup(self) -> None:
+    def warmup(self) -> None:  # call at startup, not on the query path
         """Loads the reranker up front so the first query is not cold."""
         self._load_model()
         self._score_pairs([("warmup", "warmup probe text")])
