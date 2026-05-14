@@ -350,3 +350,13 @@ def test_load_corpus_skips_non_text_files(tmp_path) -> None:
     (tmp_path / "skip.bin").write_bytes(b"\x00\x01")
     documents = load_corpus(tmp_path)
     assert [document.doc_id for document in documents] == ["keep"]
+
+
+def test_load_corpus_skips_empty_files(tmp_path) -> None:
+    """Asserts the corpus loader skips empty text files."""
+    from src.ingest.loader import load_corpus
+
+    (tmp_path / "empty.txt").write_text("   ", encoding="utf-8")
+    (tmp_path / "full.txt").write_text("content", encoding="utf-8")
+    documents = load_corpus(tmp_path)
+    assert [document.doc_id for document in documents] == ["full"]
