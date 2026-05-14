@@ -333,3 +333,10 @@ def test_bm25_ids_match_dense_ids(token_chunker, fake_dense_index, real_embedder
     ]
     CorpusIngestor(token_chunker, real_embedder, fake_dense_index, bm25).ingest(documents)
     assert len(bm25.chunk_ids) == fake_dense_index.count()
+
+
+def test_real_embedder_deterministic_per_text(real_embedder) -> None:
+    """Asserts the shared embedder encodes identical text identically."""
+    first = real_embedder.encode(["identical input text"])[0]
+    second = real_embedder.encode(["identical input text"])[0]
+    assert list(first) == list(second)
