@@ -102,7 +102,7 @@ class CitationGenerator:
             results: Retrieved chunks the markers reference.
 
         Returns:
-            citations: Citations in order of first appearance.
+            citations: Grounded, deduplicated citations in order of appearance.
         """
         citations: list[Citation] = []
         seen: set[int] = set()
