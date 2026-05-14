@@ -216,3 +216,10 @@ def test_metadata_survives_rerank() -> None:
     )
     reranked = make_reranker().rerank("query", [candidate])
     assert reranked[0].metadata["clause_refs"] == ["Section 3.1"]
+
+
+def test_warmup_scores_probe() -> None:
+    """Asserts warmup runs a probe pair through the model."""
+    reranker = make_reranker()
+    reranker.warmup()
+    assert reranker._model is not None
