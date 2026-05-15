@@ -5,3 +5,5 @@ __pycache__
 dist
 .pytest_cache
 data/benchmark
+.env
+.github
