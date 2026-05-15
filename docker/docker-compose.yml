@@ -61,6 +61,7 @@ services:
       timeout: 3s
       retries: 5
 
+  # serves the built SPA; nginx listens on container port 80
   dashboard:
     build:
       context: ..
