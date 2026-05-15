@@ -6,7 +6,8 @@ Contains:
     JudgeVerdict: one scored judgement for an answer
     EvalQuery: one golden-set evaluation query
     load_eval_dataset(): loads the golden set from JSONL
-    LLMJudge: scores answers with an LLM judge
+    LLMJudge: scores answers with an LLM judge (one repair retry)
+    summarize(): aggregates verdicts into mean scores
 """
 
 import json
