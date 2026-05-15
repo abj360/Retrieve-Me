@@ -109,3 +109,14 @@ def test_fusion_weights_parsed(tmp_path) -> None:
     config = load_pipeline_config(write_config(tmp_path, FULL_CONFIG))
     assert config.fusion.sparse_weight == 1.1
     assert config.fusion.dense_weight == 0.9
+
+
+def test_unknown_section_warns_but_loads(tmp_path, caplog) -> None:
+    """Asserts unknown sections log a warning without failing the load."""
+    import logging
+
+    extended = {**FULL_CONFIG, "mystery": {"foo": 1}}
+    with caplog.at_level(logging.WARNING):
+        config = load_pipeline_config(write_config(tmp_path, extended))
+    assert config.embedder.model_name == "test-model"
+    assert any("mystery" in record.getMessage() for record in caplog.records)
