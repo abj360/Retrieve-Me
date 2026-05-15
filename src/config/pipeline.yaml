@@ -32,7 +32,7 @@ chunking:
 
 cache:
   ttl_seconds: 600
-  key_version: 2
+  key_version: 3
 
 logging:
   level: INFO
