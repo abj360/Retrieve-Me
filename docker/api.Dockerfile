@@ -10,7 +10,7 @@ COPY src/ src/
 RUN pip install --no-cache-dir -r requirements.lock \
     && pip install --no-cache-dir --no-deps .
 
-RUN useradd --create-home app
+RUN useradd --create-home --shell /bin/false app
 USER app
 
 EXPOSE 8000
