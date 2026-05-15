@@ -18,10 +18,13 @@ Contains:
     load_pipeline_config(): loads and validates a pipeline YAML file
 """
 
+import logging
 from dataclasses import dataclass
 from pathlib import Path
 
 import yaml
+
+logger = logging.getLogger(__name__)
 
 REQUIRED_SECTIONS = ("embedder", "sparse", "dense", "fusion", "reranker")
 
@@ -120,9 +123,11 @@ class CacheSection:
 
     Attributes:
         ttl_seconds: Time-to-live for cached responses.
+        key_version: Cache key namespace; bump to invalidate old entries.
     """
 
     ttl_seconds: int = 300
+    key_version: int = 1
 
 
 @dataclass(frozen=True)
@@ -212,6 +217,10 @@ def load_pipeline_config(path: str | Path) -> PipelineConfig:
     missing = [section for section in REQUIRED_SECTIONS if section not in raw]
     if missing:
         raise ConfigError(f"pipeline config at {path} is missing sections: {missing}")
+    known = set(REQUIRED_SECTIONS) | {"pipeline", "chunking", "cache", "strategy", "generation", "eval", "logging"}
+    unknown = sorted(set(raw) - known)
+    if unknown:
+        logger.warning("ignoring unknown pipeline config sections: %s", unknown)
     return PipelineConfig(
         embedder=EmbedderSection(**raw["embedder"]),
         sparse=SparseSection(**raw.get("sparse", {})),

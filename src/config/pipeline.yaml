@@ -32,6 +32,11 @@ chunking:
 
 cache:
   ttl_seconds: 600
+  key_version: 2
+
+logging:
+  level: INFO
+  request_logs: true
 
 strategy:
   type: hybrid
