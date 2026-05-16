@@ -6,7 +6,7 @@ Contains:
     BenchmarkResult: one benchmark run's metrics
     load_results(): reads benchmark results from a JSON file
     render_table(): renders results as a markdown table
-    main(): CLI entrypoint
+    main(): CLI entrypoint; can also emit the dashboard runs JSON
 """
 
 import argparse
