@@ -196,3 +196,11 @@ def test_clear_on_empty_returns_zero() -> None:
     """Asserts clear() on an empty cache returns zero."""
     cache = RedisQueryCache(FakeRedis())
     assert cache.clear() == 0
+
+
+def test_hit_after_set_returns_same_payload() -> None:
+    """Asserts a payload round-trips byte-identical through Redis."""
+    cache = RedisQueryCache(FakeRedis())
+    payload = '{"results": [1, 2, 3]}'
+    cache.set("key-1", payload)
+    assert cache.get("key-1") == payload
