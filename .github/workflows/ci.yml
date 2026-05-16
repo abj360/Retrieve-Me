@@ -5,6 +5,7 @@ on:
   pull_request:
   workflow_dispatch:
 
+# cancel superseded runs on the same ref
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
