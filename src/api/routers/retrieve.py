@@ -14,7 +14,7 @@ Contains:
 import logging
 import time
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Response
 from pydantic import BaseModel, Field
 
 from src.api.cache import QueryCache
@@ -121,6 +121,7 @@ def paginate(
 @router.post("/retrieve", response_model=RetrieveResponse, summary="Hybrid retrieval search")
 def retrieve(
     payload: RetrieveRequest,
+    response: Response,
     cache: QueryCache = Depends(get_query_cache),
     pipeline: HybridRetriever = Depends(get_pipeline),
 ) -> RetrieveResponse:
@@ -128,6 +129,7 @@ def retrieve(
 
     Args:
         payload: Retrieval request with query, top_k, and pagination.
+        response: Outgoing response, used to set the X-Cache header.
         cache: Query-response cache injected by FastAPI.
         pipeline: Hybrid retrieval pipeline injected by FastAPI.
 
@@ -139,7 +141,9 @@ def retrieve(
     cached = cache.get(key)
     if cached is not None:
         logger.debug("cache hit for %s", key)
+        response.headers["X-Cache"] = "HIT"
         return cached
+    response.headers["X-Cache"] = "MISS"
     logger.info("retrieve q=%r top_k=%d page=%d", payload.query, payload.top_k, payload.page)
     try:
         ranked = pipeline.retrieve(payload.query, top_k=payload.top_k, filters=payload.filters)
