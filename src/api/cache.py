@@ -81,7 +81,7 @@ class RedisQueryCache:
         try:
             value = self._client.get(self._key_prefix + key)
         except redis.RedisError as exc:
-            logger.warning("cache get failed, treating as miss: %s", exc)
+            logger.warning("cache get failed, serving request as a miss: %s", exc)
             self.misses += 1
             return None
         if isinstance(value, str):
