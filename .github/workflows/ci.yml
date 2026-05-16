@@ -1,6 +1,13 @@
 name: CI
 
-on: [push, pull_request]
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 permissions:
   contents: read
@@ -13,6 +20,7 @@ jobs:
   python:
     name: Python (3.12)
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     # qdrant + redis back the integration and smoke tests
     services:
       qdrant:
@@ -40,6 +48,10 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
+      - name: Dependency vulnerability scan
+        run: |
+          pip install pip-audit
+          pip-audit
       - name: Ruff lint
         run: ruff check .
       - name: Ruff format check
@@ -54,6 +66,7 @@ jobs:
   dashboard:
     name: Dashboard (Node 20)
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     env:
       CI: true
     defaults:
