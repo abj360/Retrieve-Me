@@ -190,3 +190,9 @@ def test_clear_removes_prefixed_keys() -> None:
     cache.set("b", "2")
     assert cache.clear() == 2
     assert fake._store == {}
+
+
+def test_clear_on_empty_returns_zero() -> None:
+    """Asserts clear() on an empty cache returns zero."""
+    cache = RedisQueryCache(FakeRedis())
+    assert cache.clear() == 0
