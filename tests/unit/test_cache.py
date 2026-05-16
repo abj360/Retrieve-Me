@@ -180,3 +180,13 @@ def test_counters_start_at_zero() -> None:
     cache = RedisQueryCache(FakeRedis())
     assert cache.hits == 0
     assert cache.misses == 0
+
+
+def test_clear_removes_prefixed_keys() -> None:
+    """Asserts clear() deletes every key under the prefix."""
+    fake = FakeRedis()
+    cache = RedisQueryCache(fake, key_prefix="test:ns:")
+    cache.set("a", "1")
+    cache.set("b", "2")
+    assert cache.clear() == 2
+    assert fake._store == {}
