@@ -3,7 +3,7 @@
 benchmark_report.py --- generates a markdown benchmark table from run results
 
 Contains:
-    BenchmarkResult: one benchmark run's metrics
+    BenchmarkResult: one benchmark run's retrieval and latency metrics
     load_results(): reads benchmark results from a JSON file
     render_table(): renders results as a markdown table
     main(): CLI entrypoint; can also emit the dashboard runs JSON
