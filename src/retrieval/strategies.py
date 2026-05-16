@@ -7,7 +7,7 @@ Contains:
     SparseRetrievalStrategy: BM25 leg of the hybrid pipeline
     DenseRetrievalStrategy: dense vector leg of the hybrid pipeline
     HybridRetriever: orchestrates legs, fusion, and rerank into one call
-    STRATEGY_REGISTRY: strategy names to implementation classes
+    STRATEGY_REGISTRY: strategy names to implementation classes (hybrid default)
 """
 
 import logging
