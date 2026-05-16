@@ -102,6 +102,17 @@ class RedisQueryCache:
         except redis.RedisError as exc:
             logger.warning("cache set failed, response not cached: %s", exc)
 
+    def clear(self) -> int:
+        """Deletes every cached entry under the key prefix.
+
+        Returns:
+            removed: Number of keys deleted.
+        """
+        keys = list(self._client.scan_iter(match=f"{self._key_prefix}*"))
+        if not keys:
+            return 0
+        return int(self._client.delete(*keys))
+
 
 class InMemoryQueryCache:
     """Stores serialized responses in a dict for tests and local dev."""
