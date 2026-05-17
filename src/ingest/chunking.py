@@ -7,6 +7,7 @@ Contains:
     Chunk: one chunk produced by the chunker
     Chunker: interface all chunkers implement
     SemanticClauseChunker: splits on sentence and clause boundaries, packing to budget
+    SemanticClauseChunker.split(): packs boundary-aligned chunks to the token budget
 """
 
 import re
