@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-tracing.py --- lightweight per-stage latency tracing for the pipeline
+tracing.py --- per-stage latency tracing for the retrieval pipeline
 
 Contains:
     Span: one timed pipeline stage
