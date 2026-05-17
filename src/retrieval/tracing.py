@@ -5,6 +5,8 @@ tracing.py --- lightweight per-stage latency tracing for the pipeline
 Contains:
     Span: one timed pipeline stage
     LatencyTracer: records spans and summarizes stage latency
+    percentile(): linear-interpolation percentile helper
+    LatencyTracer.report(): renders a per-stage latency table
 """
 
 import time
