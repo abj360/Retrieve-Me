@@ -216,3 +216,9 @@ def test_chunk_token_count_matches_content(token_chunker) -> None:
     chunks = token_chunker.split(make_text(20), "doc-1")
     for chunk in chunks:
         assert chunk.token_count == len(chunk.text.split())
+
+
+def test_metadata_defaults_empty_for_plain_text(token_chunker) -> None:
+    """Asserts plain text yields empty clause_refs metadata."""
+    chunks = token_chunker.split("plain text without clauses.", "doc-1")
+    assert chunks[0].metadata["clause_refs"] == []
