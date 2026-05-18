@@ -64,7 +64,7 @@ export function LatencyRecallChart({ runs }: LatencyRecallChartProps) {
       <h2>Latency vs recall (per run)</h2>
       <p className="chart-subtitle" title={latest.ranAt}>Latest: {latest.name} ({latest.dataset})</p>
       <ResponsiveContainer width="100%" height={340}>
-        <ComposedChart data={points} syncId="benchmarks">
+        <ComposedChart data={points} syncId="benchmark-dashboard">
         <CartesianGrid strokeDasharray="3 3" />
         <XAxis dataKey="name" tick={{ fontSize: 11 }} interval={0} angle={-20} />
         <YAxis yAxisId="left" label={{ value: "p95 (ms)", angle: -90, position: "insideLeft" }} />
