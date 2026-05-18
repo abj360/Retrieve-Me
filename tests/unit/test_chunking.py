@@ -222,3 +222,9 @@ def test_metadata_defaults_empty_for_plain_text(token_chunker) -> None:
     """Asserts plain text yields empty clause_refs metadata."""
     chunks = token_chunker.split("plain text without clauses.", "doc-1")
     assert chunks[0].metadata["clause_refs"] == []
+
+
+def test_index_field_sequential(token_chunker) -> None:
+    """Asserts the index field numbers chunks in order."""
+    chunks = token_chunker.split(make_text(20), "doc-1")
+    assert [chunk.index for chunk in chunks] == list(range(len(chunks)))
