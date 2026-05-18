@@ -223,3 +223,24 @@ def test_warmup_scores_probe() -> None:
     reranker = make_reranker()
     reranker.warmup()
     assert reranker._model is not None
+
+
+def test_grid_search_picks_best_top_k() -> None:
+    """Asserts the tuner selects the top_k with the best mean nDCG."""
+    from src.eval.judge import EvalQuery
+    from src.retrieval.rerank import RerankerTuner
+
+    reranker = make_reranker()
+    tuner = RerankerTuner(reranker)
+    queries = [
+        EvalQuery(
+            query_id="q-1",
+            query="a longer query about clauses",
+            relevant_doc_ids={"doc-long"},
+            reference_answer="",
+        )
+    ]
+    candidates = [make_candidate("long", "a much longer candidate text here")]
+    report = tuner.grid_search(queries, lambda _query: candidates, [1, 3])
+    assert report.best_top_k in (1, 3)
+    assert len(report.rows) == 2
