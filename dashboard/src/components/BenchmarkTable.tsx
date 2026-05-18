@@ -29,7 +29,7 @@ export function BenchmarkTable({ runs }: BenchmarkTableProps) {
         { label: "Dataset", render: (run) => run.dataset },
         {
           label: "Ran at",
-          render: (run) => new Date(run.ranAt).toLocaleDateString("en-GB"),
+          render: (run) => new Date(run.ranAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" }),
         },
         { label: "nDCG@10", render: (run) => run.ndcgAt10.toFixed(3) },
         { label: "Recall@50", render: (run) => run.recallAt50.toFixed(3) },
