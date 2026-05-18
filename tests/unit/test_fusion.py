@@ -254,3 +254,11 @@ def test_post_init_rejects_bad_config() -> None:
 
     with pytest.raises(ValueError):
         ResultFuser(FusionConfig(rrf_k=0))
+
+
+def test_norm_flag_false_uses_raw_scores() -> None:
+    """Asserts the normalization flag off keeps raw score scale in RRF."""
+    fused = ResultFuser(FusionConfig(normalize_scores=False)).fuse(
+        [make_result("a", 100.0)], []
+    )
+    assert fused[0].score > 0
