@@ -73,7 +73,7 @@ class RetrieveResponse(BaseModel):
         page: One-based page number being returned.
         page_size: Number of results per page.
         applied_filters: Filters applied to the search, echoed back to the caller.
-        has_next: Whether a further page of results exists.
+        has_next: Whether another page of results exists after this one.
         took_ms: Wall-clock time spent serving the request.
     """
 
