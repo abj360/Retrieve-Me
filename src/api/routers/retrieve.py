@@ -8,7 +8,7 @@ Contains:
     RetrieveResponse: retrieval response payload
     cache_key(): builds the canonical cache key for a request
     paginate(): slices one page out of the ranked match list
-    retrieve(): runs the hybrid pipeline and returns one cached, paginated response
+    retrieve(): runs the hybrid pipeline and returns a cached, paginated response
 """
 
 import logging
