@@ -252,3 +252,18 @@ def test_report_rows_sorted_by_grid() -> None:
 
     report = TuningReport(rows=[TuningRow(20, 0.7), TuningRow(4, 0.5)], best_top_k=20)
     assert [row.top_k for row in report.rows] == [20, 4]
+
+
+def test_grid_search_deterministic() -> None:
+    """Asserts repeated grid searches over the same inputs agree."""
+    from src.eval.judge import EvalQuery
+    from src.retrieval.rerank import RerankerTuner
+
+    tuner = RerankerTuner(make_reranker())
+    queries = [
+        EvalQuery(query_id="q", query="text query", relevant_doc_ids=set(), reference_answer="")
+    ]
+    candidates = [make_candidate("c-1", "candidate text")]
+    first = tuner.grid_search(queries, lambda _query: candidates, [4, 8]).best_top_k
+    second = tuner.grid_search(queries, lambda _query: candidates, [4, 8]).best_top_k
+    assert first == second
