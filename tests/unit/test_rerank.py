@@ -280,3 +280,11 @@ def test_sweep_scores_are_means() -> None:
     ]
     sweep = tuner.threshold_sweep(queries, lambda _query: [], [-3.0])
     assert 0.0 <= sweep[0][1] <= 1.0
+
+
+def test_report_empty_grid_renders() -> None:
+    """Asserts an empty grid still renders the table skeleton."""
+    from src.retrieval.rerank import RerankerTuner, TuningReport
+
+    table = RerankerTuner(make_reranker()).render_report(TuningReport(rows=[], best_top_k=0))
+    assert "top_k" in table
