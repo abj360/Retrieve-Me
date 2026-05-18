@@ -263,3 +263,9 @@ def test_502_detail_is_string() -> None:
     app.dependency_overrides[get_query_cache] = InMemoryQueryCache()
     response = TestClient(app).post("/retrieve", json={"query": "clause"})
     assert isinstance(response.json()["detail"], str)
+
+
+def test_has_next_false_on_exact_multiple() -> None:
+    """Asserts has_next is false when the last page is exactly full."""
+    response = client().post("/retrieve", json={"query": "clause", "page": 3, "page_size": 10})
+    assert response.json()["has_next"] is False
