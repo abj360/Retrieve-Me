@@ -49,7 +49,7 @@ class Document:
 
 @dataclass(frozen=True)
 class IngestStats:
-    """Carries counts and timing for one ingestion run.
+    """Carries counts and timing for one ingestion run (deduplicated).
 
     Attributes:
         documents: Documents ingested after deduplication.
