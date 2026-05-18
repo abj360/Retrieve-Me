@@ -187,7 +187,7 @@ def _load_jsonl(file_path: Path) -> list[Document]:  # one document per line, bl
 
 
 def load_benchmark_corpus(path: Path | None = None) -> list[Document]:
-    """Loads the 500-doc legal/tech benchmark corpus.
+    """Loads the 500-doc legal/tech benchmark corpus used by all eval runs.
 
     Args:
         path: Corpus directory; defaults to BENCHMARK_CORPUS_DIR.

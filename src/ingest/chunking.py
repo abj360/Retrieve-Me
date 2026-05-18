@@ -118,7 +118,7 @@ class SemanticClauseChunker:
         return self._merge_tail(self._pack(sentences, doc_id))
 
     def _split_sentences(self, text: str) -> list[str]:
-        """Splits raw text into sentences, breaking at clause markers.
+        """Splits raw text into sentences, breaking at legal clause markers.
 
         Args:
             text: Raw document text.
