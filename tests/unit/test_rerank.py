@@ -244,3 +244,11 @@ def test_grid_search_picks_best_top_k() -> None:
     report = tuner.grid_search(queries, lambda _query: candidates, [1, 3])
     assert report.best_top_k in (1, 3)
     assert len(report.rows) == 2
+
+
+def test_report_rows_sorted_by_grid() -> None:
+    """Asserts report rows follow the grid order, not score order."""
+    from src.retrieval.rerank import TuningReport, TuningRow
+
+    report = TuningReport(rows=[TuningRow(20, 0.7), TuningRow(4, 0.5)], best_top_k=20)
+    assert [row.top_k for row in report.rows] == [20, 4]
