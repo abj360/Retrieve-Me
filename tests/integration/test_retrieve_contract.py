@@ -269,3 +269,9 @@ def test_has_next_false_on_exact_multiple() -> None:
     """Asserts has_next is false when the last page is exactly full."""
     response = client().post("/retrieve", json={"query": "clause", "page": 3, "page_size": 10})
     assert response.json()["has_next"] is False
+
+
+def test_page_size_upper_bound_accepted() -> None:
+    """Asserts page_size of 100 passes validation."""
+    response = client().post("/retrieve", json={"query": "clause", "page_size": 100})
+    assert response.status_code == 200
