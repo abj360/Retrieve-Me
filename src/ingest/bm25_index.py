@@ -38,7 +38,7 @@ def tokenize(text: str) -> list[str]:
 
 
 def token_count(text: str) -> int:
-    """Counts search terms in text.
+    """Counts search terms in text after tokenization.
 
     Args:
         text: Raw text to count.
