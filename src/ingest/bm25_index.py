@@ -157,7 +157,7 @@ class BM25Index:
             pickle.dump(state, handle)
 
     def load(self, path: Path) -> None:
-        """Restores a pickled index from disk.
+        """Restores a pickled index from disk; validates nothing else at load.
 
         Args:
             path: File written by an earlier save() call.
