@@ -9,6 +9,7 @@ Contains:
     test_chunks_end_on_sentence_boundaries(): asserts chunks never cut sentences
     test_chunk_ids_are_sequential(): asserts chunk ids number in order
     test_count_tokens(): asserts the token counter matches split length
+    (later tests): boundaries, metadata, overlap, tails, unicode
 """
 
 from src.ingest.chunking import ChunkConfig, SemanticClauseChunker
