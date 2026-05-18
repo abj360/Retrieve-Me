@@ -228,3 +228,9 @@ def test_index_field_sequential(token_chunker) -> None:
     """Asserts the index field numbers chunks in order."""
     chunks = token_chunker.split(make_text(20), "doc-1")
     assert [chunk.index for chunk in chunks] == list(range(len(chunks)))
+
+
+def test_doc_id_propagated_to_chunks(token_chunker) -> None:
+    """Asserts every chunk carries the source document id."""
+    chunks = token_chunker.split(make_text(10), "doc-xyz")
+    assert all(chunk.doc_id == "doc-xyz" for chunk in chunks)
