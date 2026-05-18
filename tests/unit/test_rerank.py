@@ -267,3 +267,16 @@ def test_grid_search_deterministic() -> None:
     first = tuner.grid_search(queries, lambda _query: candidates, [4, 8]).best_top_k
     second = tuner.grid_search(queries, lambda _query: candidates, [4, 8]).best_top_k
     assert first == second
+
+
+def test_sweep_scores_are_means() -> None:
+    """Asserts sweep scores are averages in [0, 1]."""
+    from src.eval.judge import EvalQuery
+    from src.retrieval.rerank import RerankerTuner
+
+    tuner = RerankerTuner(make_reranker())
+    queries = [
+        EvalQuery(query_id="q", query="text query", relevant_doc_ids=set(), reference_answer="")
+    ]
+    sweep = tuner.threshold_sweep(queries, lambda _query: [], [-3.0])
+    assert 0.0 <= sweep[0][1] <= 1.0
