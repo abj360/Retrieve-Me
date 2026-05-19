@@ -7,6 +7,8 @@
  *   apiFetch: fetch wrapper with JSON handling, timeout, and error propagation
  *   getBenchmarkRuns: loads benchmark runs from the static export
  *   postRetrieve: runs one query against the live retrieval endpoint
+ *   getHealth: checks the backend liveness endpoint
+ *   withRetry: retries a request once after a short delay
  */
 
 import type { BenchmarkRun, RetrieveResponse } from "../types";
@@ -102,6 +104,36 @@ export async function postRetrieve(query: string): Promise<RetrieveResponse> {
     hasNext: payload.has_next,
     tookMs: payload.took_ms,
   };
+}
+
+interface HealthResponse {
+  status: string;
+  service?: string;
+  version?: string;
+}
+
+/**
+ * Checks the backend liveness endpoint.
+ *
+ * @returns health - Liveness payload from the API.
+ */
+export function getHealth(): Promise<HealthResponse> {
+  return apiFetch<HealthResponse>(`${API_BASE}/healthz`);
+}
+
+/**
+ * Retries a request once after a short delay.
+ *
+ * @param request - Request factory to invoke and maybe retry.
+ * @returns result - Whatever the request returns on success.
+ */
+export async function withRetry<T>(request: () => Promise<T>): Promise<T> {
+  try {
+    return await request();
+  } catch (error) {
+    await new Promise((resolve) => window.setTimeout(resolve, 750));
+    return request();
+  }
 }
 
 export { API_BASE };

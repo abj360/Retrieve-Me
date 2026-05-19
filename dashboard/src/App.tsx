@@ -8,7 +8,7 @@
 
 import { useEffect, useState } from "react";
 
-import { getBenchmarkRuns, postRetrieve } from "./api/client";
+import { getBenchmarkRuns, getHealth, postRetrieve } from "./api/client";
 import { BenchmarkTable } from "./components/BenchmarkTable";
 import { QueryInspector } from "./components/QueryInspector";
 import type { BenchmarkRun, RetrievedChunk } from "./types";
@@ -53,6 +53,7 @@ export function App() {
   const [inspectionResults, setInspectionResults] = useState<RetrievedChunk[] | null>(null);
   const [isInspecting, setIsInspecting] = useState(false);
   const [inspectError, setInspectError] = useState<string | null>(null);
+  const [isHealthy, setIsHealthy] = useState<boolean | null>(null);
   const [inspectionTookMs, setInspectionTookMs] = useState<number | null>(null);
 
   const handleInspect = (query: string) => {
@@ -91,6 +92,9 @@ export function App() {
         });
     };
     loadRuns();
+    getHealth()
+      .then((health) => setIsHealthy(health.status === "ok"))
+      .catch(() => setIsHealthy(false));
     const pollHandle = window.setInterval(loadRuns, 45_000);
     return () => {
       isCancelled = true;
@@ -103,6 +107,12 @@ export function App() {
       <header className="app-header">
         <h1>retrieval-core</h1>
         <p>Hybrid retrieval benchmarks: BM25 + dense + cross-encoder rerank</p>
+        <span
+          className={
+            isHealthy === null ? "health-dot unknown" : isHealthy ? "health-dot ok" : "health-dot down"
+          }
+          title={isHealthy === null ? "checking…" : isHealthy ? "api healthy" : "api unreachable"}
+        />
       </header>
       <nav className="tabs">
         <button
