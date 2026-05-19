@@ -46,3 +46,13 @@ def test_server_error_logged_at_error(caplog) -> None:
     with caplog.at_level(logging.INFO, logger="retrieval.http"):
         TestClient(create_app()).get("/missing-path")
     assert any(record.levelname == "WARNING" for record in caplog.records)
+
+
+def test_normal_request_logged_at_info(caplog) -> None:
+    """Asserts ordinary requests emit one info log line with a request id."""
+    import logging
+
+    with caplog.at_level(logging.INFO, logger="retrieval.http"):
+        TestClient(create_app()).post("/retrieve", json={"query": "clause"})
+    messages = [record.getMessage() for record in caplog.records]
+    assert any("/retrieve" in message and "rid=" in message for message in messages)
