@@ -109,7 +109,7 @@ export function App() {
         <p>Hybrid retrieval benchmarks: BM25 + dense + cross-encoder rerank</p>
         <span
           className={
-            isHealthy === null ? "health-dot unknown" : isHealthy ? "health-dot ok" : "health-dot down"
+            `health-dot ${isHealthy === null ? "unknown" : isHealthy ? "ok" : "down"}`
           }
           title={isHealthy === null ? "checking api…" : isHealthy ? "api healthy" : "api unreachable"}
         />
