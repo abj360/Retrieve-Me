@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-citation.py --- prompt templates for citation-grounded generation
+citation.py --- versioned prompt templates for citation-grounded generation
 
 Contains:
     CITATION_SYSTEM_PROMPT: system instructions for grounded answers
