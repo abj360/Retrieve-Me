@@ -90,7 +90,7 @@ export function ResultsTable<T>({ data, columns, rowKey, pageSize = 25 }: Result
             </option>
           ))}
         </select>
-        <button aria-label="previous page" onClick={() => setPage(page - 1)} disabled={page === 0}>
+        <button aria-label="go to previous page" onClick={() => setPage(page - 1)} disabled={page === 0}>
           Previous
         </button>
         <span aria-current="page">
