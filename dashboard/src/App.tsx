@@ -93,7 +93,7 @@ export function App() {
     };
     loadRuns();
     getHealth()
-      .then((health) => setIsHealthy(health.status === "ok"))
+      .then((health) => setIsHealthy(health.status.trim().toLowerCase() === "ok"))
       .catch(() => setIsHealthy(false));
     const pollHandle = window.setInterval(loadRuns, 45_000);
     return () => {
