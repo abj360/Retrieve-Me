@@ -42,7 +42,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             return await call_next(request)
         request_id = request.headers.get(REQUEST_ID_HEADER) or uuid.uuid4().hex[:12]
         response = await call_next(request)
-        duration_ms = (time.perf_counter() - started) * 1000
+        duration_ms = (time.perf_counter() - started_at) * 1000
         response.headers[REQUEST_ID_HEADER] = request_id
         log = (
             logger.error
