@@ -107,3 +107,16 @@ def test_build_prompt_separates_sources_with_blank_line() -> None:
     """Asserts sources are separated by a blank line."""
     prompt = build_citation_prompt("q?", [make_result(1), make_result(2)])
     assert "[1] (doc: doc-1) Section 1.1 clause text.\n\n[2]" in prompt
+
+
+def test_format_block_handles_empty_text() -> None:
+    """Asserts a source block still formats with empty chunk text."""
+    result = make_result(1)
+    result = RankedResult(
+        chunk_id=result.chunk_id,
+        doc_id=result.doc_id,
+        text="",
+        score=result.score,
+        source=result.source,
+    )
+    assert format_source_block(result, 3).startswith("[3]")
