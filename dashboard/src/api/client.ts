@@ -137,4 +137,4 @@ export async function withRetry<T>(request: () => Promise<T>): Promise<T> {
   }
 }
 
-export { API_BASE };
+export { API_BASE, REQUEST_TIMEOUT_MS };
