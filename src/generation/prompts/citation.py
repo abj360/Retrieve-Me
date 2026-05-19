@@ -46,3 +46,6 @@ def build_citation_prompt(query: str, results: list[RankedResult]) -> str:
         for index, result in enumerate(results[:MAX_CONTEXT_CHUNKS], 1)
     )
     return f"{CITATION_SYSTEM_PROMPT}\n\nSources:\n{sources}\n\nQuestion: {query}"
+
+
+PROMPT_VERSION = "1.1.0"  # bumped when the template wording changes
