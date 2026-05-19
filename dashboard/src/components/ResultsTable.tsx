@@ -6,7 +6,7 @@
  *   ResultsTable: renders one page of rows with prev/next pagination
  */
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 interface Column<T> {
   label: string;
@@ -42,7 +42,10 @@ export function ResultsTable<T>({ data, columns, rowKey, pageSize = 25 }: Result
     }
   }, [page, totalPages]);
 
-  const visibleRows = data.slice(page * rowsPerPage, (page + 1) * rowsPerPage);
+  const visibleRows = useMemo(
+    () => data.slice(page * rowsPerPage, (page + 1) * rowsPerPage),
+    [data, page, rowsPerPage],
+  );
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     if (event.key === "ArrowLeft" || event.key === "PageUp" && page > 0) {
@@ -87,13 +90,13 @@ export function ResultsTable<T>({ data, columns, rowKey, pageSize = 25 }: Result
             </option>
           ))}
         </select>
-        <button onClick={() => setPage(page - 1)} disabled={page === 0}>
+        <button aria-label="previous page" onClick={() => setPage(page - 1)} disabled={page === 0}>
           Previous
         </button>
         <span aria-current="page">
           Page {page + 1} of {totalPages}
         </span>
-        <button onClick={() => setPage(page + 1)} disabled={page + 1 >= totalPages}>
+        <button aria-label="next page" onClick={() => setPage(page + 1)} disabled={page + 1 >= totalPages}>
           Next
         </button>
       </div>
