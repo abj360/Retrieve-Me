@@ -131,7 +131,7 @@ export async function withRetry<T>(request: () => Promise<T>): Promise<T> {
   try {
     return await request();
   } catch (error) {
-    await new Promise((resolve) => window.setTimeout(resolve, 750));
+    await new Promise((resolve) => window.setTimeout(resolve, 1000));
     return request();
   }
 }
