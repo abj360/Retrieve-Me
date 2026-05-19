@@ -101,3 +101,9 @@ def test_prompt_version_format() -> None:
 
     parts = PROMPT_VERSION.split(".")
     assert len(parts) == 3
+
+
+def test_build_prompt_separates_sources_with_blank_line() -> None:
+    """Asserts sources are separated by a blank line."""
+    prompt = build_citation_prompt("q?", [make_result(1), make_result(2)])
+    assert "[1] (doc: doc-1) Section 1.1 clause text.\n\n[2]" in prompt
