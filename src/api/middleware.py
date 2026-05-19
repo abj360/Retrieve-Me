@@ -37,7 +37,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         Returns:
             response: Response produced by the downstream handler.
         """
-        started = time.perf_counter()
+        started_at = time.perf_counter()
         if request.url.path in QUIET_PATHS:
             return await call_next(request)
         request_id = request.headers.get(REQUEST_ID_HEADER) or uuid.uuid4().hex[:12]
