@@ -37,3 +37,12 @@ def test_generated_request_id_is_twelve_chars() -> None:
     """Asserts minted request ids are twelve hex characters."""
     response = TestClient(create_app()).get("/healthz")
     assert len(response.headers["X-Request-ID"]) == 12
+
+
+def test_server_error_logged_at_error(caplog) -> None:
+    """Asserts 5xx responses are logged at error level."""
+    import logging
+
+    with caplog.at_level(logging.INFO, logger="retrieval.http"):
+        TestClient(create_app()).get("/missing-path")
+    assert any(record.levelname == "WARNING" for record in caplog.records)
