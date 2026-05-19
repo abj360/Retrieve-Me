@@ -8,6 +8,7 @@ Contains:
     precision_at_k(): precision at rank k
     mrr(): mean reciprocal rank
     citation_faithfulness(): fraction of citations grounded in retrieved chunks
+    mean(): arithmetic mean helper for score lists
 """
 
 import math
