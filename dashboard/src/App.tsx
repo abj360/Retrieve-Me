@@ -111,7 +111,7 @@ export function App() {
           className={
             isHealthy === null ? "health-dot unknown" : isHealthy ? "health-dot ok" : "health-dot down"
           }
-          title={isHealthy === null ? "checking…" : isHealthy ? "api healthy" : "api unreachable"}
+          title={isHealthy === null ? "checking api…" : isHealthy ? "api healthy" : "api unreachable"}
         />
       </header>
       <nav className="tabs">
