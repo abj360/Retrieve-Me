@@ -62,7 +62,7 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             client_host,
             extra={
                 "request_id": request_id,
-                "duration_ms": round(duration_ms, 2),
+                "duration_ms": round(duration_ms, 1),
                 "status_code": response.status_code,
             },
         )
