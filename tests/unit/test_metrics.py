@@ -53,3 +53,11 @@ def test_precision_at_k() -> None:
 def test_citation_faithfulness_partial() -> None:
     """Asserts partial grounding scores fractionally."""
     assert citation_faithfulness(["c-1", "c-9"], {"c-1"}) == 0.5
+
+
+def test_mean_helper() -> None:
+    """Asserts the mean helper averages and handles empty."""
+    from src.eval.metrics import mean
+
+    assert mean([0.4, 0.8]) == 0.6
+    assert mean([]) == 0.0
