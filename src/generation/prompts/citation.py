@@ -48,4 +48,4 @@ def build_citation_prompt(query: str, results: list[RankedResult]) -> str:
     return f"{CITATION_SYSTEM_PROMPT}\n\nSources:\n{sources}\n\nQuestion: {query}"
 
 
-PROMPT_VERSION = "1.1.0"  # bumped when the template wording changes
+PROMPT_VERSION = "1.1.1"  # bumped when the template wording changes
