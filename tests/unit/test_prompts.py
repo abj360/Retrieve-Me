@@ -120,3 +120,9 @@ def test_format_block_handles_empty_text() -> None:
         source=result.source,
     )
     assert format_source_block(result, 3).startswith("[3]")
+
+
+def test_prompt_question_at_end() -> None:
+    """Asserts the question closes the prompt."""
+    prompt = build_citation_prompt("final question?", [make_result(1)])
+    assert prompt.rstrip().endswith("final question?")
