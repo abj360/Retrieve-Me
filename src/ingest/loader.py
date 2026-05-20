@@ -157,7 +157,7 @@ def load_corpus(path: Path) -> list[Document]:
             logger.warning("skipping empty file %s", file_path.name)
             continue
         documents.append(Document(doc_id=file_path.stem, title=file_path.stem, text=text))
-    logger.info("loaded %d documents from %s", len(documents), path)
+    logger.info("loaded %d documents from %s (deduped)", len(documents), path)
     return documents
 
 
