@@ -10,6 +10,7 @@ Contains:
     DenseHit: one scored hit from the dense index
     DenseIndex: builds, searches, and health-checks the Qdrant collection
     DenseIndex.health_check(): reports whether Qdrant answers within the timeout
+    DenseIndex.drop_collection_if_empty(): drops only when nothing is stored
 """
 
 import logging
