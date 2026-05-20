@@ -275,3 +275,10 @@ def test_batch_preserves_individual_scores() -> None:
     ]
     (verdict,) = judge.judge_batch(queries, lambda _q: make_answer(), lambda _q: [])
     assert verdict.relevance == 0.9
+
+
+def test_faithfulness_golden_case() -> None:
+    """Asserts the golden faithfulness case parses the full mark."""
+    judge = LLMJudge(CannedJudgeClient())
+    verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
+    assert verdict.faithfulness == 1.0
