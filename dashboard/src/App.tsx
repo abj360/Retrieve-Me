@@ -148,6 +148,9 @@ export function App() {
         </section>
         )}
       </main>
+      <footer className="app-footer">
+        <span>Retrieve-Me dashboard v0.2.0</span>
+      </footer>
     </div>
   );
 }
