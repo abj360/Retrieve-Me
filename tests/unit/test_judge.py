@@ -3,7 +3,7 @@
 test_judge.py --- golden-set regression tests for the LLM-as-judge harness
 
 Contains:
-    CannedJudgeClient: returns a fixed judge reply per prompt shape
+    CannedJudgeClient: returns a fixed judge reply and records prompts
     make_eval_query(): builds a golden-set query
     make_answer(): builds a generated answer
     test_judge_parses_scores(): asserts scores parse from the judge reply
