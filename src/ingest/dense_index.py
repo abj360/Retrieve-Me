@@ -234,7 +234,7 @@ class DenseIndex:
                 ),
             )
 
-    def count(self) -> int:
+    def count(self) -> int:  # 0 on a missing collection, never raises
         """Counts the points currently stored in the collection.
 
         Returns:
