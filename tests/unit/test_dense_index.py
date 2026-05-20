@@ -442,3 +442,12 @@ def test_pool_close_drains_idle_clients() -> None:
     with pytest.raises(PoolExhaustedError):
         with pool.acquire():
             pass
+
+
+def test_drop_collection_if_empty_only_when_empty() -> None:
+    """Asserts the conditional drop leaves a non-empty collection alone."""
+    client = FakeQdrantClient()
+    index = make_index(client)
+    assert index.drop_collection_if_empty() is True
+    client.upsert(collection_name="chunks", points=["p1"])
+    assert index.drop_collection_if_empty() is False
