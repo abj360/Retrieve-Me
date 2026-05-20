@@ -282,3 +282,9 @@ def test_faithfulness_golden_case() -> None:
     judge = LLMJudge(CannedJudgeClient())
     verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
     assert verdict.faithfulness == 1.0
+
+
+def test_eval_query_relevant_ids_are_set() -> None:
+    """Asserts relevant doc ids load as a set."""
+    query = make_eval_query()
+    assert isinstance(query.relevant_doc_ids, set)
