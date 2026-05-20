@@ -12,3 +12,4 @@ data/benchmark/
 *.local
 # local env overrides
 .DS_Store
+.env.local
