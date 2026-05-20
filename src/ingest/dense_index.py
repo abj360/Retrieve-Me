@@ -253,6 +253,17 @@ class DenseIndex:
         """
         return self.count() == 0
 
+    def drop_collection_if_empty(self) -> bool:
+        """Drops the collection only when it holds no points.
+
+        Returns:
+            dropped: True when the collection existed, was empty, and is gone.
+        """
+        if not self.is_empty():
+            return False
+        self.drop_collection()
+        return True
+
     def upsert(
         self,
         chunk_ids: list[str],
