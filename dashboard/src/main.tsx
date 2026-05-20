@@ -15,7 +15,7 @@ import "./styles.css";
 const rootElement = document.getElementById("root");
 
 if (rootElement === null) {
-  throw new Error("index.html is missing the #root mount point");
+  throw new Error("dashboard mount point #root not found in index.html");
 }
 
 createRoot(rootElement).render(

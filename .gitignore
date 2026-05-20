@@ -11,3 +11,4 @@ __pycache__/
 data/benchmark/
 *.local
 # local env overrides
+.DS_Store
