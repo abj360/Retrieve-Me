@@ -451,3 +451,12 @@ def test_drop_collection_if_empty_only_when_empty() -> None:
     assert index.drop_collection_if_empty() is True
     client.upsert(collection_name="chunks", points=["p1"])
     assert index.drop_collection_if_empty() is False
+
+
+def test_count_reflects_upserts() -> None:
+    """Asserts count() tracks points written through the index."""
+    client = FakeQdrantClient()
+    index = make_index(client)
+    index.upsert(["a", "b"], [[0.1] * 8] * 2, [{}] * 2)
+    assert index.count() == 2
+    assert index.is_empty() is False
