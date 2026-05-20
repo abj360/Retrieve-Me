@@ -207,10 +207,37 @@ def main() -> None:
     """Runs a one-off ingestion run from the command line."""
     parser = argparse.ArgumentParser(description="Ingest a corpus into Retrieve-Me")
     parser.add_argument("--corpus", required=True, type=Path, help="corpus directory")
+    parser.add_argument("--benchmark", action="store_true", help="ingest the benchmark set")
     args = parser.parse_args()
     logging.basicConfig(level=logging.INFO)
-    documents = load_corpus(args.corpus)
-    logger.info("would ingest %d documents (clients not wired yet)", len(documents))
+    documents = (
+        load_benchmark_corpus() if args.benchmark else load_corpus(args.corpus)
+    )
+    stats = _build_ingestor().ingest(documents)
+    logger.info(
+        "done: %d documents, %d chunks in %.1fs",
+        stats.documents,
+        stats.chunks,
+        stats.seconds,
+    )
+
+
+def _build_ingestor() -> CorpusIngestor:
+    """Builds a CorpusIngestor wired to the configured live stores.
+
+    Returns:
+        ingestor: Ingestor backed by Qdrant, Redis-free BM25, and the embedder.
+    """
+    from src.api.dependencies import get_settings, get_qdrant_pool
+    from src.ingest.chunking import SemanticClauseChunker
+    from src.ingest.dense_index import DenseIndex, QdrantConfig
+    from src.retrieval.embeddings import EmbeddingConfig
+
+    settings = get_settings()
+    config = QdrantConfig(url=settings.qdrant_url, collection=settings.qdrant_collection)
+    dense_index = DenseIndex(config, get_qdrant_pool(settings))
+    embedder = SentenceTransformerEmbedder(EmbeddingConfig(model_name=settings.embedding_model))
+    return CorpusIngestor(SemanticClauseChunker(), embedder, dense_index, BM25Index())
 
 
 if __name__ == "__main__":
