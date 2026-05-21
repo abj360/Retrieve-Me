@@ -53,4 +53,5 @@ export interface StageBreakdown {
   sparse: number;
   dense: number;
   fused: number;
+  total?: number;
 }
