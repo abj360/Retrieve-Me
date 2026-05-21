@@ -272,3 +272,13 @@ def test_rrf_k_changes_ranking_gradient() -> None:
     gentle_scores = [r.score for r in gentle.fuse(sparse, [])]
     sharp_scores = [r.score for r in sharp.fuse(sparse, [])]
     assert sharp_scores[0] - sharp_scores[1] > gentle_scores[0] - gentle_scores[1]
+
+
+def test_zero_weight_leg_still_appears() -> None:
+    """Asserts a zero-weight leg contributes nothing to the fused score."""
+    fused = ResultFuser(
+        FusionConfig(sparse_weight=0.0, normalize_scores=False)
+    ).fuse([make_result("a", 0.9)], [make_result("b", 0.1, "dense")])
+    scores = {result.chunk_id: result.score for result in fused}
+    assert scores["b"] > 0
+    assert scores["a"] == 0
