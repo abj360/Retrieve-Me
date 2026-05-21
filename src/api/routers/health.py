@@ -15,7 +15,7 @@ import redis
 from fastapi import APIRouter, HTTPException
 from qdrant_client import QdrantClient
 
-from src.api.dependencies import get_settings
+from src.api.dependencies import Settings, get_settings
 
 router = APIRouter()
 
@@ -38,7 +38,7 @@ def healthz() -> dict[str, str]:
     }
 
 
-def check_qdrant(settings) -> str:
+def check_qdrant(settings: Settings) -> str:
     """Returns ok when Qdrant answers within the ping timeout.
 
     Args:
@@ -54,7 +54,7 @@ def check_qdrant(settings) -> str:
     return "ok"
 
 
-def check_redis(settings) -> str:
+def check_redis(settings: Settings) -> str:
     """Returns ok when Redis answers within the ping timeout.
 
     Args:
