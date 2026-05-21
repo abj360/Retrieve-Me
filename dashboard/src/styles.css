@@ -157,3 +157,22 @@ select:focus-visible {
 .status-line {
   color: var(--text-muted);
 }
+
+@media (max-width: 640px) {
+  .app-shell {
+    padding: 16px 10px 32px;
+  }
+
+  .results-table {
+    font-size: 13px;
+  }
+
+  .query-box {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .app-footer {
+    font-size: 12px;
+  }
+}
