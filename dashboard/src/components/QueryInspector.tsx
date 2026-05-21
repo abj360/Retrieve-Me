@@ -7,6 +7,7 @@
  */
 
 import { useState } from "react";
+import type { FormEvent } from "react";
 
 import type { RetrievedChunk, StageBreakdown } from "../types";
 
