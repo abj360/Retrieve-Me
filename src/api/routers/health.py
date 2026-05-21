@@ -74,7 +74,7 @@ def check_redis(settings: Settings) -> str:
 
 @router.get("/readyz")
 def readyz() -> dict[str, str]:
-    """Reports readiness by pinging Qdrant and Redis.
+    """Reports readiness by pinging Qdrant and Redis within the ping timeout.
 
     Returns:
         status: ready plus per-dependency check results.
