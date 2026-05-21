@@ -37,7 +37,7 @@ export function QueryInspector({ onInspect, results, tookMs, isLoading, error }:
     { sparse: 0, dense: 0, fused: 0 },
   );
 
-  const handleSubmit = (event: React.FormEvent) => {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     onInspect(query);
   };
