@@ -8,7 +8,7 @@
 
 import { useState } from "react";
 
-import type { RetrievedChunk } from "../types";
+import type { RetrievedChunk, StageBreakdown } from "../types";
 
 /**
  * Renders the query inspection view with mock results.
@@ -32,15 +32,20 @@ interface QueryInspectorProps {
 export function QueryInspector({ onInspect, results, tookMs, isLoading, error }: QueryInspectorProps) {
   const [query, setQuery] = useState("");
   const visibleResults = results ?? [];
-  const stageCounts = visibleResults.reduce(
-    (counts, chunk) => ({ ...counts, [chunk.source]: (counts[chunk.source] ?? 0) + 1 }),
-    {} as Record<string, number>  // stage counts start empty,
+  const stageCounts = visibleResults.reduce<StageBreakdown>(
+    (counts, chunk) => ({ ...counts, [chunk.source]: counts[chunk.source] + 1 }),
+    { sparse: 0, dense: 0, fused: 0 },
   );
+
+  const handleSubmit = (event: React.FormEvent) => {
+    event.preventDefault();
+    onInspect(query);
+  };
 
   return (
     <section className="panel query-inspector">
       <h2>Query inspector</h2>
-      <div className="query-box">
+      <form className="query-box" onSubmit={handleSubmit}>
         <input
           type="text"
           placeholder="Inspect a query, e.g. clause 3.1…"
@@ -50,10 +55,10 @@ export function QueryInspector({ onInspect, results, tookMs, isLoading, error }:
           onKeyDown={(event) => event.key === "Enter" && onInspect(query)}
         />
         <input type="text" placeholder="filters, e.g. source=legal" aria-label="metadata filters (optional)" className="filters-input" />
-        <button type="button" onClick={() => onInspect(query)} disabled={isLoading}>
+        <button type="submit" disabled={isLoading} aria-label="inspect query">
           {isLoading ? "Inspecting…" : "Inspect"}
         </button>
-      </div>
+      </form>
       {tookMs !== null && <span className="timing-chip" title="end-to-end">{tookMs.toFixed(0)} ms</span>}
       {error !== null && <p className="error-banner">Retrieval failed: {error}</p>}
       <div className="stage-breakdown" aria-label="stage counts">

@@ -6,6 +6,7 @@
  *   BenchmarkRun: one recorded benchmark run with retrieval metrics
  *   RetrievedChunk: one scored chunk returned by the retrieval API
  *   RetrieveResponse: retrieval API response payload
+ *   StageBreakdown: per-source result counts derived from a response
  */
 
 export interface BenchmarkRun {
@@ -43,4 +44,13 @@ export interface RetrieveResponse {
   appliedFilters: Record<string, string> | null;
   hasNext: boolean;
   tookMs: number;
+}
+
+/**
+ * StageBreakdown: per-source result counts derived from a response.
+ */
+export interface StageBreakdown {
+  sparse: number;
+  dense: number;
+  fused: number;
 }
