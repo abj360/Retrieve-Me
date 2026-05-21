@@ -275,3 +275,10 @@ def test_page_size_upper_bound_accepted() -> None:
     """Asserts page_size of 100 passes validation."""
     response = client().post("/retrieve", json={"query": "clause", "page_size": 100})
     assert response.status_code == 200
+
+
+def test_healthz_includes_version() -> None:
+    """Asserts /healthz reports the service version."""
+    response = client().get("/healthz")
+    assert response.status_code == 200
+    assert "version" in response.json()
