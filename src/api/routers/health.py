@@ -17,6 +17,8 @@ from qdrant_client import QdrantClient
 
 from src.api.dependencies import Settings, get_settings
 
+# readiness probes stay cheap: no index loads, no model calls
+
 router = APIRouter()
 
 PING_TIMEOUT_SECONDS = 1.5
