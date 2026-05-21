@@ -52,7 +52,7 @@ def check_qdrant(settings: Settings) -> str:
     try:
         QdrantClient(url=settings.qdrant_url, timeout=PING_TIMEOUT_SECONDS).get_collections()
     except Exception:
-        return "unreachable"
+        return "down"
     return "ok"
 
 
