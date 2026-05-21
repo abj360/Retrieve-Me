@@ -45,7 +45,7 @@ export function QueryInspector({ onInspect, results, tookMs, isLoading, error }:
   return (
     <section className="panel query-inspector">
       <h2>Query inspector</h2>
-      <form className="query-box" onSubmit={handleSubmit}>
+      <form className="query-box" role="search" onSubmit={handleSubmit}>
         <input
           type="text"
           placeholder="Inspect a query, e.g. clause 3.1…"
