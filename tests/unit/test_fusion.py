@@ -262,3 +262,13 @@ def test_norm_flag_false_uses_raw_scores() -> None:
         [make_result("a", 100.0)], []
     )
     assert fused[0].score > 0
+
+
+def test_rrf_k_changes_ranking_gradient() -> None:
+    """Asserts a smaller rrf_k sharpens the rank gradient."""
+    gentle = ResultFuser(FusionConfig(rrf_k=60, normalize_scores=False))
+    sharp = ResultFuser(FusionConfig(rrf_k=1, normalize_scores=False))
+    sparse = [make_result("a", 0.9), make_result("b", 0.8)]
+    gentle_scores = [r.score for r in gentle.fuse(sparse, [])]
+    sharp_scores = [r.score for r in sharp.fuse(sparse, [])]
+    assert sharp_scores[0] - sharp_scores[1] > gentle_scores[0] - gentle_scores[1]
