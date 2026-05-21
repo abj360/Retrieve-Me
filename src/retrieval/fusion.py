@@ -173,7 +173,9 @@ class ResultFuser:
         Returns:
             ranked: Results sorted by score descending, ties by chunk_id.
         """
-        return sorted(results, key=lambda result: (-result.score, result.chunk_id))
+        return sorted(
+            results, key=lambda result: (-result.score, result.chunk_id)
+        )
 
 
     def fuse_pair(
