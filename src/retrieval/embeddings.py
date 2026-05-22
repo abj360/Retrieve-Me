@@ -22,7 +22,7 @@ from sentence_transformers import SentenceTransformer
 
 logger = logging.getLogger(__name__)
 
-DEFAULT_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
+DEFAULT_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"  # 384-dim, fast on cpu
 DEFAULT_BATCH_SIZE = 32  # sweet spot for the MiniLM encoder on cpu
 
 
