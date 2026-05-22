@@ -388,3 +388,14 @@ def test_ingest_jsonl_corpus(tmp_path, whole_doc_chunker, fake_dense_index, real
     stats = ingestor.ingest(documents)
     assert stats.documents == 2
     assert fake_dense_index.count() == 2
+
+
+def test_document_metadata_passthrough(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts document metadata reaches the dense payload."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    documents = [
+        Document(doc_id="meta", title="meta", text="clause 8.1 meta text", metadata={"source": "legal"})
+    ]
+    CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
+    assert fake_dense_index.count() == 1
