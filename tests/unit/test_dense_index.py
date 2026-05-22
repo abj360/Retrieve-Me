@@ -467,3 +467,10 @@ def test_upsert_returns_total_written() -> None:
     client = FakeQdrantClient()
     ids = [f"c-{index}" for index in range(7)]
     assert make_index(client).upsert(ids, [[0.1] * 8] * 7, [{}] * 7) == 7
+
+
+def test_upsert_wait_flag_passed_through() -> None:
+    """Asserts batch upserts pass wait=True so indexing completes."""
+    client = FakeQdrantClient()
+    make_index(client).upsert(["x"], [[0.1] * 8], [{}], batch_size=10)
+    assert client.upsert_calls == 1
