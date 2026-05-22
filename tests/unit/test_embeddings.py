@@ -223,3 +223,11 @@ def test_config_custom_values() -> None:
     config = EmbeddingConfig(model_name="other-model", batch_size=8, normalize=False)
     assert config.model_name == "other-model"
     assert config.batch_size == 8
+
+
+def test_deterministic_embedder_documents_entrypoint() -> None:
+    """Asserts encode_documents works on the deterministic embedder."""
+    from src.retrieval.embeddings import DeterministicEmbedder
+
+    vectors = DeterministicEmbedder(dimension=8).encode_documents(["a", "b"])
+    assert vectors.shape == (2, 8)
