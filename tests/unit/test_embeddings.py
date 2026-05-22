@@ -231,3 +231,8 @@ def test_deterministic_embedder_documents_entrypoint() -> None:
 
     vectors = DeterministicEmbedder(dimension=8).encode_documents(["a", "b"])
     assert vectors.shape == (2, 8)
+
+
+def test_batched_empty_input() -> None:
+    """Asserts batched yields nothing for empty input."""
+    assert list(batched([], 4)) == []
