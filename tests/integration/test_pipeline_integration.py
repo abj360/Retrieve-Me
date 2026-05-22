@@ -304,3 +304,21 @@ def test_bm25_fixture_is_queryable(bm25_index) -> None:
     """Asserts the shared bm25 fixture answers exact-term queries."""
     hits = bm25_index.search("indemnify", top_k=1)
     assert hits[0].doc_id == "license-agreement"
+
+
+def test_ingest_writes_every_chunk(sample_documents, token_chunker, real_embedder, fake_dense_index) -> None:
+    """Asserts the full pipeline ingests and indexes every produced chunk."""
+    from src.ingest.bm25_index import BM25Index
+    from src.ingest.loader import CorpusIngestor, Document
+
+    bm25 = BM25Index()
+    documents = [
+        Document(doc_id=doc_id, title=doc_id, text=text) for doc_id, text in sample_documents
+    ]
+    ingestor = CorpusIngestor(token_chunker, real_embedder, fake_dense_index, bm25)
+    stats = ingestor.ingest(documents)
+    expected = sum(
+        len(token_chunker.split(document.text, document.doc_id)) for document in documents
+    )
+    assert stats.chunks == expected
+    assert fake_dense_index.count() == expected
