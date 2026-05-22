@@ -267,7 +267,7 @@ class DenseIndex:
 
     def upsert(
         self,
-        chunk_ids: list[str],
+        chunk_ids: list[str],  # one id per vector
         vectors: list,
         payloads: list[dict],
         batch_size: int = DEFAULT_BATCH_SIZE,
