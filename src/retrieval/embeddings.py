@@ -115,7 +115,7 @@ class SentenceTransformerEmbedder:
             model: Loaded sentence-transformers model.
         """
         if self._model is None:
-            logger.info("loading embedding model %s (device=%s)", self.config.model_name, self.config.device)
+            logger.info("loading embedding model %s onto device %s", self.config.model_name, self.config.device)
             self._model = SentenceTransformer(self.config.model_name, device=self.config.device)
         return self._model
 
