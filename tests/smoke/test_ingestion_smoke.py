@@ -399,3 +399,12 @@ def test_document_metadata_passthrough(whole_doc_chunker, fake_dense_index) -> N
     ]
     CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
     assert fake_dense_index.count() == 1
+
+
+def test_ingest_empty_title_document(whole_doc_chunker, fake_dense_index) -> None:
+    """Asserts a document with an empty title still ingests."""
+    embedder = MockEmbedder()
+    bm25 = BM25Index()
+    documents = [Document(doc_id="no-title", title="", text="clause 9.9 untitled text")]
+    CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
+    assert fake_dense_index.count() == 1
