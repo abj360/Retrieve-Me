@@ -5,6 +5,7 @@ test_ingestion_smoke.py --- smoke tests for the ingestion pipeline
 Contains:
     smoke_documents(): two small documents for smoke runs
     test_ingest_smoke_writes_chunks(): asserts the real indexed chunk count
+    (later tests): batch boundaries, unicode, dedupe, exact counts, jsonl
 """
 
 import pytest
