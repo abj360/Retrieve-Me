@@ -460,3 +460,10 @@ def test_count_reflects_upserts() -> None:
     index.upsert(["a", "b"], [[0.1] * 8] * 2, [{}] * 2)
     assert index.count() == 2
     assert index.is_empty() is False
+
+
+def test_upsert_returns_total_written() -> None:
+    """Asserts upsert reports the full number of points written."""
+    client = FakeQdrantClient()
+    ids = [f"c-{index}" for index in range(7)]
+    assert make_index(client).upsert(ids, [[0.1] * 8] * 7, [{}] * 7) == 7
