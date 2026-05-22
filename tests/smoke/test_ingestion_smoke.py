@@ -370,3 +370,21 @@ def test_load_corpus_sorts_by_filename(tmp_path) -> None:
         (tmp_path / f"{name}.txt").write_text(f"text {name}", encoding="utf-8")
     documents = load_corpus(tmp_path)
     assert [document.doc_id for document in documents] == ["a-doc", "b-doc", "c-doc"]
+
+
+def test_ingest_jsonl_corpus(tmp_path, whole_doc_chunker, fake_dense_index, real_embedder) -> None:
+    """Asserts a jsonl corpus file loads and ingests end to end."""
+    from src.ingest.loader import load_corpus
+
+    target = tmp_path / "corpus.jsonl"
+    target.write_text(
+        '{"doc_id": "j-1", "text": "Clause 9.1 jsonl document text."}\n'
+        '{"doc_id": "j-2", "text": "Section 9.2 second jsonl document."}\n',
+        encoding="utf-8",
+    )
+    documents = load_corpus(tmp_path)
+    bm25 = BM25Index()
+    ingestor = CorpusIngestor(whole_doc_chunker, real_embedder, fake_dense_index, bm25)
+    stats = ingestor.ingest(documents)
+    assert stats.documents == 2
+    assert fake_dense_index.count() == 2
