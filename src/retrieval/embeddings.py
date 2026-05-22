@@ -6,6 +6,7 @@ Contains:
     EmbeddingConfig: immutable settings for the embedding model
     batched(): splits a sequence into fixed-size batches
     SentenceTransformerEmbedder: lazily loads the model and encodes texts
+    SentenceTransformerEmbedder.warmup(): preloads the model so first query is not cold
     SentenceTransformerEmbedder.encode_query(): encodes one query into a vector
     SentenceTransformerEmbedder.encode_documents(): encodes documents into vectors
     DeterministicEmbedder: hashing-based embedder for offline dev and test suites
