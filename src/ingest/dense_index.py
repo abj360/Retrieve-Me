@@ -294,6 +294,7 @@ class DenseIndex:
         if not points:
             logger.debug("upsert skipped: no points to write")
             return 0
+        logger.info("upserting %d points in batches of %d", len(points), batch_size)
         with self.pool.acquire() as client:
             for start in range(0, len(points), batch_size):
                 batch = points[start : start + batch_size]
