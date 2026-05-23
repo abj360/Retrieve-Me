@@ -1,6 +1,7 @@
 # Retrieve-Me pipeline definition
 pipeline:
   name: hybrid-baseline
+  version: 1.1.0
 
 embedder:
   model_name: sentence-transformers/all-MiniLM-L6-v2
