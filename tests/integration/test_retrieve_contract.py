@@ -327,3 +327,10 @@ def test_root_returns_service_metadata() -> None:
     response = client().get("/")
     assert response.status_code == 200
     assert response.json()["service"] == "retrieval-core"
+
+
+def test_openapi_schema_reachable() -> None:
+    """Asserts the OpenAPI schema is served."""
+    response = client().get("/openapi.json")
+    assert response.status_code == 200
+    assert "/retrieve" in response.json()["paths"]
