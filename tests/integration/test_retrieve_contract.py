@@ -320,3 +320,10 @@ def test_provided_request_id_round_trips() -> None:
         "/retrieve", json={"query": "clause"}, headers={"X-Request-ID": "contract-rid"}
     )
     assert response.headers["X-Request-ID"] == "contract-rid"
+
+
+def test_root_returns_service_metadata() -> None:
+    """Asserts the root route returns service metadata."""
+    response = client().get("/")
+    assert response.status_code == 200
+    assert response.json()["service"] == "Retrieve-Me"
