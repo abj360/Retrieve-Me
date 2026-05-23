@@ -15,6 +15,9 @@ Contains:
     test_validation_error_body(): asserts 422 bodies carry a detail field
     test_get_on_retrieve_is_405(): asserts the endpoint is POST-only
     test_pipeline_failure_returns_502(): asserts backend failures surface as 502
+    test_request_id_header_present(): asserts X-Request-ID is set on responses
+    test_cache_header_miss_then_hit(): asserts X-Cache flips from MISS to HIT
+    test_response_is_json(): asserts the content type is JSON
 """
 
 from fastapi.testclient import TestClient
@@ -168,6 +171,26 @@ def test_pipeline_failure_returns_502() -> None:
     response = TestClient(app).post("/retrieve", json={"query": "clause"})
     assert response.status_code == 502
     assert response.json()["detail"] == "retrieval backend unavailable"
+
+
+def test_request_id_header_present() -> None:
+    """Asserts responses carry an X-Request-ID header."""
+    response = client().post("/retrieve", json={"query": "clause"})
+    assert "X-Request-ID" in response.headers
+
+
+def test_cache_header_miss_then_hit() -> None:
+    """Asserts X-Cache is MISS on first call and HIT on repeat."""
+    first = client().post("/retrieve", json={"query": "cache check"})
+    second = client().post("/retrieve", json={"query": "cache check"})
+    assert first.headers["X-Cache"] == "MISS"
+    assert second.headers["X-Cache"] == "HIT"
+
+
+def test_response_is_json() -> None:
+    """Asserts the response content type is application/json."""
+    response = client().post("/retrieve", json={"query": "clause"})
+    assert response.headers["content-type"].startswith("application/json")
 
 
 def test_retrieve_rejects_empty_query() -> None:
