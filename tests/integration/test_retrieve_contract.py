@@ -312,3 +312,11 @@ def test_cache_hit_returns_same_results() -> None:
     first = client().post("/retrieve", json={"query": "repeatable"})
     second = client().post("/retrieve", json={"query": "repeatable"})
     assert first.json()["results"] == second.json()["results"]
+
+
+def test_provided_request_id_round_trips() -> None:
+    """Asserts a caller-provided X-Request-ID comes back unchanged."""
+    response = client().post(
+        "/retrieve", json={"query": "clause"}, headers={"X-Request-ID": "contract-rid"}
+    )
+    assert response.headers["X-Request-ID"] == "contract-rid"
