@@ -6,7 +6,7 @@ Contains:
     FusionConfig: tunable weights and normalization for the RRF step
     RankedResult: one scored retrieval result
     normalize_min_max(): rescales one leg's scores into [0, 1] (single hit kept raw)
-    ResultFuser: merges ranked lists into one fused ranking
+    ResultFuser: merges ranked lists into one fused RRF ranking
     ResultFuser.fuse_many(): merges any number of weighted legs
 """
 
