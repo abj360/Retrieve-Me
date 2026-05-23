@@ -305,3 +305,10 @@ def test_healthz_includes_version() -> None:
     response = client().get("/healthz")
     assert response.status_code == 200
     assert "version" in response.json()
+
+
+def test_cache_hit_returns_same_results() -> None:
+    """Asserts a cache hit returns the same chunks as the miss."""
+    first = client().post("/retrieve", json={"query": "repeatable"})
+    second = client().post("/retrieve", json={"query": "repeatable"})
+    assert first.json()["results"] == second.json()["results"]
