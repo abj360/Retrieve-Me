@@ -15,7 +15,7 @@ Contains:
     GenerationSection: citation-grounded generation settings
     EvalSection: evaluation harness settings
     PipelineConfig: typed view over the YAML pipeline definition
-    load_pipeline_config(): loads and validates a pipeline YAML file
+    load_pipeline_config(): loads, validates, and types a pipeline YAML file
 """
 
 import logging
