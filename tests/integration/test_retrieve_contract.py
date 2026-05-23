@@ -334,3 +334,12 @@ def test_openapi_schema_reachable() -> None:
     response = client().get("/openapi.json")
     assert response.status_code == 200
     assert "/retrieve" in response.json()["paths"]
+
+
+def test_readyz_503_detail_lists_failed_deps() -> None:
+    """Asserts a failed readiness check names the failed dependencies."""
+    response = client().get("/readyz")
+    if response.status_code == 503:
+        assert response.json()["detail"]["failed"]
+    else:
+        assert response.json()["status"] == "ready"
