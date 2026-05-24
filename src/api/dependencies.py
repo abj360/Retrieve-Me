@@ -8,7 +8,7 @@ Contains:
     get_redis(): builds a Redis connection from settings
     get_query_cache(): builds the shared query-response cache
     get_qdrant_pool(): builds the shared Qdrant client pool
-    build_pipeline(): assembles the hybrid retrieval pipeline
+    build_pipeline(): assembles the hybrid pipeline from pipeline.yaml
     get_pipeline(): returns the shared hybrid retrieval pipeline
 """
 
