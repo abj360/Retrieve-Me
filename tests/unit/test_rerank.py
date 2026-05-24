@@ -288,3 +288,9 @@ def test_report_empty_grid_renders() -> None:
 
     table = RerankerTuner(make_reranker()).render_report(TuningReport(rows=[], best_top_k=0))
     assert "top_k" in table
+
+
+def test_top_k_larger_than_candidates() -> None:
+    """Asserts top_k above the candidate count returns all candidates."""
+    candidates = [make_candidate("only", "one candidate")]
+    assert len(make_reranker(top_k=20).rerank("query", candidates)) == 1
