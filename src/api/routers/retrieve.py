@@ -118,7 +118,7 @@ def paginate(
     return matches[start:end]
 
 
-@router.post("/retrieve", response_model=RetrieveResponse, summary="Hybrid retrieval search", response_description="One page of scored chunks")
+@router.post("/retrieve", response_model=RetrieveResponse, summary="Hybrid retrieval search", response_description="One page of scored, fused chunks")
 def retrieve(
     payload: RetrieveRequest,
     response: Response,
