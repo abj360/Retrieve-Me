@@ -4,7 +4,7 @@ rerank.py --- cross-encoder reranker for fused candidates
 
 Contains:
     RerankerConfig: tunable settings for the cross-encoder
-    CrossEncoderReranker: re-scores fused candidates with a cross-encoder
+    CrossEncoderReranker: re-scores fused candidates with a cross-encoder (lazy load)
     CrossEncoderReranker.warmup(): preloads the model so first query is not cold
 """
 
