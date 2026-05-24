@@ -204,3 +204,10 @@ def test_hit_after_set_returns_same_payload() -> None:
     payload = '{"results": [1, 2, 3]}'
     cache.set("key-1", payload)
     assert cache.get("key-1") == payload
+
+
+def test_in_memory_cache_ignores_ttl() -> None:
+    """Asserts the in-memory cache keeps entries regardless of TTL."""
+    cache = InMemoryQueryCache()
+    cache.set("key-1", "payload-1")
+    assert cache.get("key-1") == "payload-1"
