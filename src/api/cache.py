@@ -3,7 +3,7 @@
 cache.py --- Redis-backed cache for repeated retrieval queries
 
 Contains:
-    QueryCache: interface for query-response caches
+    QueryCache: interface for query-response caches (get/set by canonical key)
     RedisQueryCache: stores serialized responses in Redis with a TTL
     RedisQueryCache.clear(): deletes every entry under the key prefix
     InMemoryQueryCache: dict-backed cache for tests and local dev
