@@ -109,7 +109,7 @@ class CitationGenerator:
         seen: set[int] = set()
         for match in CITATION_PATTERN.finditer(answer):
             index = int(match.group(1)) - 1
-            if index >= len(results) or index in seen:
+            if index < 0 or index >= len(results) or index in seen:
                 continue
             seen.add(index)
             result = results[index]
