@@ -20,7 +20,8 @@ from src.retrieval.fusion import RankedResult
 
 logger = logging.getLogger(__name__)
 
-CITATION_PATTERN = re.compile  # matches [n] markers the prompt asks for(r"\[(\d+)\]")
+# matches the [n] markers the citation prompt asks the model to emit
+CITATION_PATTERN = re.compile(r"\[(\d+)\]")
 
 
 @dataclass(frozen=True)
