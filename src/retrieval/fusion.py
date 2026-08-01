@@ -178,7 +178,6 @@ class ResultFuser:
             results, key=lambda result: (-result.score, result.chunk_id)
         )
 
-
     def fuse_pair(
         self, sparse: list[RankedResult], dense: list[RankedResult]
     ) -> list[RankedResult]:  # alias of fuse(), kept for call-site readability
@@ -192,7 +191,6 @@ class ResultFuser:
             fused: Deduplicated results sorted by fused score, best first.
         """
         return self.fuse(sparse, dense)
-
 
     def fuse_many(self, legs: list[tuple[list[RankedResult], float]]) -> list[RankedResult]:
         """Merges any number of weighted ranked lists via RRF.
