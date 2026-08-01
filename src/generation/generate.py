@@ -118,7 +118,6 @@ class CitationGenerator:
             )
         return citations
 
-
     def _call_llm(self, prompt: str) -> str:
         """Calls the LLM client with one retry on transient failure.
 
@@ -133,7 +132,6 @@ class CitationGenerator:
         except Exception as exc:
             logger.warning("generation call failed, one retry: %s", exc)
             return self.llm_client(prompt, max_tokens=self.max_tokens)
-
 
     def faithfulness(self, answer: GeneratedAnswer, results: list[RankedResult]) -> float:
         """Scores how grounded an answer's citations are.

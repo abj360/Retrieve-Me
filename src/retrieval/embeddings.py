@@ -94,9 +94,8 @@ class SentenceTransformerEmbedder:
         if not texts:
             return np.empty((0, self.dimension), dtype=np.float32)
         model = self._load_model()
-        logger.debug("encoding %d texts (batch_size=%d)", len(texts), self.config.batch_size)
-        vectors = []
         logger.debug("encoding %d texts in batches of %d", len(texts), self.config.batch_size)
+        vectors = []
         for batch in batched(texts, self.config.batch_size):
             vectors.append(
                 model.encode(
@@ -119,6 +118,14 @@ class SentenceTransformerEmbedder:
             self._model = SentenceTransformer(self.config.model_name, device=self.config.device)
         return self._model
 
+    def warmup(self) -> None:  # call at startup, not on the query path
+        """Loads the model up front so the first query is not cold.
+
+        Loads the model and encodes a probe text, so later encode calls
+        skip model-load latency entirely.
+        """
+        self._load_model()
+        self.encode(["warmup probe"])
 
     def encode_query(self, query: str) -> np.ndarray:
         """Encodes one query text into a single vector.
@@ -210,13 +217,3 @@ class DeterministicEmbedder:
             vectors: One deterministic vector per document.
         """
         return self.encode(documents)
-
-
-    def warmup(self) -> None:  # call at startup, not on the query path
-        """Loads the model up front so the first query is not cold.
-
-        Loads the model and encodes a probe text, so later encode calls
-        skip model-load latency entirely.
-        """
-        self._load_model()
-        self.encode(["warmup probe"])

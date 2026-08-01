@@ -181,7 +181,6 @@ class HybridRetriever:
         with self.tracer.span("rerank"):
             return self.reranker.rerank(query, fused)[:top_k]
 
-
     def retrieve_with_candidate_k(
         self,
         query: str,
