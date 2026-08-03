@@ -13,6 +13,8 @@ Contains:
 
 import math
 
+MEAN_PRECISION = 10  # binary float error, not real metric precision
+
 
 def ndcg_at_k(ranked_ids: list[str], relevant_ids: set[str], k: int = 10) -> float:
     """Computes normalized discounted cumulative gain at rank k.
@@ -111,4 +113,6 @@ def mean(values: list[float]) -> float:
     Returns:
         mean: Arithmetic mean; 0.0 for an empty list.
     """
-    return sum(values) / len(values) if values else 0.0
+    if not values:
+        return 0.0
+    return round(sum(values) / len(values), MEAN_PRECISION)
