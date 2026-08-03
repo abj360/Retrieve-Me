@@ -6,6 +6,7 @@ Contains:
     FusionConfig: tunable weights and normalization for the RRF step
     RankedResult: one scored retrieval result
     normalize_min_max(): rescales one leg's scores into [0, 1] (single hit kept raw)
+    rank_leg(): orders one leg deterministically before RRF assigns ranks
     ResultFuser: merges ranked lists into one fused RRF ranking
     ResultFuser.fuse_many(): merges any number of weighted legs
 """
@@ -110,6 +111,21 @@ def normalize_min_max(results: list[RankedResult]) -> list[RankedResult]:
     ]
 
 
+def rank_leg(results: list[RankedResult]) -> list[RankedResult]:
+    """Orders one leg deterministically before ranks are assigned.
+
+    RRF scores a result by its rank within a leg, so two results tied on score
+    must not take their rank from whatever order the leg happened to return.
+
+    Args:
+        results: Ranked results from one retrieval leg.
+
+    Returns:
+        ordered: Results sorted by score descending, ties broken by chunk_id.
+    """
+    return sorted(results, key=lambda result: (-result.score, result.chunk_id))
+
+
 class ResultFuser:
     """Combines ranked result lists into a single fused ranking.
 
@@ -143,7 +159,7 @@ class ResultFuser:
         scores: dict[str, float] = {}
         by_id: dict[str, RankedResult] = {}
         for leg, weight in ((sparse, self.config.sparse_weight), (dense, self.config.dense_weight)):
-            for rank, result in enumerate(leg, start=1):
+            for rank, result in enumerate(rank_leg(leg), start=1):
                 scores[result.chunk_id] = scores.get(result.chunk_id, 0.0) + weight / (
                     self.config.rrf_k + rank
                 )  # accumulate per-chunk RRF score
@@ -206,7 +222,7 @@ class ResultFuser:
         for leg, weight in legs:
             if self.config.normalize_scores:
                 leg = normalize_min_max(leg)
-            for rank, result in enumerate(leg, start=1):
+            for rank, result in enumerate(rank_leg(leg), start=1):
                 scores[result.chunk_id] = scores.get(result.chunk_id, 0.0) + weight / (
                     self.config.rrf_k + rank
                 )
