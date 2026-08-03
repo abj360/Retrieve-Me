@@ -16,6 +16,7 @@ import re
 from dataclasses import dataclass
 from pathlib import Path
 
+from src.eval.metrics import mean
 from src.generation.generate import GeneratedAnswer
 from src.retrieval.fusion import RankedResult
 
@@ -238,12 +239,9 @@ def summarize(verdicts: list[JudgeVerdict]) -> dict[str, float]:
     if not verdicts:
         return {"relevance": 0.0, "faithfulness": 0.0}
     return {
-        "relevance": sum(verdict.relevance for verdict in verdicts) / len(verdicts),
-        "faithfulness": sum(verdict.faithfulness for verdict in verdicts) / len(verdicts),
-        "grounded_share": sum(
-            1.0 for verdict in verdicts if verdict.faithfulness >= FAITHFULNESS_THRESHOLD
-        )
-        / len(verdicts),
+        "relevance": mean([verdict.relevance for verdict in verdicts]),
+        "faithfulness": mean([verdict.faithfulness for verdict in verdicts]),
+        "grounded_share": mean([float(verdict.is_faithful) for verdict in verdicts]),
     }
 
 
