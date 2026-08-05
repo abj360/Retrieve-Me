@@ -9,16 +9,19 @@ Contains:
     readyz(): reports whether backing services are reachable
 """
 
+import logging
 import os
 
 import redis
 from fastapi import APIRouter, HTTPException
 from qdrant_client import QdrantClient
+from qdrant_client.http.exceptions import UnexpectedResponse
 
 from src.api.dependencies import Settings, get_settings
 
 # readiness probes stay cheap: no index loads, no model calls
 
+logger = logging.getLogger("retrieval.health")
 router = APIRouter()
 
 PING_TIMEOUT_SECONDS = 1.5
@@ -35,7 +38,7 @@ def healthz() -> dict[str, str]:
     return {
         "status": "ok",
         "service": settings.app_title,
-        "pid": os.getpid(),
+        "pid": str(os.getpid()),
         "version": settings.app_version,
     }
 
@@ -51,8 +54,9 @@ def check_qdrant(settings: Settings) -> str:
     """
     try:
         QdrantClient(url=settings.qdrant_url, timeout=PING_TIMEOUT_SECONDS).get_collections()
-    except Exception:
-        return "down"
+    except (OSError, UnexpectedResponse, ValueError) as exc:
+        logger.warning("qdrant readiness probe failed: %s", exc)
+        return "unreachable"
     return "ok"
 
 
@@ -67,7 +71,8 @@ def check_redis(settings: Settings) -> str:
     """
     try:
         redis.from_url(settings.redis_url, socket_timeout=PING_TIMEOUT_SECONDS).ping()
-    except Exception:
+    except (redis.RedisError, OSError) as exc:
+        logger.warning("redis readiness probe failed: %s", exc)
         return "unreachable"
     return "ok"
 
