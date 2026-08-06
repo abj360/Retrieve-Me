@@ -38,8 +38,6 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             response: Response produced by the downstream handler.
         """
         started_at = time.perf_counter()
-        if request.url.path in QUIET_PATHS:
-            return await call_next(request)
         request_id = request.headers.get(REQUEST_ID_HEADER) or uuid.uuid4().hex[:12]
         response = await call_next(request)
         duration_ms = (time.perf_counter() - started_at) * 1000
@@ -49,6 +47,8 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
             if response.status_code >= 500
             else logger.warning
             if response.status_code >= 400
+            else logger.debug
+            if request.url.path in QUIET_PATHS
             else logger.info
         )
         client_host = request.client.host if request.client else "-"
