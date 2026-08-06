@@ -72,7 +72,7 @@ class Settings(BaseSettings):
     fusion_rrf_k: int = 60
     pipeline_config_path: str = "src/config/pipeline.yaml"
     app_title: str = "retrieval-core"
-    app_version: str = "1.0.0"
+    app_version: str = "1.1.0"
 
 
 @lru_cache(maxsize=1)
