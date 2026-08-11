@@ -151,7 +151,12 @@ def build_pipeline(settings: Settings) -> HybridRetriever:
         )
     )
     reranker = CrossEncoderReranker(
-        RerankerConfig(model_name=config.reranker.model_name, top_k=config.reranker.top_k)
+        RerankerConfig(
+            model_name=config.reranker.model_name,
+            top_k=config.reranker.top_k,
+            batch_size=config.reranker.batch_size,
+            min_score=config.reranker.min_score,
+        )
     )
     return HybridRetriever(sparse, dense, fuser, reranker, candidate_k=config.strategy.candidate_k)
 
