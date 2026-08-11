@@ -17,7 +17,7 @@ dense:
   collection: chunks
 
 fusion:
-  rrf_k: 58
+  rrf_k: 60
   sparse_weight: 1.2
   dense_weight: 1.0
   normalize_scores: true
@@ -41,7 +41,7 @@ logging:
 
 strategy:
   type: hybrid
-  candidate_k: 60
+  candidate_k: 50
 
 generation:
   model_name: gpt-4o-mini
@@ -51,4 +51,4 @@ generation:
 eval:
   judge_model: gpt-4o-mini
   ndcg_k: 10
-  recall_k: 75
+  recall_k: 50
