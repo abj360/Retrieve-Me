@@ -3,46 +3,13 @@
 test_pipeline_integration.py --- integration tests for the retrieval pipeline
 
 Contains:
-    indexed_stores(): ingests the sample corpus into fake stores
     test_exact_clause_doc_wins_fused_ranking(): asserts hybrid beats dense-only
     test_sparse_leg_finds_exact_terms(): asserts bm25 hits exact clause text
     test_dense_leg_returns_scored_hits(): asserts dense search returns scores
 """
 
-import pytest
-
-from src.ingest.bm25_index import BM25Index
 from src.retrieval.fusion import FusionConfig, ResultFuser
 
-
-@pytest.fixture
-def indexed_stores(sample_documents, whole_doc_chunker, stub_embedder, fake_dense_index):
-    """Ingests the sample documents into the fake dense index and a real bm25.
-
-    Args:
-        sample_documents: Small legal/tech corpus fixture.
-        whole_doc_chunker: Test chunker keeping documents whole.
-        stub_embedder: Deterministic hashing embedder fixture.
-        fake_dense_index: In-memory dense index double.
-
-    Returns:
-        stores: (bm25_index, dense_index) with the corpus indexed.
-    """
-    chunks = [
-        chunk
-        for doc_id, text in sample_documents
-        for chunk in whole_doc_chunker.split(text, doc_id)
-    ]
-    vectors = stub_embedder.encode([chunk.text for chunk in chunks])
-    fake_dense_index.ensure_collection(recreate=True)
-    fake_dense_index.upsert(
-        [chunk.chunk_id for chunk in chunks],
-        vectors,
-        [{"doc_id": chunk.doc_id, "text": chunk.text} for chunk in chunks],
-    )
-    bm25 = BM25Index()
-    bm25.build(chunks)
-    return bm25, fake_dense_index
 
 
 def test_exact_clause_doc_wins_fused_ranking(indexed_stores, stub_embedder) -> None:

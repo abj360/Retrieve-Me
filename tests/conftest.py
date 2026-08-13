@@ -7,11 +7,15 @@ Contains:
     sample_documents(): small legal/tech corpus used across suites
     sample_chunks(): chunks built from the sample documents
     whole_doc_chunker(): test chunker that keeps each document whole
+    StubEmbedder: deterministic hashing embedder matching the embedder interface
     stub_embedder(): deterministic hashing embedder for offline tests
     fake_dense_index(): in-memory dense index double
     bm25_index(): sparse index built over the sample chunks
+    indexed_stores(): sample corpus ingested into both a bm25 and a dense double
     token_chunker(): real token-aware chunker with a small test budget
     stub_reranker(): deterministic reranker double scoring by text overlap
+    CountingEmbedder: deterministic embedder that records its encode calls
+    counting_embedder(): deterministic embedder recording encode-call counts
     real_embedder(): the shared DeterministicEmbedder used by smoke tests
     mini_corpus(): thirty-document corpus sized to cross batch boundaries
 """
@@ -102,6 +106,28 @@ class StubEmbedder:
             vectors[row] = np.frombuffer(digest, dtype=np.uint8)[: self.dimension] / 255.0
         norms = np.linalg.norm(vectors, axis=1, keepdims=True)
         return vectors / np.where(norms == 0, 1.0, norms)
+
+    def encode_query(self, query: str) -> np.ndarray:
+        """Encodes one query into a deterministic vector.
+
+        Args:
+            query: Raw query text.
+
+        Returns:
+            vector: Deterministic vector for the query.
+        """
+        return self.encode([query])[0]
+
+    def encode_documents(self, documents: list[str]) -> np.ndarray:
+        """Encodes documents into deterministic vectors.
+
+        Args:
+            documents: Raw document texts.
+
+        Returns:
+            vectors: One vector per document.
+        """
+        return self.encode(documents)
 
 
 class FakeDenseIndex:
@@ -280,6 +306,68 @@ def stub_reranker() -> StubReranker:
     return StubReranker()
 
 
+class CountingEmbedder:
+    """Counts encode calls while still producing real deterministic vectors.
+
+    Attributes:
+        calls: Number of encode calls made since construction.
+    """
+
+    def __init__(self, dimension: int = 16) -> None:
+        """Wraps a deterministic embedder and zeroes the call counter.
+
+        Args:
+            dimension: Dimensionality of the produced vectors.
+        """
+        self._embedder = DeterministicEmbedder(dimension=dimension)
+        self.calls = 0
+
+    @property
+    def dimension(self) -> int:
+        """Returns the wrapped embedder's vector dimensionality."""
+        return self._embedder.dimension
+
+    def encode(self, texts: list[str]) -> np.ndarray:
+        """Records the call and delegates to the deterministic embedder.
+
+        Args:
+            texts: Raw texts to encode.
+
+        Returns:
+            vectors: One deterministic vector per input text.
+        """
+        self.calls += 1
+        return self._embedder.encode(texts)
+
+    def encode_query(self, query: str) -> np.ndarray:
+        """Encodes one query into a deterministic vector.
+
+        Args:
+            query: Raw query text.
+
+        Returns:
+            vector: Deterministic vector for the query.
+        """
+        return self.encode([query])[0]
+
+    def encode_documents(self, documents: list[str]) -> np.ndarray:
+        """Encodes documents into deterministic vectors.
+
+        Args:
+            documents: Raw document texts.
+
+        Returns:
+            vectors: One deterministic vector per document.
+        """
+        return self.encode(documents)
+
+
+@pytest.fixture
+def counting_embedder() -> CountingEmbedder:
+    """Returns a deterministic embedder that records how often it was called."""
+    return CountingEmbedder()
+
+
 @pytest.fixture
 def real_embedder() -> DeterministicEmbedder:
     """Returns the shared deterministic embedder for smoke tests."""
@@ -305,3 +393,32 @@ def bm25_index(sample_chunks) -> BM25Index:
     index = BM25Index()
     index.build(sample_chunks)
     return index
+
+@pytest.fixture
+def indexed_stores(sample_documents, whole_doc_chunker, stub_embedder, fake_dense_index):
+    """Ingests the sample documents into the fake dense index and a real bm25.
+
+    Args:
+        sample_documents: Small legal/tech corpus fixture.
+        whole_doc_chunker: Test chunker keeping documents whole.
+        stub_embedder: Deterministic hashing embedder fixture.
+        fake_dense_index: In-memory dense index double.
+
+    Returns:
+        stores: (bm25_index, dense_index) with the corpus indexed.
+    """
+    chunks = [
+        chunk
+        for doc_id, text in sample_documents
+        for chunk in whole_doc_chunker.split(text, doc_id)
+    ]
+    vectors = stub_embedder.encode([chunk.text for chunk in chunks])
+    fake_dense_index.ensure_collection(recreate=True)
+    fake_dense_index.upsert(
+        [chunk.chunk_id for chunk in chunks],
+        vectors,
+        [{"doc_id": chunk.doc_id, "text": chunk.text} for chunk in chunks],
+    )
+    bm25 = BM25Index()
+    bm25.build(chunks)
+    return bm25, fake_dense_index
