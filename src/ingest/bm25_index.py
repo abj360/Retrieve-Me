@@ -100,13 +100,13 @@ class BM25Index:
         self._chunks = list(chunks)
         self.chunk_ids = [chunk.chunk_id for chunk in chunks]
         self._is_built = True
-        if not self._chunks:
-            # BM25Okapi divides by the corpus size while computing avgdl
+        corpus = [tokenize(chunk.text) for chunk in self._chunks]
+        if not any(corpus):
+            # BM25Okapi divides by the corpus size for avgdl and by the term
+            # count for average_idf, so a corpus with no terms has neither
             self._index = None
-            return 0
-        self._index = BM25Okapi(
-            [tokenize(chunk.text) for chunk in chunks], k1=self._k1, b=self._b
-        )
+            return len(self.chunk_ids)
+        self._index = BM25Okapi(corpus, k1=self._k1, b=self._b)
         return len(self.chunk_ids)
 
     def search(self, query: str, top_k: int) -> list[BM25Hit]:
