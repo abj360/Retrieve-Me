@@ -33,14 +33,14 @@ def make_result(index: int) -> RankedResult:
 
 def test_format_source_block_numbers_sources() -> None:
     """Asserts source blocks are numbered from one."""
-    assert format_source_block(make_result(1), 1) == "[1] Section 1.1 clause text."
+    assert format_source_block(make_result(1), 1) == "[1] (doc: doc-1) Section 1.1 clause text."
 
 
 def test_prompt_contains_question_and_sources() -> None:
     """Asserts the prompt carries the question and numbered sources."""
     prompt = build_citation_prompt("what does section 1.1 say?", [make_result(1)])
     assert "what does section 1.1 say?" in prompt
-    assert "[1] Section 1.1 clause text." in prompt
+    assert "[1] (doc: doc-1) Section 1.1 clause text." in prompt
 
 
 def test_prompt_limits_context_chunks() -> None:

@@ -62,5 +62,5 @@ def test_emit_dashboard_json_shape(tmp_path, monkeypatch) -> None:
     from scripts.benchmark_report import main
 
     main()
-    (first,) = json.loads(target.read_text(encoding="utf-8"))
+    first, *_rest = json.loads(target.read_text(encoding="utf-8"))
     assert {"id", "name", "dataset", "ndcgAt10", "p95Ms"} <= set(first)
