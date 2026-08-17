@@ -141,8 +141,9 @@ def test_reranker_reorders_by_overlap(indexed_stores, stub_reranker) -> None:
 
 
 def test_token_chunker_respects_small_budget(sample_documents, token_chunker) -> None:
-    """Asserts the small test budget yields multiple chunks per document."""
-    chunks = token_chunker.split(sample_documents[0][1], "license-agreement")
+    """Asserts a document past the budget is split into several chunks."""
+    long_text = " ".join(text for _doc_id, text in sample_documents)
+    chunks = token_chunker.split(long_text, "license-agreement")
     assert len(chunks) >= 2
     assert all(chunk.token_count <= 48 for chunk in chunks)
 
