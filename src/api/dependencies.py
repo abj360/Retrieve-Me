@@ -6,7 +6,8 @@ Contains:
     Settings: environment-driven service configuration
     get_settings(): returns the shared Settings instance
     get_redis(): builds a Redis connection from settings
-    get_query_cache(): builds the shared query-response cache
+    build_query_cache(): builds a query-response cache from explicit settings
+    get_query_cache(): returns the shared query-response cache
     get_qdrant_pool(): builds the shared Qdrant client pool
     build_pipeline(): assembles the hybrid pipeline from pipeline.yaml
     get_pipeline(): returns the shared hybrid retrieval pipeline
@@ -97,17 +98,28 @@ def get_redis(settings: Settings) -> redis.Redis:
     return redis.from_url(settings.redis_url, decode_responses=True)
 
 
-def get_query_cache(settings: Settings | None = None) -> QueryCache:
-    """Builds the query-response cache used by the retrieval endpoint.
+def build_query_cache(settings: Settings) -> QueryCache:
+    """Builds the query-response cache from explicit settings.
 
     Args:
-        settings: Service settings; loaded from the environment when omitted.
+        settings: Service settings carrying the Redis URL and cache TTL.
 
     Returns:
         cache: Redis-backed query cache with the configured TTL.
     """
-    resolved = settings or get_settings()
-    return RedisQueryCache(get_redis(resolved), ttl_seconds=resolved.cache_ttl_seconds)
+    return RedisQueryCache(get_redis(settings), ttl_seconds=settings.cache_ttl_seconds)
+
+
+def get_query_cache() -> QueryCache:
+    """Returns the query-response cache injected into the retrieval endpoint.
+
+    Takes no arguments: FastAPI reads a provider's signature to build the
+    request contract, so a settings parameter here becomes a request body field.
+
+    Returns:
+        cache: Cache built from the shared settings.
+    """
+    return build_query_cache(get_settings())
 
 
 def get_qdrant_pool(settings: Settings) -> QdrantClientPool:
