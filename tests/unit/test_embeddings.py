@@ -10,10 +10,17 @@ Contains:
     test_config_defaults(): asserts EmbeddingConfig defaults
 """
 
+from dataclasses import FrozenInstanceError
+
 import numpy as np
 import pytest
 
-from src.retrieval.embeddings import EmbeddingConfig, SentenceTransformerEmbedder, batched
+from src.retrieval.embeddings import (
+    DeterministicEmbedder,
+    EmbeddingConfig,
+    SentenceTransformerEmbedder,
+    batched,
+)
 
 
 class FakeModel:
@@ -88,8 +95,8 @@ def test_config_defaults() -> None:
 def test_config_is_immutable() -> None:
     """Asserts EmbeddingConfig is frozen."""
     config = EmbeddingConfig()
-    with pytest.raises(Exception):
-        config.batch_size = 8  # noqa: frozen dataclass guard
+    with pytest.raises(FrozenInstanceError):
+        config.batch_size = 8
 
 
 def test_encode_returns_expected_shape() -> None:
@@ -135,8 +142,6 @@ def test_encode_documents_matches_encode() -> None:
 
 def test_deterministic_embedder_same_text_same_vector() -> None:
     """Asserts the deterministic embedder is stable per text."""
-    from src.retrieval.embeddings import DeterministicEmbedder
-
     embedder = DeterministicEmbedder(dimension=16)
     first = embedder.encode(["stable text"])[0]
     second = embedder.encode(["stable text"])[0]
@@ -145,8 +150,6 @@ def test_deterministic_embedder_same_text_same_vector() -> None:
 
 def test_deterministic_embedder_different_texts_differ() -> None:
     """Asserts different texts get different deterministic vectors."""
-    from src.retrieval.embeddings import DeterministicEmbedder
-
     embedder = DeterministicEmbedder(dimension=16)
     first, second = embedder.encode(["alpha", "beta"])
     assert list(first) != list(second)
@@ -154,18 +157,12 @@ def test_deterministic_embedder_different_texts_differ() -> None:
 
 def test_deterministic_embedder_unit_norm() -> None:
     """Asserts deterministic vectors are L2-normalized by default."""
-    import numpy as np
-
-    from src.retrieval.embeddings import DeterministicEmbedder
-
     vector = DeterministicEmbedder(dimension=16).encode(["norm check"])[0]
     assert np.linalg.norm(vector) == pytest.approx(1.0)
 
 
 def test_deterministic_embedder_query_matches_encode() -> None:
     """Asserts encode_query equals encode of the singleton list."""
-    from src.retrieval.embeddings import DeterministicEmbedder
-
     embedder = DeterministicEmbedder(dimension=16)
     assert list(embedder.encode_query("q")) == list(embedder.encode(["q"])[0])
 
@@ -186,8 +183,6 @@ def test_encode_concatenates_batch_results() -> None:
 
 def test_warmup_loads_model_once() -> None:
     """Asserts warmup is idempotent."""
-    from src.retrieval.embeddings import DeterministicEmbedder
-
     embedder = DeterministicEmbedder()
     embedder.encode(["warm"])
     embedder.encode(["warm"])
@@ -198,18 +193,12 @@ def test_warmup_loads_model_once() -> None:
 
 def test_unnormalized_option() -> None:
     """Asserts normalization can be disabled."""
-    import numpy as np
-
-    from src.retrieval.embeddings import DeterministicEmbedder
-
     vector = DeterministicEmbedder(dimension=16, normalize=False).encode(["raw"])[0]
     assert np.linalg.norm(vector) != pytest.approx(1.0)
 
 
 def test_deterministic_dimension_property() -> None:
     """Asserts the deterministic embedder reports its dimension."""
-    from src.retrieval.embeddings import DeterministicEmbedder
-
     assert DeterministicEmbedder(dimension=32).dimension == 32
 
 
@@ -227,8 +216,6 @@ def test_config_custom_values() -> None:
 
 def test_deterministic_embedder_documents_entrypoint() -> None:
     """Asserts encode_documents works on the deterministic embedder."""
-    from src.retrieval.embeddings import DeterministicEmbedder
-
     vectors = DeterministicEmbedder(dimension=8).encode_documents(["a", "b"])
     assert vectors.shape == (2, 8)
 

@@ -9,7 +9,13 @@ Contains:
 """
 
 from src.ingest.bm25_index import BM25Index
-from src.retrieval.strategies import DenseRetrievalStrategy, SparseRetrievalStrategy
+from src.retrieval.fusion import FusionConfig, ResultFuser
+from src.retrieval.strategies import (
+    STRATEGY_REGISTRY,
+    DenseRetrievalStrategy,
+    HybridRetriever,
+    SparseRetrievalStrategy,
+)
 
 
 def test_sparse_leg_maps_hits_to_results(sample_chunks) -> None:
@@ -63,7 +69,7 @@ def test_strategy_protocol_satisfied(sample_chunks) -> None:
     index = BM25Index()
     index.build(sample_chunks)
     for strategy in (SparseRetrievalStrategy(index),):
-        assert callable(getattr(strategy, "retrieve"))
+        assert callable(strategy.retrieve)
 
 
 def test_sparse_leg_respects_top_k(sample_chunks) -> None:
@@ -76,13 +82,6 @@ def test_sparse_leg_respects_top_k(sample_chunks) -> None:
 
 def test_hybrid_uses_candidate_k(indexed_stores, stub_embedder, stub_reranker) -> None:
     """Asserts the hybrid pipeline asks each leg for candidate_k hits."""
-    from src.retrieval.fusion import FusionConfig, ResultFuser
-    from src.retrieval.strategies import (
-        DenseRetrievalStrategy,
-        HybridRetriever,
-        SparseRetrievalStrategy,
-    )
-
     bm25, dense = indexed_stores
     pipeline = HybridRetriever(
         SparseRetrievalStrategy(bm25),
@@ -96,13 +95,6 @@ def test_hybrid_uses_candidate_k(indexed_stores, stub_embedder, stub_reranker) -
 
 def test_hybrid_returns_reranked_list(indexed_stores, stub_embedder, stub_reranker) -> None:
     """Asserts the hybrid pipeline returns the reranker output truncated to top_k."""
-    from src.retrieval.fusion import FusionConfig, ResultFuser
-    from src.retrieval.strategies import (
-        DenseRetrievalStrategy,
-        HybridRetriever,
-        SparseRetrievalStrategy,
-    )
-
     bm25, dense = indexed_stores
     pipeline = HybridRetriever(
         SparseRetrievalStrategy(bm25),
@@ -116,28 +108,17 @@ def test_hybrid_returns_reranked_list(indexed_stores, stub_embedder, stub_rerank
 
 def test_registry_has_expected_strategies() -> None:
     """Asserts the registry exposes sparse, dense, and hybrid."""
-    from src.retrieval.strategies import STRATEGY_REGISTRY
-
     assert set(STRATEGY_REGISTRY) == {"sparse", "dense", "hybrid"}
 
 
 def test_registry_values_are_classes() -> None:
     """Asserts registry entries are instantiable classes."""
-    from src.retrieval.strategies import STRATEGY_REGISTRY
-
     for name, klass in STRATEGY_REGISTRY.items():
         assert isinstance(klass, type), name
 
 
 def test_candidate_k_override_scoped(indexed_stores, stub_embedder, stub_reranker) -> None:
     """Asserts the candidate_k override restores the default afterwards."""
-    from src.retrieval.fusion import FusionConfig, ResultFuser
-    from src.retrieval.strategies import (
-        DenseRetrievalStrategy,
-        HybridRetriever,
-        SparseRetrievalStrategy,
-    )
-
     bm25, dense = indexed_stores
     pipeline = HybridRetriever(
         SparseRetrievalStrategy(bm25),
@@ -150,15 +131,10 @@ def test_candidate_k_override_scoped(indexed_stores, stub_embedder, stub_reranke
     assert pipeline.candidate_k == 50
 
 
-def test_candidate_k_override_none_uses_default(indexed_stores, stub_embedder, stub_reranker) -> None:
+def test_candidate_k_override_none_uses_default(
+    indexed_stores, stub_embedder, stub_reranker
+) -> None:
     """Asserts a None override leaves candidate_k untouched."""
-    from src.retrieval.fusion import FusionConfig, ResultFuser
-    from src.retrieval.strategies import (
-        DenseRetrievalStrategy,
-        HybridRetriever,
-        SparseRetrievalStrategy,
-    )
-
     bm25, dense = indexed_stores
     pipeline = HybridRetriever(
         SparseRetrievalStrategy(bm25),
@@ -172,13 +148,6 @@ def test_candidate_k_override_none_uses_default(indexed_stores, stub_embedder, s
 
 def test_hybrid_normalized_legs_share_scale(indexed_stores, stub_embedder, stub_reranker) -> None:
     """Asserts fused scores stay in [0, 1] when normalization is on."""
-    from src.retrieval.fusion import FusionConfig, ResultFuser
-    from src.retrieval.strategies import (
-        DenseRetrievalStrategy,
-        HybridRetriever,
-        SparseRetrievalStrategy,
-    )
-
     bm25, dense = indexed_stores
     pipeline = HybridRetriever(
         SparseRetrievalStrategy(bm25),

@@ -11,8 +11,16 @@ Contains:
     test_rerank_truncates_to_top_k(): asserts top_k truncation
 """
 
+from src.eval.judge import EvalQuery
+from src.eval.metrics import ndcg_at_k
 from src.retrieval.fusion import RankedResult
-from src.retrieval.rerank import CrossEncoderReranker, RerankerConfig
+from src.retrieval.rerank import (
+    CrossEncoderReranker,
+    RerankerConfig,
+    RerankerTuner,
+    TuningReport,
+    TuningRow,
+)
 
 
 class FakeCrossEncoder:
@@ -91,16 +99,12 @@ def test_rerank_scores_are_floats() -> None:
 
 def test_tuning_row_fields() -> None:
     """Asserts tuning rows carry top_k and score."""
-    from src.retrieval.rerank import TuningRow
-
     row = TuningRow(top_k=12, ndcg_at_10=0.68)
     assert row.top_k == 12
 
 
 def test_render_report_marks_winner() -> None:
     """Asserts the rendered report flags the winning top_k."""
-    from src.retrieval.rerank import RerankerTuner, TuningReport, TuningRow
-
     tuner = RerankerTuner(make_reranker())
     report = TuningReport(rows=[TuningRow(6, 0.61), TuningRow(12, 0.68)], best_top_k=12)
     table = tuner.render_report(report)
@@ -109,9 +113,6 @@ def test_render_report_marks_winner() -> None:
 
 def test_grid_evaluates_every_k() -> None:
     """Asserts every grid point gets a row."""
-    from src.eval.judge import EvalQuery
-    from src.retrieval.rerank import RerankerTuner
-
     tuner = RerankerTuner(make_reranker())
     queries = [
         EvalQuery(query_id="q", query="text query", relevant_doc_ids=set(), reference_answer="")
@@ -122,8 +123,6 @@ def test_grid_evaluates_every_k() -> None:
 
 def test_tuner_uses_ndcg_at_ten() -> None:
     """Asserts the tuner metric is nDCG@10 specifically."""
-    from src.eval.metrics import ndcg_at_k
-
     assert ndcg_at_k(["a"], {"a"}, k=10) == 1.0
     assert ndcg_at_k(["b"], {"a"}, k=10) == 0.0
 
@@ -170,9 +169,6 @@ def test_batch_size_respected_in_scoring() -> None:
 
 def test_threshold_sweep_returns_pairs() -> None:
     """Asserts the sweep returns one pair per threshold."""
-    from src.eval.judge import EvalQuery
-    from src.retrieval.rerank import RerankerTuner
-
     tuner = RerankerTuner(make_reranker())
     queries = [
         EvalQuery(query_id="q", query="text query", relevant_doc_ids=set(), reference_answer="")
@@ -183,9 +179,6 @@ def test_threshold_sweep_returns_pairs() -> None:
 
 def test_threshold_sweep_threshold_order() -> None:
     """Asserts sweep results come back in grid order."""
-    from src.eval.judge import EvalQuery
-    from src.retrieval.rerank import RerankerTuner
-
     tuner = RerankerTuner(make_reranker())
     queries = [
         EvalQuery(query_id="q", query="text query", relevant_doc_ids=set(), reference_answer="")
@@ -227,9 +220,6 @@ def test_warmup_scores_probe() -> None:
 
 def test_grid_search_picks_best_top_k() -> None:
     """Asserts the tuner selects the top_k with the best mean nDCG."""
-    from src.eval.judge import EvalQuery
-    from src.retrieval.rerank import RerankerTuner
-
     reranker = make_reranker()
     tuner = RerankerTuner(reranker)
     queries = [
@@ -248,17 +238,12 @@ def test_grid_search_picks_best_top_k() -> None:
 
 def test_report_rows_sorted_by_grid() -> None:
     """Asserts report rows follow the grid order, not score order."""
-    from src.retrieval.rerank import TuningReport, TuningRow
-
     report = TuningReport(rows=[TuningRow(20, 0.7), TuningRow(4, 0.5)], best_top_k=20)
     assert [row.top_k for row in report.rows] == [20, 4]
 
 
 def test_grid_search_deterministic() -> None:
     """Asserts repeated grid searches over the same inputs agree."""
-    from src.eval.judge import EvalQuery
-    from src.retrieval.rerank import RerankerTuner
-
     tuner = RerankerTuner(make_reranker())
     queries = [
         EvalQuery(query_id="q", query="text query", relevant_doc_ids=set(), reference_answer="")
@@ -271,9 +256,6 @@ def test_grid_search_deterministic() -> None:
 
 def test_sweep_scores_are_means() -> None:
     """Asserts sweep scores are averages in [0, 1]."""
-    from src.eval.judge import EvalQuery
-    from src.retrieval.rerank import RerankerTuner
-
     tuner = RerankerTuner(make_reranker())
     queries = [
         EvalQuery(query_id="q", query="text query", relevant_doc_ids=set(), reference_answer="")
@@ -284,8 +266,6 @@ def test_sweep_scores_are_means() -> None:
 
 def test_report_empty_grid_renders() -> None:
     """Asserts an empty grid still renders the table skeleton."""
-    from src.retrieval.rerank import RerankerTuner, TuningReport
-
     table = RerankerTuner(make_reranker()).render_report(TuningReport(rows=[], best_top_k=0))
     assert "top_k" in table
 

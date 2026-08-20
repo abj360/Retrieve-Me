@@ -9,7 +9,12 @@ Contains:
     test_prompt_limits_context_chunks(): asserts the context budget holds
 """
 
-from src.generation.prompts.citation import build_citation_prompt, format_source_block
+from src.generation.prompts.citation import (
+    CITATION_SYSTEM_PROMPT,
+    PROMPT_VERSION,
+    build_citation_prompt,
+    format_source_block,
+)
 from src.retrieval.fusion import RankedResult
 
 
@@ -69,36 +74,26 @@ def test_prompt_sources_numbered_sequentially() -> None:
 
 def test_system_prompt_forbids_outside_knowledge() -> None:
     """Asserts the system prompt bans outside knowledge."""
-    from src.generation.prompts.citation import CITATION_SYSTEM_PROMPT
-
     assert "outside knowledge" in CITATION_SYSTEM_PROMPT
 
 
 def test_prompt_instructs_cite_every_claim() -> None:
     """Asserts the prompt requires citing every claim."""
-    from src.generation.prompts.citation import CITATION_SYSTEM_PROMPT
-
     assert "Every factual claim" in CITATION_SYSTEM_PROMPT
 
 
 def test_refusal_guidance_present() -> None:
     """Asserts the refusal guidance survives rewording."""
-    from src.generation.prompts.citation import CITATION_SYSTEM_PROMPT
-
     assert "do not know" in CITATION_SYSTEM_PROMPT
 
 
 def test_prompt_version_exists() -> None:
     """Asserts the prompt template carries a version constant."""
-    from src.generation.prompts.citation import PROMPT_VERSION
-
     assert PROMPT_VERSION
 
 
 def test_prompt_version_format() -> None:
     """Asserts the version constant looks like semver."""
-    from src.generation.prompts.citation import PROMPT_VERSION
-
     parts = PROMPT_VERSION.split(".")
     assert len(parts) == 3
 

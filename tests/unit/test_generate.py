@@ -10,6 +10,8 @@ Contains:
     test_generate_drops_out_of_range_citations(): asserts invalid citations drop
 """
 
+import pytest
+
 from src.generation.generate import CitationGenerator
 from src.retrieval.fusion import RankedResult
 
@@ -237,7 +239,5 @@ def test_retry_calls_client_twice_not_thrice() -> None:
             return super().__call__(prompt, max_tokens)
 
     generator = CitationGenerator(TwiceFailsLLM())
-    try:
+    with pytest.raises(RuntimeError, match="still down"):
         generator.generate("clause?", make_results())
-    except RuntimeError:
-        pass

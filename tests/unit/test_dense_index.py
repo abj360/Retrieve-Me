@@ -10,14 +10,18 @@ Contains:
 """
 
 import time
+from contextlib import contextmanager
 
 import pytest
 from qdrant_client.http.exceptions import UnexpectedResponse
 
 from src.ingest.dense_index import (
+    RETRY_BASE_DELAY_SECONDS,
+    DenseIndex,
     PoolExhaustedError,
     QdrantClientPool,
     QdrantConfig,
+    _build_filter,
     retry_with_backoff,
 )
 
@@ -38,11 +42,8 @@ def make_pool(max_size: int = 2, acquire_timeout: float = 0.01) -> QdrantClientP
 def test_pool_is_bounded_under_concurrency() -> None:
     """Asserts a third concurrent checkout fails fast instead of opening more clients."""
     pool = make_pool(max_size=2)
-    with pool.acquire():
-        with pool.acquire():
-            with pytest.raises(PoolExhaustedError):
-                with pool.acquire():
-                    pass
+    with pool.acquire(), pool.acquire(), pytest.raises(PoolExhaustedError), pool.acquire():
+        pass
 
 
 def test_pool_hands_back_same_client() -> None:
@@ -182,7 +183,6 @@ class FakePool:
 
     def acquire(self):
         """Yields the fake client as a context manager."""
-        from contextlib import contextmanager
 
         @contextmanager
         def _acquire():
@@ -200,7 +200,6 @@ def make_index(client: FakeQdrantClient):
     Returns:
         index: DenseIndex wired to the fake.
     """
-    from src.ingest.dense_index import DenseIndex, QdrantConfig
 
     return DenseIndex(QdrantConfig(), FakePool(client))
 
@@ -219,8 +218,6 @@ def test_is_empty_on_fresh_collection() -> None:
 
 def test_retry_backoff_delay_doubles() -> None:
     """Asserts the backoff delay doubles per attempt."""
-    from src.ingest.dense_index import RETRY_BASE_DELAY_SECONDS
-
     assert RETRY_BASE_DELAY_SECONDS * 2 > RETRY_BASE_DELAY_SECONDS
 
 
@@ -232,7 +229,6 @@ def test_point_ids_are_deterministic() -> None:
     first_id = client.points[0].id
     index.upsert(["c1"], [[0.2] * 8], [{"doc_id": "d"}])
     assert client.points[1].id == first_id
-
 
 
 def test_upsert_writes_in_batches() -> None:
@@ -247,11 +243,8 @@ def test_upsert_writes_in_batches() -> None:
     assert len(client.points) == 250
 
 
-
 def test_build_filter_maps_exact_matches() -> None:
     """Asserts payload filters become exact-match field conditions."""
-    from src.ingest.dense_index import _build_filter
-
     query_filter = _build_filter({"source": "legal"})
     assert query_filter is not None
     assert len(query_filter.must) == 1
@@ -282,7 +275,6 @@ def test_health_check_true_when_server_answers() -> None:
 
 def test_health_check_false_when_pool_fails() -> None:
     """Asserts health_check reports False when the pool raises."""
-    from src.ingest.dense_index import DenseIndex, QdrantConfig
 
     class FailingPool:
         """Raises on every acquire."""
@@ -299,9 +291,8 @@ def test_pool_close_drains_idle_clients() -> None:
     """Asserts close() empties the pool so later acquires fail."""
     pool = make_pool(max_size=1)
     pool.close()
-    with pytest.raises(PoolExhaustedError):
-        with pool.acquire():
-            pass
+    with pytest.raises(PoolExhaustedError), pool.acquire():
+        pass
 
 
 def test_drop_collection_if_empty_only_when_empty() -> None:
