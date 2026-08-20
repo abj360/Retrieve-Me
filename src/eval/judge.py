@@ -3,6 +3,7 @@
 judge.py --- LLM-as-judge evaluation harness
 
 Contains:
+    JudgeClient: protocol for the LLM client the judge injects
     JudgeVerdict: one scored judgement for an answer
     EvalQuery: one golden-set evaluation query
     load_eval_dataset(): loads the golden set from JSONL
@@ -10,17 +11,35 @@ Contains:
     summarize(): aggregates verdicts into mean scores
 """
 
+import argparse
 import json
 import logging
 import re
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Protocol
 
 from src.eval.metrics import mean
 from src.generation.generate import GeneratedAnswer
 from src.retrieval.fusion import RankedResult
 
 logger = logging.getLogger(__name__)
+
+
+class JudgeClient(Protocol):
+    """Returns judge completion text for a prompt."""
+
+    def __call__(self, prompt: str) -> str:
+        """Scores one prompt.
+
+        Args:
+            prompt: Assembled judge prompt.
+
+        Returns:
+            completion: Raw judge reply text.
+        """
+
 
 DEFAULT_JUDGE_MODEL = "gpt-4o-mini"  # cheap, deterministic at temperature 0
 FAITHFULNESS_THRESHOLD = 0.8
@@ -114,7 +133,7 @@ class LLMJudge:
         model: Judge model identifier.
     """
 
-    def __init__(self, llm_client, model: str = DEFAULT_JUDGE_MODEL) -> None:
+    def __init__(self, llm_client: JudgeClient, model: str = DEFAULT_JUDGE_MODEL) -> None:
         """Stores the judge client and model.
 
         Args:
@@ -205,8 +224,8 @@ class LLMJudge:
     def judge_batch(
         self,
         queries: list[EvalQuery],
-        answer_fn,
-        contexts_fn,
+        answer_fn: Callable[[EvalQuery], GeneratedAnswer],
+        contexts_fn: Callable[[EvalQuery], list[RankedResult]],
     ) -> list[JudgeVerdict]:
         """Scores a batch of golden-set queries.
 
@@ -221,9 +240,7 @@ class LLMJudge:
         verdicts = []
         for query in queries:
             logger.info("judging %s", query.query_id)
-            verdicts.append(
-                self.judge_answer(query, answer_fn(query), contexts_fn(query))
-            )
+            verdicts.append(self.judge_answer(query, answer_fn(query), contexts_fn(query)))
         return verdicts
 
 
@@ -247,8 +264,6 @@ def summarize(verdicts: list[JudgeVerdict]) -> dict[str, float]:
 
 def main() -> None:
     """Runs the judge over a golden set and prints the summary."""
-    import argparse
-
     parser = argparse.ArgumentParser(description="Run the LLM-as-judge eval harness")
     parser.add_argument("--dataset", required=True, type=Path, help="golden set JSONL")
     args = parser.parse_args()

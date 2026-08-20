@@ -12,13 +12,11 @@ Contains:
 
 import re
 from dataclasses import dataclass, field, replace
-from typing import Protocol
+from typing import Any, Protocol
 
 # splits after terminal punctuation only when the next token starts a new sentence
 SENTENCE_BOUNDARY = re.compile(r"(?<=[.!?])\s+(?=[A-Z0-9(\"'])")
-CLAUSE_BOUNDARY = re.compile(
-    r"(?<=\s)(?=(?:section|clause|article)\s+\d)", re.IGNORECASE
-)
+CLAUSE_BOUNDARY = re.compile(r"(?<=\s)(?=(?:section|clause|article)\s+\d)", re.IGNORECASE)
 CLAUSE_REF_PATTERN = re.compile(  # Section/Clause/Article + number
     r"(?:section|clause|article)\s+\d+(?:\.\d+)*", re.IGNORECASE
 )
@@ -61,7 +59,7 @@ class Chunk:
     text: str
     token_count: int
     index: int
-    metadata: dict = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class Chunker(Protocol):

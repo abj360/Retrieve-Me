@@ -3,6 +3,7 @@
 bm25_index.py --- BM25 sparse index over chunk text using rank_bm25
 
 Contains:
+    IndexableChunk: protocol for the chunk fields the sparse index reads
     tokenize(): splits text into lowercase search terms, keeping hyphens whole
     BM25Hit: one scored hit from the sparse index
     token_count(): counts search terms in text
@@ -15,14 +16,38 @@ Contains:
 import logging
 import pickle
 import re
+from collections.abc import Sequence
 from dataclasses import dataclass
 from pathlib import Path
+from typing import Protocol
 
 from rank_bm25 import BM25Okapi
 
 logger = logging.getLogger(__name__)
 
 TOKEN_PATTERN = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")  # hyphens stay whole
+
+
+class IndexableChunk(Protocol):
+    """Carries the chunk fields the sparse index reads.
+
+    Attributes:
+        chunk_id: Stable identifier of the chunk.
+        doc_id: Identifier of the document the chunk came from.
+        text: Raw chunk text.
+    """
+
+    @property
+    def chunk_id(self) -> str:
+        """Returns the chunk's stable identifier."""
+
+    @property
+    def doc_id(self) -> str:
+        """Returns the identifier of the chunk's document."""
+
+    @property
+    def text(self) -> str:
+        """Returns the chunk's raw text."""
 
 
 def tokenize(text: str) -> list[str]:
@@ -81,13 +106,13 @@ class BM25Index:
             b: BM25 length-normalization parameter.
         """
         self.chunk_ids: list[str] = []
-        self._chunks: list = []
+        self._chunks: list[IndexableChunk] = []
         self._k1 = k1
         self._b = b
         self._index: BM25Okapi | None = None
         self._is_built = False
 
-    def build(self, chunks: list) -> int:
+    def build(self, chunks: Sequence[IndexableChunk]) -> int:
         """Builds the sparse index from chunk objects.
 
         Args:
@@ -96,7 +121,12 @@ class BM25Index:
         Returns:
             indexed: Number of chunks indexed.
         """
-        logger.info("building BM25 index over %d chunks (k1=%.2f b=%.2f)", len(chunks), self._k1, self._b)
+        logger.info(
+            "building BM25 index over %d chunks (k1=%.2f b=%.2f)",
+            len(chunks),
+            self._k1,
+            self._b,
+        )
         self._chunks = list(chunks)
         self.chunk_ids = [chunk.chunk_id for chunk in chunks]
         self._is_built = True

@@ -13,7 +13,8 @@ from src.retrieval.fusion import RankedResult
 CITATION_SYSTEM_PROMPT = """You answer questions using only the provided sources.
 Every factual claim must carry a citation to its source in square brackets, like [1] or [2].
 Never rely on outside knowledge, even for well-known facts or definitions.
-If the sources do not contain the answer, say explicitly that you do not know rather than guessing or hedging."""
+If the sources do not contain the answer, say explicitly that you do not know
+rather than guessing or hedging."""
 
 MAX_CONTEXT_CHUNKS = 5  # five sources fit the model's comfortable context
 
@@ -48,4 +49,5 @@ def build_citation_prompt(query: str, results: list[RankedResult]) -> str:
     return f"{CITATION_SYSTEM_PROMPT}\n\nSources:\n{sources}\n\nQuestion: {query}"
 
 
-PROMPT_VERSION = "1.1.1"  # 1.1: cite-every-claim + refusal wording  # bumped when the template wording changes
+# bumped whenever the template wording changes; 1.1 added cite-every-claim + refusal
+PROMPT_VERSION = "1.1.1"

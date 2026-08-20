@@ -24,7 +24,7 @@ from src.api.dependencies import Settings, get_settings
 logger = logging.getLogger("retrieval.health")
 router = APIRouter()
 
-PING_TIMEOUT_SECONDS = 1.5
+PING_TIMEOUT_SECONDS = 2  # qdrant-client takes whole seconds
 
 
 @router.get("/healthz")

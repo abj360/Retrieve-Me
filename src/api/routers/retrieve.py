@@ -100,9 +100,7 @@ def cache_key(payload: RetrieveRequest) -> str:
     return f"q:{payload.query}|k:{payload.top_k}|p:{payload.page}|s:{payload.page_size}|f:{filters}"
 
 
-def paginate(
-    matches: list[RetrievedChunk], page: int, page_size: int
-) -> list[RetrievedChunk]:
+def paginate(matches: list[RetrievedChunk], page: int, page_size: int) -> list[RetrievedChunk]:
     """Slices one page out of the full match list.
 
     Args:
@@ -118,7 +116,12 @@ def paginate(
     return matches[start:end]
 
 
-@router.post("/retrieve", response_model=RetrieveResponse, summary="Hybrid retrieval search", response_description="One page of scored, fused chunks")
+@router.post(
+    "/retrieve",
+    response_model=RetrieveResponse,
+    summary="Hybrid retrieval search",
+    response_description="One page of scored, fused chunks",
+)
 def retrieve(
     payload: RetrieveRequest,
     response: Response,
