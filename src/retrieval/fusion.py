@@ -13,6 +13,7 @@ Contains:
 
 import logging
 from dataclasses import dataclass, field
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ class RankedResult:
     text: str
     score: float
     source: str
-    metadata: dict = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -141,9 +142,7 @@ class ResultFuser:
         """
         self.config = config
 
-    def fuse(
-        self, sparse: list[RankedResult], dense: list[RankedResult]
-    ) -> list[RankedResult]:
+    def fuse(self, sparse: list[RankedResult], dense: list[RankedResult]) -> list[RankedResult]:
         """Merges two ranked lists into one fused ranking via RRF.
 
         Args:
@@ -163,10 +162,7 @@ class ResultFuser:
                 scores[result.chunk_id] = scores.get(result.chunk_id, 0.0) + weight / (
                     self.config.rrf_k + rank
                 )  # accumulate per-chunk RRF score
-                if (
-                    result.chunk_id not in by_id
-                    or result.score > by_id[result.chunk_id].score
-                ):
+                if result.chunk_id not in by_id or result.score > by_id[result.chunk_id].score:
                     by_id[result.chunk_id] = result
         fused = [
             RankedResult(
@@ -181,8 +177,8 @@ class ResultFuser:
         ]
         return self._rank_by_score(fused)  # deterministic order
 
-    def _rank_by_score(self, results: list[RankedResult]) -> list[RankedResult]:  # stable, deterministic
-        """Sorts deduplicated results by fused score, best first.
+    def _rank_by_score(self, results: list[RankedResult]) -> list[RankedResult]:
+        """Sorts deduplicated results by fused score, best first (stable, deterministic).
 
         Args:
             results: Fused results to sort.
@@ -190,9 +186,7 @@ class ResultFuser:
         Returns:
             ranked: Results sorted by score descending, ties by chunk_id.
         """
-        return sorted(
-            results, key=lambda result: (-result.score, result.chunk_id)
-        )
+        return sorted(results, key=lambda result: (-result.score, result.chunk_id))
 
     def fuse_pair(
         self, sparse: list[RankedResult], dense: list[RankedResult]
@@ -220,16 +214,12 @@ class ResultFuser:
         scores: dict[str, float] = {}
         by_id: dict[str, RankedResult] = {}
         for leg, weight in legs:
-            if self.config.normalize_scores:
-                leg = normalize_min_max(leg)
-            for rank, result in enumerate(rank_leg(leg), start=1):
+            scored = normalize_min_max(leg) if self.config.normalize_scores else leg
+            for rank, result in enumerate(rank_leg(scored), start=1):
                 scores[result.chunk_id] = scores.get(result.chunk_id, 0.0) + weight / (
                     self.config.rrf_k + rank
                 )
-                if (
-                    result.chunk_id not in by_id
-                    or result.score > by_id[result.chunk_id].score
-                ):
+                if result.chunk_id not in by_id or result.score > by_id[result.chunk_id].score:
                     by_id[result.chunk_id] = result
         fused = [
             RankedResult(

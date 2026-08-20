@@ -9,11 +9,17 @@ Contains:
 """
 
 import logging
-from dataclasses import dataclass
+from collections.abc import Callable, Sequence
+from dataclasses import dataclass, replace
+from typing import TYPE_CHECKING
 
 from sentence_transformers import CrossEncoder
 
+from src.eval.metrics import ndcg_at_k
 from src.retrieval.fusion import RankedResult
+
+if TYPE_CHECKING:
+    from src.eval.judge import EvalQuery
 
 logger = logging.getLogger(__name__)
 
@@ -101,8 +107,7 @@ class CrossEncoderReranker:
         for start in range(0, len(pairs), self.config.batch_size):
             batch = pairs[start : start + self.config.batch_size]
             scores.extend(
-                float(score)
-                for score in model.predict(batch, batch_size=self.config.batch_size)
+                float(score) for score in model.predict(batch, batch_size=self.config.batch_size)
             )
         return scores
 
@@ -118,7 +123,11 @@ class CrossEncoderReranker:
             model: Loaded cross-encoder model.
         """
         if self._model is None:
-            logger.info("loading reranker model %s onto device %s", self.config.model_name, self.config.device)
+            logger.info(
+                "loading reranker model %s onto device %s",
+                self.config.model_name,
+                self.config.device,
+            )
             self._model = CrossEncoder(self.config.model_name, device=self.config.device)
         return self._model
 
@@ -166,9 +175,9 @@ class RerankerTuner:  # offline tool; never on the query path
 
     def grid_search(
         self,
-        queries: list,
-        candidates_fn,
-        top_k_grid: list[int] = (6, 8, 12, 16, 20),  # type: ignore[assignment]
+        queries: list["EvalQuery"],
+        candidates_fn: Callable[["EvalQuery"], list[RankedResult]],
+        top_k_grid: Sequence[int] = (6, 8, 12, 16, 20),
     ) -> TuningReport:
         """Evaluates each top_k in the grid by mean nDCG@10 on the golden set.
 
@@ -180,10 +189,6 @@ class RerankerTuner:  # offline tool; never on the query path
         Returns:
             report: Grid rows plus the winning top_k.
         """
-        from dataclasses import replace
-
-        from src.eval.metrics import ndcg_at_k
-
         rows: list[TuningRow] = []
         for top_k in top_k_grid:
             scores = []
@@ -217,8 +222,8 @@ class RerankerTuner:  # offline tool; never on the query path
 
     def threshold_sweep(
         self,
-        queries: list,
-        candidates_fn,
+        queries: list["EvalQuery"],
+        candidates_fn: Callable[["EvalQuery"], list[RankedResult]],
         min_score_grid: list[float],
         top_k: int = 12,
     ) -> list[tuple[float, float]]:
@@ -233,15 +238,9 @@ class RerankerTuner:  # offline tool; never on the query path
         Returns:
             sweep: (threshold, mean nDCG@10) pairs.
         """
-        from dataclasses import replace
-
-        from src.eval.metrics import ndcg_at_k
-
         sweep: list[tuple[float, float]] = []
         for threshold in min_score_grid:
-            self.reranker.config = replace(
-                self.reranker.config, min_score=threshold, top_k=top_k
-            )
+            self.reranker.config = replace(self.reranker.config, min_score=threshold, top_k=top_k)
             scores = []
             for query in queries:
                 ranked = self.reranker.rerank(query.query, candidates_fn(query))

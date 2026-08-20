@@ -3,6 +3,7 @@
 dense_index.py --- Qdrant-backed dense vector index with a bounded client pool
 
 Contains:
+    Payload: metadata stored alongside one vector
     QdrantConfig: connection and collection settings for the dense index
     PoolExhaustedError: raised when no client is free within the acquire timeout
     retry_with_backoff(): retries a transient Qdrant call with exponential backoff
@@ -17,11 +18,11 @@ import logging
 import queue
 import time
 import uuid
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Iterator, Sequence
 from contextlib import contextmanager
 from dataclasses import dataclass
 from functools import partial
-from typing import TypeVar
+from typing import Any
 
 from qdrant_client import QdrantClient
 from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
@@ -39,6 +40,8 @@ POINT_ID_NAMESPACE = uuid.UUID("6f1c2b3a-9a5b-4c6d-8e7f-0a1b2c3d4e5f")
 
 logger = logging.getLogger(__name__)
 
+Payload = dict[str, Any]
+
 DEFAULT_VECTOR_SIZE = 384  # all-MiniLM-L6-v2 output size
 DEFAULT_BATCH_SIZE = 100  # qdrant handles this comfortably per request
 DEFAULT_POOL_SIZE = 8  # one client per expected concurrent worker
@@ -46,14 +49,12 @@ DEFAULT_ACQUIRE_TIMEOUT_SECONDS = 5.0
 MAX_RETRIES = 3  # transient blips clear within a second of backoff
 RETRY_BASE_DELAY_SECONDS = 0.2  # doubles each attempt
 
-T = TypeVar("T")
-
 
 class PoolExhaustedError(RuntimeError):
     """Raised when the pool cannot lend a client before the acquire timeout."""
 
 
-def retry_with_backoff(operation: Callable[[], T], retries: int = MAX_RETRIES) -> T:
+def retry_with_backoff[T](operation: Callable[[], T], retries: int = MAX_RETRIES) -> T:
     """Retries a transient Qdrant operation with exponential backoff (max 3 attempts).
 
     Args:
@@ -90,7 +91,7 @@ class QdrantConfig:
     url: str = "http://localhost:6333"  # RETRIEVAL_QDRANT_URL overrides
     collection: str = "chunks"
     vector_size: int = DEFAULT_VECTOR_SIZE
-    timeout: float = 10.0
+    timeout: int = 10
     distance: Distance = Distance.COSINE  # cosine for normalized embeddings
 
 
@@ -106,10 +107,10 @@ class DenseHit:
 
     chunk_id: str
     score: float
-    payload: dict
+    payload: Payload
 
 
-def _build_payload(chunk_id: str, payload: dict) -> dict:
+def _build_payload(chunk_id: str, payload: Payload) -> Payload:
     """Builds the stored payload for one chunk.
 
     Args:
@@ -269,8 +270,8 @@ class DenseIndex:
     def upsert(
         self,
         chunk_ids: list[str],  # one id per vector
-        vectors: list,
-        payloads: list[dict],
+        vectors: Sequence[list[float]],
+        payloads: list[Payload],
         batch_size: int = DEFAULT_BATCH_SIZE,
     ) -> int:
         """Upserts vectors with their payloads in batches.
@@ -287,7 +288,7 @@ class DenseIndex:
         points = [
             PointStruct(
                 id=str(uuid.uuid5(POINT_ID_NAMESPACE, chunk_id)),
-                vector=vector,
+                vector=list(vector),
                 payload=_build_payload(chunk_id, payload),
             )
             for chunk_id, vector, payload in zip(chunk_ids, vectors, payloads, strict=True)
@@ -374,4 +375,5 @@ class DenseIndex:
                 payload=point.payload,
             )
             for point in response.points
+            if point.payload is not None
         ]
