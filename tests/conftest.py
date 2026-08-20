@@ -394,6 +394,7 @@ def bm25_index(sample_chunks) -> BM25Index:
     index.build(sample_chunks)
     return index
 
+
 @pytest.fixture
 def indexed_stores(sample_documents, whole_doc_chunker, stub_embedder, fake_dense_index):
     """Ingests the sample documents into the fake dense index and a real bm25.

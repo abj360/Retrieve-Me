@@ -12,7 +12,15 @@ Contains:
     (later tests): boundaries, metadata, overlap, tails, unicode
 """
 
-from src.ingest.chunking import ChunkConfig, SemanticClauseChunker
+from itertools import pairwise
+
+from src.ingest.chunking import (
+    DEFAULT_MAX_TOKENS,
+    DEFAULT_MIN_CHUNK_TOKENS,
+    DEFAULT_OVERLAP_TOKENS,
+    ChunkConfig,
+    SemanticClauseChunker,
+)
 
 
 def make_text(sentences: int) -> str:
@@ -29,7 +37,9 @@ def make_text(sentences: int) -> str:
 
 def test_fixed_window_size() -> None:
     """Asserts chunks respect the configured token budget."""
-    chunker = SemanticClauseChunker(ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4))
+    chunker = SemanticClauseChunker(
+        ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4)
+    )
     chunks = chunker.split(make_text(30), "doc-1")
     assert all(chunk.token_count <= 24 for chunk in chunks)
     assert len(chunks) > 1
@@ -37,14 +47,18 @@ def test_fixed_window_size() -> None:
 
 def test_chunks_end_on_sentence_boundaries() -> None:
     """Asserts semantic chunks never cut a sentence in two."""
-    chunker = SemanticClauseChunker(ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4))
+    chunker = SemanticClauseChunker(
+        ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4)
+    )
     chunks = chunker.split(make_text(30), "doc-1")
     assert all(chunk.text.rstrip().endswith((".", "!", "?")) for chunk in chunks)
 
 
 def test_chunk_ids_are_sequential() -> None:
     """Asserts chunk ids number in document order."""
-    chunker = SemanticClauseChunker(ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4))
+    chunker = SemanticClauseChunker(
+        ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4)
+    )
     chunks = chunker.split(make_text(30), "doc-1")
     assert [chunk.index for chunk in chunks] == list(range(len(chunks)))
 
@@ -57,14 +71,18 @@ def test_count_tokens() -> None:
 
 def test_tail_merge_folds_undersized_chunk() -> None:
     """Asserts an undersized tail folds into the previous chunk."""
-    chunker = SemanticClauseChunker(ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4))
+    chunker = SemanticClauseChunker(
+        ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4)
+    )
     chunks = chunker.split(make_text(30), "doc-1")
     assert all(chunk.token_count >= 4 for chunk in chunks)
 
 
 def test_chunk_ids_unique_per_document() -> None:
     """Asserts chunk ids are unique within a document."""
-    chunker = SemanticClauseChunker(ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4))
+    chunker = SemanticClauseChunker(
+        ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4)
+    )
     chunks = chunker.split(make_text(30), "doc-1")
     ids = [chunk.chunk_id for chunk in chunks]
     assert len(ids) == len(set(ids))
@@ -72,21 +90,27 @@ def test_chunk_ids_unique_per_document() -> None:
 
 def test_tiny_document_single_chunk() -> None:
     """Asserts a tiny document yields exactly one chunk."""
-    chunker = SemanticClauseChunker(ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4))
+    chunker = SemanticClauseChunker(
+        ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4)
+    )
     chunks = chunker.split("short text here", "doc-tiny")
     assert len(chunks) == 1
 
 
 def test_empty_text_yields_no_chunks() -> None:
     """Asserts empty input yields no chunks."""
-    chunker = SemanticClauseChunker(ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4))
+    chunker = SemanticClauseChunker(
+        ChunkConfig(max_tokens=24, overlap_tokens=6, min_chunk_tokens=4)
+    )
     assert chunker.split("", "doc-1") == []
     assert chunker.split("   ", "doc-1") == []
 
 
 def test_regression_clause_marker_kept_with_clause() -> None:
     """Asserts a clause marker is never split from its clause (recall regression)."""
-    chunker = SemanticClauseChunker(ChunkConfig(max_tokens=48, overlap_tokens=8, min_chunk_tokens=5))
+    chunker = SemanticClauseChunker(
+        ChunkConfig(max_tokens=48, overlap_tokens=8, min_chunk_tokens=5)
+    )
     text = "Intro words here. Section 12.1 The licensee shall indemnify the vendor fully."
     chunks = chunker.split(text, "doc-1")
     assert any("Section 12.1" in chunk.text for chunk in chunks)
@@ -110,21 +134,26 @@ def test_clause_boundary_splits_before_marker(token_chunker) -> None:
     """Asserts the splitter breaks before a clause marker, not after."""
     text = "General words up front. Section 2.4 Specific obligations follow here."
     chunks = token_chunker.split(text, "doc-1")
-    assert any(chunk.text.startswith("Section 2.4") or " Section 2.4" in chunk.text for chunk in chunks)
+    assert any(
+        chunk.text.startswith("Section 2.4") or " Section 2.4" in chunk.text for chunk in chunks
+    )
 
 
 def test_overlap_carries_sentences(token_chunker) -> None:
     """Asserts consecutive chunks share overlap sentences."""
     text = " ".join(f"Sentence {index} has six tokens in total." for index in range(30))
     chunks = token_chunker.split(text, "doc-1")
-    assert any(
-        sentence in chunks[1].text for sentence in chunks[0].text.split(". ")[:2] if sentence
-    ) or True
+    assert (
+        any(sentence in chunks[1].text for sentence in chunks[0].text.split(". ")[:2] if sentence)
+        or True
+    )
 
 
 def test_zero_overlap_windows() -> None:
     """Asserts zero overlap produces disjoint chunks."""
-    chunker = SemanticClauseChunker(ChunkConfig(max_tokens=12, overlap_tokens=0, min_chunk_tokens=2))
+    chunker = SemanticClauseChunker(
+        ChunkConfig(max_tokens=12, overlap_tokens=0, min_chunk_tokens=2)
+    )
     chunks = chunker.split(make_text(10), "doc-1")
     first_tail = chunks[0].text.split()[-3:]
     second_head = chunks[1].text.split()[:3]
@@ -135,7 +164,7 @@ def test_overlap_tail_within_budget(token_chunker) -> None:
     """Asserts carried-over overlap sentences stay within the overlap budget."""
     text = " ".join(f"Sentence {index} has six tokens in total." for index in range(30))
     chunks = token_chunker.split(text, "doc-1")
-    for previous, following in zip(chunks, chunks[1:]):
+    for previous, following in pairwise(chunks):
         shared = set(previous.text.split()) & set(following.text.split())
         assert len(shared) <= 8
 
@@ -187,12 +216,6 @@ def test_multiple_clause_refs_in_order(token_chunker) -> None:
 
 def test_config_defaults_match_module_constants() -> None:
     """Asserts ChunkConfig defaults mirror the module constants."""
-    from src.ingest.chunking import (
-        DEFAULT_MAX_TOKENS,
-        DEFAULT_MIN_CHUNK_TOKENS,
-        DEFAULT_OVERLAP_TOKENS,
-    )
-
     config = ChunkConfig()
     assert config.max_tokens == DEFAULT_MAX_TOKENS
     assert config.overlap_tokens == DEFAULT_OVERLAP_TOKENS
