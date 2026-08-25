@@ -58,10 +58,18 @@ export function ResultsTable<T>({ data, columns, rowKey, pageSize = 25 }: Result
     }
   };
 
+  if (data.length === 0) {
+    return <p className="status-line">Nothing to show yet.</p>;
+  }
+
   return (
-    <div className="results-table-wrap" onKeyDown={handleKeyDown} tabIndex={0}
-    role="group"
-    aria-label="results pagination">
+    <div
+      className="results-table-wrap"
+      onKeyDown={handleKeyDown}
+      tabIndex={0}
+      role="group"
+      aria-label="results pagination"
+    >
       <table className="results-table">
         <thead>
           <tr>
