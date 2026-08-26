@@ -6,6 +6,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 PYTHONUNBUFFERED=1 PIP_DISABLE_PIP_VERSION_CHECK=1
 
 COPY pyproject.toml requirements.lock ./
 COPY src/ src/
+COPY data/ data/
 
 RUN pip install --no-cache-dir -r requirements.lock \
     && pip install --no-cache-dir --no-deps .
