@@ -56,6 +56,7 @@ class Settings(BaseSettings):
         pipeline_config_path: Path to the YAML pipeline definition.
         app_title: Human-readable service title for the OpenAPI docs.
         app_version: Service version reported by the API and /healthz.
+        warmup_on_startup: Whether to load the models during startup.
     """
 
     model_config = SettingsConfigDict(env_prefix="RETRIEVAL_")
@@ -74,6 +75,7 @@ class Settings(BaseSettings):
     pipeline_config_path: str = "src/config/pipeline.yaml"
     app_title: str = "Retrieve-Me"
     app_version: str = "1.1.0"
+    warmup_on_startup: bool = True
 
 
 @lru_cache(maxsize=1)

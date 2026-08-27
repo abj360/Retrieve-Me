@@ -11,6 +11,7 @@ Contains:
     SparseRetrievalStrategy: BM25 leg of the hybrid pipeline
     DenseRetrievalStrategy: dense vector leg of the hybrid pipeline
     HybridRetriever: orchestrates legs, fusion, and rerank into one call
+    HybridRetriever.warmup(): loads both models before the first query
     STRATEGY_REGISTRY: strategy names to implementation classes (hybrid default)
 """
 
@@ -39,6 +40,9 @@ class QueryEmbedder(Protocol):
         Returns:
             vector: Dense vector for the query.
         """
+
+    def warmup(self) -> None:
+        """Loads the embedding model before the first query arrives."""
 
 
 class VectorIndex(Protocol):
@@ -92,6 +96,9 @@ class Reranker(Protocol):
         Returns:
             reranked: Re-scored candidates, best first.
         """
+
+    def warmup(self) -> None:
+        """Loads the reranker model before the first query arrives."""
 
 
 class RetrievalStrategy(Protocol):
@@ -255,6 +262,21 @@ class HybridRetriever:
             fused = self.fuser.fuse(sparse_hits, dense_hits)  # legs normalized inside fuse
         with self.tracer.span("rerank"):
             return self.reranker.rerank(query, fused)[:top_k]
+
+    def warmup(self) -> None:
+        """Loads both models up front so the first query does not pay for them.
+
+        Model loads dominate cold-start latency, so this runs at startup rather
+        than on the query path. A failure here is logged and left alone: a slow
+        first query is a better outcome than a service that refuses to start.
+        """
+        for stage, model in (("embedder", self.dense.embedder), ("reranker", self.reranker)):
+            try:
+                model.warmup()
+            except (OSError, RuntimeError, ValueError) as exc:
+                logger.warning("%s warmup failed, first query will be cold: %s", stage, exc)
+            else:
+                logger.info("%s warmed", stage)
 
     def retrieve_with_candidate_k(
         self,
