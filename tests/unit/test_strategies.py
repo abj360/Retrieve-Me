@@ -9,11 +9,13 @@ Contains:
 """
 
 import logging
+import threading
+from concurrent.futures import ThreadPoolExecutor
 
-from tests.conftest import FakeDenseIndex
+from tests.conftest import FakeDenseIndex, StubEmbedder
 
 from src.ingest.bm25_index import BM25Index
-from src.retrieval.fusion import FusionConfig, ResultFuser
+from src.retrieval.fusion import FusionConfig, RankedResult, ResultFuser
 from src.retrieval.strategies import (
     STRATEGY_REGISTRY,
     DenseRetrievalStrategy,
@@ -229,3 +231,117 @@ def test_warmup_failure_is_logged(caplog) -> None:
     with caplog.at_level(logging.WARNING):
         build_retriever(embedder, reranker).warmup()
     assert "embedder warmup failed" in caplog.text
+
+
+class PassThroughReranker:
+    """Returns candidates untouched, so tests isolate the stage under test."""
+
+    def rerank(self, query: str, candidates: list[RankedResult]) -> list[RankedResult]:
+        """Returns the candidates unchanged.
+
+        Args:
+            query: Ignored by this double.
+            candidates: Candidates to pass straight through.
+
+        Returns:
+            reranked: The candidates exactly as given.
+        """
+        return candidates
+
+    def warmup(self) -> None:
+        """Does nothing; this double has no model to load."""
+
+
+class SharedStateProbe:
+    """Reads the retriever's own candidate_k from inside a retrieve call.
+
+    A per-call override must not be visible on the shared instance, so what
+    this records while the call is in flight is exactly the race.
+
+    Attributes:
+        observed: Instance candidate_k seen during each call, in call order.
+        pool_sizes: Pool size each call was actually given.
+    """
+
+    def __init__(self, barrier: threading.Barrier | None = None) -> None:
+        """Creates a probe, optionally synchronised with sibling calls.
+
+        Args:
+            barrier: Barrier holding every caller inside retrieve at once.
+        """
+        self.observed: list[int] = []
+        self.pool_sizes: list[int] = []
+        self.retriever: HybridRetriever | None = None
+        self._barrier = barrier
+
+    def retrieve(
+        self, query: str, top_k: int, filters: dict[str, str] | None = None
+    ) -> list[RankedResult]:
+        """Records the pool size given and the retriever's shared default.
+
+        Args:
+            query: Ignored by this double.
+            top_k: Candidate pool size the retriever passed down.
+            filters: Ignored by this double.
+
+        Returns:
+            results: Always empty; the recordings are what matter.
+        """
+        if self._barrier is not None:
+            self._barrier.wait()
+        assert self.retriever is not None
+        self.pool_sizes.append(top_k)
+        self.observed.append(self.retriever.candidate_k)
+        return []
+
+
+def build_probed_retriever(sparse: SharedStateProbe) -> HybridRetriever:
+    """Builds a retriever whose sparse leg can observe the shared instance.
+
+    Args:
+        sparse: Probe standing in for the sparse leg.
+
+    Returns:
+        retriever: Retriever with candidate_k defaulting to 50.
+    """
+    retriever = HybridRetriever(
+        sparse,
+        DenseRetrievalStrategy(FakeDenseIndex(), StubEmbedder()),
+        ResultFuser(FusionConfig()),
+        PassThroughReranker(),
+        candidate_k=50,
+    )
+    sparse.retriever = retriever
+    return retriever
+
+
+def test_candidate_k_override_never_touches_the_shared_default() -> None:
+    """Asserts an override reaches the legs without mutating the instance."""
+    sparse = SharedStateProbe()
+    retriever = build_probed_retriever(sparse)
+    retriever.retrieve_with_candidate_k("q", candidate_k=7)
+    assert sparse.pool_sizes == [7]
+    assert sparse.observed == [50]
+    assert retriever.candidate_k == 50
+
+
+def test_concurrent_overrides_stay_independent() -> None:
+    """Asserts eight simultaneous overrides neither leak nor lose their size."""
+    sizes = [10, 20, 30, 40, 60, 70, 80, 90]
+    sparse = SharedStateProbe(barrier=threading.Barrier(len(sizes)))
+    retriever = build_probed_retriever(sparse)
+
+    def run(pool_size: int) -> None:
+        """Retrieves with one thread's own override.
+
+        Args:
+            pool_size: Candidate pool size this thread requests.
+        """
+        retriever.retrieve_with_candidate_k("q", candidate_k=pool_size)
+
+    with ThreadPoolExecutor(max_workers=len(sizes)) as pool:
+        list(pool.map(run, sizes))
+
+    assert sorted(sparse.pool_sizes) == sorted(sizes)
+    assert set(sparse.observed) == {50}
+    assert retriever.candidate_k == 50
