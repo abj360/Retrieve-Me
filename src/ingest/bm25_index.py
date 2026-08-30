@@ -4,7 +4,7 @@ bm25_index.py --- BM25 sparse index over chunk text using rank_bm25
 
 Contains:
     IndexableChunk: protocol for the chunk fields the sparse index reads
-    tokenize(): splits text into lowercase search terms, keeping hyphens whole
+    tokenize(): splits text into lowercase search terms, indexing hyphens both ways
     BM25Hit: one scored hit from the sparse index
     token_count(): counts search terms in text
     BM25Index: builds, searches, and persists the sparse index
@@ -25,7 +25,7 @@ from rank_bm25 import BM25Okapi
 
 logger = logging.getLogger(__name__)
 
-TOKEN_PATTERN = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")  # hyphens stay whole
+TOKEN_PATTERN = re.compile(r"[a-z0-9]+(?:-[a-z0-9]+)*")  # hyphenated terms match as one token
 
 
 class IndexableChunk(Protocol):
@@ -53,13 +53,22 @@ class IndexableChunk(Protocol):
 def tokenize(text: str) -> list[str]:
     """Splits text into lowercase search terms for indexing and queries.
 
+    A hyphenated term is emitted whole and also split into its parts, so
+    "cross-encoder" matches documents written either way. Both sides are
+    tokenized identically, so this holds for queries as well as chunks.
+
     Args:
         text: Raw chunk or query text.
 
     Returns:
-        terms: Lowercase tokens; hyphenated terms stay whole.
+        terms: Lowercase tokens; hyphenated terms appear whole and split.
     """
-    return TOKEN_PATTERN.findall(text.lower())
+    terms: list[str] = []
+    for token in TOKEN_PATTERN.findall(text.lower()):
+        terms.append(token)
+        if "-" in token:
+            terms.extend(token.split("-"))
+    return terms
 
 
 def token_count(text: str) -> int:
@@ -92,7 +101,7 @@ class BM25Hit:
 
 
 class BM25Index:
-    """Builds and searches a BM25 sparse index over chunk text; hyphens stay whole.
+    """Builds and searches a BM25 sparse index over chunk text.
 
     Attributes:
         chunk_ids: Identifiers of the indexed chunks, in build order.
