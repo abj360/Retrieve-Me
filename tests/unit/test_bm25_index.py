@@ -32,8 +32,14 @@ def make_chunk(chunk_id: str, text: str) -> SimpleNamespace:
 
 
 def test_tokenize_lowercases_and_keeps_hyphens() -> None:
-    """Asserts the tokenizer lowercases and keeps hyphenated terms whole."""
-    assert tokenize("Multi-Agent SYSTEMS, Inc.") == ["multi-agent", "systems", "inc"]
+    """Asserts the tokenizer lowercases and emits both forms of a hyphenated term."""
+    assert tokenize("Multi-Agent SYSTEMS, Inc.") == [
+        "multi-agent",
+        "multi",
+        "agent",
+        "systems",
+        "inc",
+    ]
 
 
 def test_search_ranks_relevant_chunk_first() -> None:
@@ -102,3 +108,53 @@ def test_stats_reports_chunk_count() -> None:
 def test_token_count_matches_tokenize_length() -> None:
     """Asserts token_count agrees with len(tokenize())."""
     assert token_count("one two three") == len(tokenize("one two three"))
+
+
+def hyphenation_corpus() -> list:
+    """Returns a corpus large enough for BM25 idf to be meaningful.
+
+    A term present in exactly half a corpus scores idf zero under Okapi, so
+    these tests need more than a pair of documents to say anything.
+
+    Returns:
+        chunks: Six chunks, one hyphenated and one split-form target.
+    """
+    return [
+        make_chunk("hyphenated-0", "The cross-encoder reranks the fused candidate set."),
+        make_chunk("split-0", "The multi agent planner bounds its own loop."),
+        make_chunk("filler-0", "Connection pooling is bounded to prevent exhaustion."),
+        make_chunk("filler-1", "Section 3.1 covers indemnification obligations."),
+        make_chunk("filler-2", "RFC 7807 defines problem details for HTTP APIs."),
+        make_chunk("filler-3", "Release notes list the batch upsert change."),
+    ]
+
+
+def test_hyphenated_term_indexed_whole_and_split() -> None:
+    """Asserts a hyphenated term yields the joined form and both parts."""
+    assert tokenize("cross-encoder") == ["cross-encoder", "cross", "encoder"]
+
+
+def test_unhyphenated_query_finds_hyphenated_document() -> None:
+    """Asserts 'cross encoder' matches a document written 'cross-encoder'."""
+    index = BM25Index()
+    index.build(hyphenation_corpus())
+    hits = index.search("cross encoder", top_k=3)
+    assert hits[0].chunk_id == "hyphenated-0"
+    assert hits[0].score > 0
+
+
+def test_hyphenated_query_finds_unhyphenated_document() -> None:
+    """Asserts 'multi-agent' matches a document written 'multi agent'."""
+    index = BM25Index()
+    index.build(hyphenation_corpus())
+    hits = index.search("multi-agent", top_k=3)
+    assert hits[0].chunk_id == "split-0"
+    assert hits[0].score > 0
+
+
+def test_exact_hyphenated_match_still_outranks_a_partial_one() -> None:
+    """Asserts splitting does not let a one-word partial beat the exact term."""
+    index = BM25Index()
+    index.build([*hyphenation_corpus(), make_chunk("partial-0", "The encoder embeds the query.")])
+    hits = index.search("cross-encoder", top_k=3)
+    assert hits[0].chunk_id == "hyphenated-0"
