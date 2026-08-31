@@ -1,4 +1,3 @@
-#!/usr/bin/env ts-node
 /**
  * types.ts --- shared types for the benchmark dashboard
  *
