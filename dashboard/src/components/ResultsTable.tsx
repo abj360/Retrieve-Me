@@ -1,4 +1,3 @@
-#!/usr/bin/env ts-node
 /**
  * ResultsTable.tsx --- generic paginated table for dashboard data
  *

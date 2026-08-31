@@ -1,4 +1,3 @@
-#!/usr/bin/env ts-node
 /**
  * BenchmarkTable.tsx --- benchmark runs table with retrieval metrics
  *

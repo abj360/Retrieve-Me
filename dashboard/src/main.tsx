@@ -1,4 +1,3 @@
-#!/usr/bin/env ts-node
 /**
  * main.tsx --- browser entrypoint that mounts the dashboard root component
  *

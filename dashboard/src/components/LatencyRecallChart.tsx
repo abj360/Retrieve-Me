@@ -1,4 +1,3 @@
-#!/usr/bin/env ts-node
 /**
  * LatencyRecallChart.tsx --- latency and recall comparison across benchmark runs
  *
