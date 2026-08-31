@@ -6,6 +6,7 @@ Contains:
     Document: one raw document loaded from a corpus directory
     IngestStats: counts and timing for one ingestion run (post-dedupe)
     CorpusIngestor: chunks, embeds, and batch-indexes documents
+    CorpusIngestor._persist_sparse_index(): writes the sparse index for the service
     load_corpus(): loads all supported documents from a directory
     load_benchmark_corpus(): loads the 500-doc legal/tech benchmark set
     main(): CLI entrypoint that ingests into the live stores
@@ -82,6 +83,7 @@ class CorpusIngestor:
         dense_index: DenseIndex,
         bm25_index: BM25Index,
         batch_size: int = 100,  # chunks per embed+upsert batch
+        bm25_index_path: Path | None = None,
     ) -> None:
         """Stores the collaborators used during ingestion.
 
@@ -91,12 +93,14 @@ class CorpusIngestor:
             dense_index: Vector store receiving embedded chunks.
             bm25_index: Sparse index receiving chunk text.
             batch_size: Chunks embedded and upserted per batch.
+            bm25_index_path: Where to persist the sparse index; skipped when None.
         """
         self.chunker = chunker
         self.embedder = embedder
         self.dense_index = dense_index
         self.bm25_index = bm25_index
         self.batch_size = batch_size
+        self.bm25_index_path = bm25_index_path
 
     def ingest(self, documents: list[Document]) -> IngestStats:
         """Ingests documents into the dense and sparse indexes.
@@ -140,9 +144,22 @@ class CorpusIngestor:
             )
             logger.info("ingested chunks %d-%d of %d", start, end, total)
         self.bm25_index.build(chunks)
+        self._persist_sparse_index()
         elapsed = time.perf_counter() - started
         logger.info("ingest done: %d chunks in %.1fs", len(chunks), elapsed)
         return IngestStats(documents=len(documents), chunks=len(chunks), seconds=elapsed)
+
+    def _persist_sparse_index(self) -> None:
+        """Writes the sparse index to disk so the service can load it.
+
+        The BM25 index lives in memory in whichever process built it. Without
+        this, the API starts with an empty index and the sparse leg is dead.
+        """
+        if self.bm25_index_path is None:
+            return
+        self.bm25_index_path.parent.mkdir(parents=True, exist_ok=True)
+        self.bm25_index.save(self.bm25_index_path)
+        logger.info("wrote sparse index to %s", self.bm25_index_path)
 
 
 def load_corpus(path: Path) -> list[Document]:
@@ -241,7 +258,13 @@ def _build_ingestor() -> CorpusIngestor:
     config = QdrantConfig(url=settings.qdrant_url, collection=settings.qdrant_collection)
     dense_index = DenseIndex(config, get_qdrant_pool(settings))
     embedder = SentenceTransformerEmbedder(EmbeddingConfig(model_name=settings.embedding_model))
-    return CorpusIngestor(SemanticClauseChunker(), embedder, dense_index, BM25Index())
+    return CorpusIngestor(
+        SemanticClauseChunker(),
+        embedder,
+        dense_index,
+        BM25Index(),
+        bm25_index_path=settings.bm25_index_path,
+    )
 
 
 if __name__ == "__main__":
