@@ -48,10 +48,12 @@ export function ResultsTable<T>({ data, columns, rowKey, pageSize = 25 }: Result
   );
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
-    if (event.key === "ArrowLeft" || event.key === "PageUp" && page > 0) {
+    const wantsPrevious = event.key === "ArrowLeft" || event.key === "PageUp";
+    const wantsNext = event.key === "ArrowRight" || event.key === "PageDown";
+    if (wantsPrevious && page > 0) {
       setPage(page - 1);
     }
-    if (event.key === "ArrowRight" || event.key === "PageDown" && page + 1 < totalPages) {
+    if (wantsNext && page + 1 < totalPages) {
       setPage(page + 1);
     }
   };
