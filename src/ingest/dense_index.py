@@ -24,7 +24,7 @@ from functools import partial
 from typing import TypeVar
 
 from qdrant_client import QdrantClient
-from qdrant_client.http.exceptions import UnexpectedResponse
+from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 from qdrant_client.models import (
     Distance,
     FieldCondition,
@@ -324,7 +324,12 @@ class DenseIndex:
         try:
             with self.pool.acquire() as client:
                 client.get_collections()
-        except (PoolExhaustedError, UnexpectedResponse, OSError) as exc:
+        except (
+            PoolExhaustedError,
+            ResponseHandlingException,
+            UnexpectedResponse,
+            OSError,
+        ) as exc:
             logger.warning("qdrant health check failed: %s", exc)
             return False
         return True

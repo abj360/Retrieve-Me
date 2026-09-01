@@ -53,7 +53,7 @@ class FakePipeline:
                 score=1.0 - index * FAKE_SCORE_STEP,
                 source="fused",
             )
-            for index in range(FAKE_RESULT_COUNT)
+            for index in range(min(top_k, FAKE_RESULT_COUNT))
         ]
 
 
@@ -112,7 +112,7 @@ def test_pagination_pages_are_disjoint() -> None:
 
 def test_pagination_reports_total() -> None:
     """Asserts the total field counts every matched chunk."""
-    response = client().post("/retrieve", json={"query": "clause", "page_size": 5})
+    response = client().post("/retrieve", json={"query": "clause", "top_k": 30, "page_size": 5})
     body = response.json()
     assert body["total"] == 30
     assert len(body["results"]) == 5
@@ -167,7 +167,7 @@ def test_pipeline_failure_returns_502() -> None:
             """Raises a backend failure for the contract test."""
             raise RuntimeError("backend down")
 
-    app.dependency_overrides[get_pipeline] = FailingPipeline()
+    app.dependency_overrides[get_pipeline] = lambda: FailingPipeline()
     app.dependency_overrides[get_query_cache] = lambda: InMemoryQueryCache()
     response = TestClient(app).post("/retrieve", json={"query": "clause"})
     assert response.status_code == 502
@@ -182,8 +182,9 @@ def test_request_id_header_present() -> None:
 
 def test_cache_header_miss_then_hit() -> None:
     """Asserts X-Cache is MISS on first call and HIT on repeat."""
-    first = client().post("/retrieve", json={"query": "cache check"})
-    second = client().post("/retrieve", json={"query": "cache check"})
+    cached_client = client()
+    first = cached_client.post("/retrieve", json={"query": "cache check"})
+    second = cached_client.post("/retrieve", json={"query": "cache check"})
     assert first.headers["X-Cache"] == "MISS"
     assert second.headers["X-Cache"] == "HIT"
 
@@ -247,8 +248,10 @@ def test_results_carry_source_field() -> None:
 
 def test_has_next_flags_more_pages() -> None:
     """Asserts has_next is true on page 1 and false on the last page."""
-    first = client().post("/retrieve", json={"query": "clause", "page_size": 10})
-    last = client().post("/retrieve", json={"query": "clause", "page": 3, "page_size": 10})
+    first = client().post("/retrieve", json={"query": "clause", "top_k": 30, "page_size": 10})
+    last = client().post(
+        "/retrieve", json={"query": "clause", "top_k": 30, "page": 3, "page_size": 10}
+    )
     assert first.json()["has_next"] is True
     assert last.json()["has_next"] is False
 
@@ -283,7 +286,7 @@ def test_502_detail_is_string() -> None:
             """Raises a backend failure for the contract test."""
             raise RuntimeError("backend down")
 
-    app.dependency_overrides[get_pipeline] = FailingPipeline()
+    app.dependency_overrides[get_pipeline] = lambda: FailingPipeline()
     app.dependency_overrides[get_query_cache] = lambda: InMemoryQueryCache()
     response = TestClient(app).post("/retrieve", json={"query": "clause"})
     assert isinstance(response.json()["detail"], str)
