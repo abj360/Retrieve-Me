@@ -186,6 +186,20 @@ class LLMJudge:
             rationale=rationale,
         )
 
+    def _repair_prompt(self, raw: str) -> str:
+        """Builds a repair prompt asking the judge to reformat its reply.
+
+        Args:
+            raw: Unparseable judge reply.
+
+        Returns:
+            prompt: Reformatting instruction with the offending reply.
+        """
+        return (
+            "Reformat the following judgement exactly as:\n"
+            "relevance: <score>\nfaithfulness: <score>\nrationale: <one paragraph>\n\n"
+            f"Judgement:\n{raw}"
+        )
 
     def judge_batch(
         self,
@@ -247,19 +261,3 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
-
-
-    def _repair_prompt(self, raw: str) -> str:
-        """Builds a repair prompt asking the judge to reformat its reply.
-
-        Args:
-            raw: Unparseable judge reply.
-
-        Returns:
-            prompt: Reformatting instruction with the offending reply.
-        """
-        return (
-            "Reformat the following judgement exactly as:\n"
-            "relevance: <score>\nfaithfulness: <score>\nrationale: <one paragraph>\n\n"
-            f"Judgement:\n{raw}"
-        )
