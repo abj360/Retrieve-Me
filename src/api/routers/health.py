@@ -6,6 +6,7 @@ Contains:
     healthz(): reports whether the process is alive, plus service version
     check_qdrant(): returns ok when Qdrant answers within the ping timeout
     check_redis(): returns ok when Redis answers within the ping timeout
+    check_sparse_index(): returns ok when the persisted sparse index exists
     readyz(): reports whether backing services are reachable
 """
 
@@ -77,15 +78,34 @@ def check_redis(settings: Settings) -> str:
     return "ok"
 
 
+def check_sparse_index(settings: Settings) -> str:
+    """Returns ok when the sparse index ingest writes is on disk.
+
+    Args:
+        settings: Service settings carrying the sparse index path.
+
+    Returns:
+        state: "ok" or "missing".
+    """
+    if settings.bm25_index_path.exists():
+        return "ok"
+    logger.warning("sparse index missing at %s; run the ingest step", settings.bm25_index_path)
+    return "missing"
+
+
 @router.get("/readyz")
 def readyz() -> dict[str, str]:
-    """Reports readiness by pinging Qdrant and Redis within the ping timeout.
+    """Reports readiness by pinging Qdrant and Redis and checking the index.
 
     Returns:
         status: ready plus per-dependency check results.
     """
     settings = get_settings()
-    checks = {"qdrant": check_qdrant(settings), "redis": check_redis(settings)}
+    checks = {
+        "qdrant": check_qdrant(settings),
+        "redis": check_redis(settings),
+        "sparse_index": check_sparse_index(settings),
+    }
     degraded = {name for name, state in checks.items() if state != "ok"}
     if degraded:
         raise HTTPException(

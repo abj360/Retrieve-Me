@@ -9,11 +9,14 @@ Contains:
     build_query_cache(): builds a query-response cache from explicit settings
     get_query_cache(): returns the shared query-response cache
     get_qdrant_pool(): builds the shared Qdrant client pool
+    load_bm25_index(): restores the sparse index ingest persisted
     build_pipeline(): assembles the hybrid pipeline from pipeline.yaml
     get_pipeline(): returns the shared hybrid retrieval pipeline
 """
 
+import logging
 from functools import lru_cache
+from pathlib import Path
 
 import redis
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -30,6 +33,8 @@ from src.retrieval.strategies import (
     HybridRetriever,
     SparseRetrievalStrategy,
 )
+
+logger = logging.getLogger("retrieval.dependencies")
 
 DEFAULT_TOP_K = 10
 DEFAULT_CANDIDATE_K = 50
@@ -54,6 +59,7 @@ class Settings(BaseSettings):
         reranker_top_k: Candidates kept after cross-encoder reranking (tuned).
         fusion_rrf_k: Reciprocal-rank-fusion smoothing constant.
         pipeline_config_path: Path to the YAML pipeline definition.
+        bm25_index_path: Where ingest persists the sparse index for the service to load.
         app_title: Human-readable service title for the OpenAPI docs.
         app_version: Service version reported by the API and /healthz.
         warmup_on_startup: Whether to load the models during startup.
@@ -73,6 +79,7 @@ class Settings(BaseSettings):
     reranker_top_k: int = 20
     fusion_rrf_k: int = 60
     pipeline_config_path: str = "src/config/pipeline.yaml"
+    bm25_index_path: Path = Path("data/bm25_index.pkl")
     app_title: str = "Retrieve-Me"
     app_version: str = "0.0.2"
     warmup_on_startup: bool = True
@@ -137,6 +144,29 @@ def get_qdrant_pool(settings: Settings) -> QdrantClientPool:
     return QdrantClientPool(config)
 
 
+def load_bm25_index(path: Path) -> BM25Index:
+    """Restores the sparse index ingest persisted, or an empty built one.
+
+    A never-built index raises on search, so a missing file would take the
+    whole pipeline down on the first query. Returning an index built over
+    nothing degrades the sparse leg instead, and readyz reports it.
+
+    Args:
+        path: File an earlier ingest run wrote the index to.
+
+    Returns:
+        index: Loaded sparse index, or one built over an empty corpus.
+    """
+    index = BM25Index()
+    if not path.exists():
+        logger.warning("no sparse index at %s; run the ingest step (dense-only until then)", path)
+        index.build([])
+        return index
+    index.load(path)
+    logger.info("loaded sparse index from %s (%d chunks)", path, len(index.chunk_ids))
+    return index
+
+
 def build_pipeline(settings: Settings) -> HybridRetriever:
     """Assembles the hybrid retrieval pipeline from settings.
 
@@ -153,7 +183,7 @@ def build_pipeline(settings: Settings) -> HybridRetriever:
             batch_size=config.embedder.batch_size,
         )
     )
-    sparse = SparseRetrievalStrategy(BM25Index())
+    sparse = SparseRetrievalStrategy(load_bm25_index(settings.bm25_index_path))
     dense_index = DenseIndex(
         QdrantConfig(url=settings.qdrant_url, collection=settings.qdrant_collection),
         get_qdrant_pool(settings),
