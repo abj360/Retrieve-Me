@@ -7,7 +7,10 @@ Contains:
     test_load_results_parses_fields(): asserts JSON fields map onto the dataclass
 """
 
-from scripts.benchmark_report import BenchmarkResult, render_table
+import json
+import sys
+
+from scripts.benchmark_report import BenchmarkResult, load_results, main, render_table
 
 RUN = BenchmarkResult(
     name="hybrid",
@@ -30,8 +33,6 @@ def test_render_table_has_one_row_per_run() -> None:
 
 def test_load_results_parses_fields(tmp_path) -> None:
     """Asserts JSON fields map onto the dataclass."""
-    from scripts.benchmark_report import load_results
-
     target = tmp_path / "results.json"
     target.write_text(
         '[{"name": "x", "dataset": "d", "ndcgAt10": 0.5, "recallAt50": 0.6,'
@@ -50,16 +51,18 @@ def test_delta_column_signed() -> None:
 
 def test_emit_dashboard_json_shape(tmp_path, monkeypatch) -> None:
     """Asserts the dashboard export writes the run fields the UI expects."""
-    import json
-    import sys
-
     target = tmp_path / "out.json"
     monkeypatch.setattr(
         sys,
         "argv",
-        ["benchmark_report.py", "--results", "data/benchmark_results_sample.json", "--emit-dashboard-json", str(target)],
+        [
+            "benchmark_report.py",
+            "--results",
+            "data/benchmark_results_sample.json",
+            "--emit-dashboard-json",
+            str(target),
+        ],
     )
-    from scripts.benchmark_report import main
 
     main()
     first, *_rest = json.loads(target.read_text(encoding="utf-8"))

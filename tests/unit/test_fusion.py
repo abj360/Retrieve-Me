@@ -11,7 +11,9 @@ Contains:
     test_tie_scores_deterministic(): asserts ties break by chunk_id
 """
 
-from src.retrieval.fusion import FusionConfig, RankedResult, ResultFuser
+import pytest
+
+from src.retrieval.fusion import FusionConfig, RankedResult, ResultFuser, normalize_min_max
 
 
 def make_result(chunk_id: str, score: float, source: str = "sparse") -> RankedResult:
@@ -69,7 +71,9 @@ def test_tie_scores_deterministic() -> None:
 
 def test_single_hit_each_leg() -> None:
     """Asserts one hit per leg fuses into two results."""
-    fused = ResultFuser(FusionConfig()).fuse([make_result("a", 0.9)], [make_result("b", 0.8, "dense")])
+    fused = ResultFuser(FusionConfig()).fuse(
+        [make_result("a", 0.9)], [make_result("b", 0.8, "dense")]
+    )
     assert len(fused) == 2
 
 
@@ -107,8 +111,6 @@ def test_fused_source_label() -> None:
 
 def test_normalize_scales_to_unit_range() -> None:
     """Asserts normalized scores land in [0, 1]."""
-    from src.retrieval.fusion import normalize_min_max
-
     results = [make_result("a", 2.0), make_result("b", 5.0), make_result("c", 11.0)]
     normalized = normalize_min_max(results)
     assert min(result.score for result in normalized) == 0.0
@@ -117,8 +119,6 @@ def test_normalize_scales_to_unit_range() -> None:
 
 def test_normalize_empty_leg_stays_empty() -> None:
     """Asserts an empty leg normalizes to empty."""
-    from src.retrieval.fusion import normalize_min_max
-
     assert normalize_min_max([]) == []
 
 
@@ -132,8 +132,6 @@ def test_fuse_with_normalization_disabled() -> None:
 
 def test_normalize_preserves_order() -> None:
     """Asserts normalization never reorders a leg."""
-    from src.retrieval.fusion import normalize_min_max
-
     results = [make_result("a", 3.0), make_result("b", 2.0), make_result("c", 1.0)]
     normalized = normalize_min_max(results)
     assert [result.chunk_id for result in normalized] == ["a", "b", "c"]
@@ -150,8 +148,6 @@ def test_duplicate_chunk_across_legs_scores_higher() -> None:
 
 def test_normalize_constant_scores_become_ones() -> None:
     """Asserts a constant-score leg normalizes to all 1.0."""
-    from src.retrieval.fusion import normalize_min_max
-
     results = [make_result("a", 0.5), make_result("b", 0.5)]
     normalized = normalize_min_max(results)
     assert [result.score for result in normalized] == [1.0, 1.0]
@@ -159,8 +155,6 @@ def test_normalize_constant_scores_become_ones() -> None:
 
 def test_normalize_two_values_becomes_zero_and_one() -> None:
     """Asserts a two-hit leg normalizes to exactly 0 and 1."""
-    from src.retrieval.fusion import normalize_min_max
-
     normalized = normalize_min_max([make_result("a", 4.0), make_result("b", 9.0)])
     scores = {result.chunk_id: result.score for result in normalized}
     assert scores["a"] == 0.0
@@ -169,8 +163,6 @@ def test_normalize_two_values_becomes_zero_and_one() -> None:
 
 def test_normalize_handles_negative_scores() -> None:
     """Asserts negative raw scores normalize correctly."""
-    from src.retrieval.fusion import normalize_min_max
-
     normalized = normalize_min_max([make_result("a", -2.0), make_result("b", 2.0)])
     assert min(result.score for result in normalized) == 0.0
     assert max(result.score for result in normalized) == 1.0
@@ -178,8 +170,6 @@ def test_normalize_handles_negative_scores() -> None:
 
 def test_single_hit_leg_keeps_raw_score() -> None:
     """Asserts a lone hit is not inflated to 1.0 by normalization."""
-    from src.retrieval.fusion import normalize_min_max
-
     normalized = normalize_min_max([make_result("a", 7.5)])
     assert normalized[0].score == 7.5
 
@@ -198,9 +188,9 @@ def test_fuse_many_three_legs() -> None:
 
 def test_zero_weight_on_one_leg() -> None:
     """Asserts a zero-weight leg cannot lift its chunks to the top."""
-    fused = ResultFuser(
-        FusionConfig(sparse_weight=0.0, normalize_scores=False)
-    ).fuse([make_result("top-sparse", 0.99)], [make_result("top-dense", 0.01, "dense")])
+    fused = ResultFuser(FusionConfig(sparse_weight=0.0, normalize_scores=False)).fuse(
+        [make_result("top-sparse", 0.99)], [make_result("top-dense", 0.01, "dense")]
+    )
     assert fused[0].chunk_id == "top-dense"
 
 
@@ -223,8 +213,6 @@ def test_rrf_k_large_flattens_scores() -> None:
 
 def test_normalize_metadata_survives() -> None:
     """Asserts normalization keeps result metadata intact."""
-    from src.retrieval.fusion import normalize_min_max
-
     result = make_result("a", 3.0)
     result.metadata["clause_refs"] = ["Section 3.1"]
     normalized, _ = normalize_min_max([result, make_result("b", 9.0)])
@@ -233,8 +221,6 @@ def test_normalize_metadata_survives() -> None:
 
 def test_normalize_source_label_preserved() -> None:
     """Asserts normalization keeps the leg's source label."""
-    from src.retrieval.fusion import normalize_min_max
-
     normalized, _ = normalize_min_max([make_result("a", 3.0), make_result("b", 9.0, "dense")])
     assert normalized.source == "sparse"
 
@@ -250,17 +236,13 @@ def test_fused_result_keeps_better_provenance() -> None:
 
 def test_post_init_rejects_bad_config() -> None:
     """Asserts invalid fusion config is rejected."""
-    import pytest
-
     with pytest.raises(ValueError):
         ResultFuser(FusionConfig(rrf_k=0))
 
 
 def test_norm_flag_false_uses_raw_scores() -> None:
     """Asserts the normalization flag off keeps raw score scale in RRF."""
-    fused = ResultFuser(FusionConfig(normalize_scores=False)).fuse(
-        [make_result("a", 100.0)], []
-    )
+    fused = ResultFuser(FusionConfig(normalize_scores=False)).fuse([make_result("a", 100.0)], [])
     assert fused[0].score > 0
 
 
@@ -276,9 +258,9 @@ def test_rrf_k_changes_ranking_gradient() -> None:
 
 def test_zero_weight_leg_still_appears() -> None:
     """Asserts a zero-weight leg contributes nothing to the fused score."""
-    fused = ResultFuser(
-        FusionConfig(sparse_weight=0.0, normalize_scores=False)
-    ).fuse([make_result("a", 0.9)], [make_result("b", 0.1, "dense")])
+    fused = ResultFuser(FusionConfig(sparse_weight=0.0, normalize_scores=False)).fuse(
+        [make_result("a", 0.9)], [make_result("b", 0.1, "dense")]
+    )
     scores = {result.chunk_id: result.score for result in fused}
     assert scores["b"] > 0
     assert scores["a"] == 0

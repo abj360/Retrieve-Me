@@ -11,26 +11,32 @@ Contains:
 import pytest
 
 from src.ingest.bm25_index import BM25Index
-from src.ingest.loader import CorpusIngestor, Document
+from src.ingest.loader import CorpusIngestor, Document, load_corpus
+from src.ingest.loader import Document as SmokeDocument
 
 
 @pytest.fixture
 def smoke_documents() -> list[Document]:
     """Returns two small documents for smoke runs."""
     return [
-        Document(doc_id="smoke-legal", title="smoke-legal", text="Section 1.1 The tenant shall pay rent."),
-        Document(doc_id="smoke-tech", title="smoke-tech", text="The API returns problem details as JSON."),
+        Document(
+            doc_id="smoke-legal", title="smoke-legal", text="Section 1.1 The tenant shall pay rent."
+        ),
+        Document(
+            doc_id="smoke-tech", title="smoke-tech", text="The API returns problem details as JSON."
+        ),
     ]
 
 
-def test_ingest_smoke_writes_chunks(smoke_documents, token_chunker, fake_dense_index, real_embedder) -> None:
+def test_ingest_smoke_writes_chunks(
+    smoke_documents, token_chunker, fake_dense_index, real_embedder
+) -> None:
     """Asserts the indexed chunk count matches what the corpus actually yields."""
     bm25 = BM25Index()
     ingestor = CorpusIngestor(token_chunker, real_embedder, fake_dense_index, bm25)
     stats = ingestor.ingest(smoke_documents)
     expected = sum(
-        len(token_chunker.split(document.text, document.doc_id))
-        for document in smoke_documents
+        len(token_chunker.split(document.text, document.doc_id)) for document in smoke_documents
     )
     assert fake_dense_index.count() == expected
     assert stats.chunks == expected
@@ -40,7 +46,9 @@ def test_ingest_crlf_document(whole_doc_chunker, fake_dense_index, real_embedder
     """Asserts CRLF line endings ingest without issues."""
     embedder = real_embedder
     bm25 = BM25Index()
-    documents = [Document(doc_id="crlf", title="crlf", text="Clause 3.1 First line.\r\nSecond line.")]
+    documents = [
+        Document(doc_id="crlf", title="crlf", text="Clause 3.1 First line.\r\nSecond line.")
+    ]
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
     ingestor.ingest(documents)
     assert fake_dense_index.count() == 1
@@ -67,7 +75,9 @@ def test_ingest_bullet_list_document(whole_doc_chunker, fake_dense_index, real_e
     assert fake_dense_index.count() == 1
 
 
-def test_ingest_numbered_clauses_document(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
+def test_ingest_numbered_clauses_document(
+    whole_doc_chunker, fake_dense_index, real_embedder
+) -> None:
     """Asserts numbered-clause text ingests without issues."""
     embedder = real_embedder
     bm25 = BM25Index()
@@ -95,7 +105,9 @@ def test_ingest_embedder_called_once_per_small_corpus(
     """Asserts a small corpus triggers one embed call per batch."""
     embedder = counting_embedder
     bm25 = BM25Index()
-    documents = [Document(doc_id=f"d-{index}", title="t", text=f"text {index}") for index in range(5)]
+    documents = [
+        Document(doc_id=f"d-{index}", title="t", text=f"text {index}") for index in range(5)
+    ]
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
     ingestor.ingest(documents)
     assert embedder.calls == 1
@@ -105,12 +117,17 @@ def test_ingest_chunk_ids_unique(whole_doc_chunker, fake_dense_index, real_embed
     """Asserts ingested chunks get distinct ids."""
     embedder = real_embedder
     bm25 = BM25Index()
-    documents = [Document(doc_id=f"doc-{index}", title="t", text=f"unique text {index}") for index in range(4)]
+    documents = [
+        Document(doc_id=f"doc-{index}", title="t", text=f"unique text {index}")
+        for index in range(4)
+    ]
     CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
     assert fake_dense_index.count() == 4
 
 
-def test_ingest_single_sentence_document(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
+def test_ingest_single_sentence_document(
+    whole_doc_chunker, fake_dense_index, real_embedder
+) -> None:
     """Asserts a one-sentence document ingests as a single chunk."""
     embedder = real_embedder
     bm25 = BM25Index()
@@ -127,11 +144,13 @@ def test_ingest_handles_unicode(whole_doc_chunker, fake_dense_index, real_embedd
     bm25 = BM25Index()
     documents = [Document(doc_id="uni", title="uni", text="Clause 2.1 — café “smart” ünicode.")]
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
-    ingested = ingestor.ingest(documents)
+    ingestor.ingest(documents)
     assert fake_dense_index.count() == 1
 
 
-def test_ingest_unicode_quotes_and_emoji(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
+def test_ingest_unicode_quotes_and_emoji(
+    whole_doc_chunker, fake_dense_index, real_embedder
+) -> None:
     """Asserts emoji and smart quotes ingest without issues."""
     embedder = real_embedder
     bm25 = BM25Index()
@@ -151,7 +170,9 @@ def test_ingest_long_token_stream(whole_doc_chunker, fake_dense_index, real_embe
     assert fake_dense_index.count() == 1
 
 
-def test_ingest_duplicate_doc_ids_both_written(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
+def test_ingest_duplicate_doc_ids_both_written(
+    whole_doc_chunker, fake_dense_index, real_embedder
+) -> None:
     """Asserts duplicate doc ids both index (dedupe not implemented yet)."""
     embedder = real_embedder
     bm25 = BM25Index()
@@ -163,7 +184,9 @@ def test_ingest_duplicate_doc_ids_both_written(whole_doc_chunker, fake_dense_ind
     assert fake_dense_index.count() >= 1
 
 
-def test_ingest_whitespace_text_still_counts(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
+def test_ingest_whitespace_text_still_counts(
+    whole_doc_chunker, fake_dense_index, real_embedder
+) -> None:
     """Asserts a whitespace-only doc does not crash ingest."""
     embedder = real_embedder
     bm25 = BM25Index()
@@ -222,12 +245,18 @@ def test_ingest_exactly_one_batch(whole_doc_chunker, fake_dense_index, counting_
     assert embedder.calls == 1
 
 
-def test_ingest_batch_boundary_corpus(whole_doc_chunker, fake_dense_index, counting_embedder) -> None:
+def test_ingest_batch_boundary_corpus(
+    whole_doc_chunker, fake_dense_index, counting_embedder
+) -> None:
     """Asserts a corpus spanning multiple batches ingests without errors."""
     embedder = counting_embedder
     bm25 = BM25Index()
     documents = [
-        Document(doc_id=f"bulk-{index:03d}", title=f"bulk-{index:03d}", text=f"Clause {index}.1 bulk text.")
+        Document(
+            doc_id=f"bulk-{index:03d}",
+            title=f"bulk-{index:03d}",
+            text=f"Clause {index}.1 bulk text.",
+        )
         for index in range(120)
     ]
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
@@ -235,7 +264,9 @@ def test_ingest_batch_boundary_corpus(whole_doc_chunker, fake_dense_index, count
     assert embedder.calls >= 2
 
 
-def test_ingest_two_hundred_fifty_chunks(whole_doc_chunker, fake_dense_index, counting_embedder) -> None:
+def test_ingest_two_hundred_fifty_chunks(
+    whole_doc_chunker, fake_dense_index, counting_embedder
+) -> None:
     """Asserts a 250-chunk corpus ingests across three batches."""
     embedder = counting_embedder
     bm25 = BM25Index()
@@ -251,7 +282,9 @@ def test_ingest_returns_positive_count(whole_doc_chunker, fake_dense_index, real
     """Asserts ingest reports a positive chunk count for a small corpus."""
     embedder = real_embedder
     bm25 = BM25Index()
-    documents = [Document(doc_id=f"r-{index}", title="t", text=f"text {index}") for index in range(3)]
+    documents = [
+        Document(doc_id=f"r-{index}", title="t", text=f"text {index}") for index in range(3)
+    ]
     ingested = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
     assert ingested.chunks > 0
 
@@ -266,14 +299,18 @@ def test_bm25_built_after_ingest(whole_doc_chunker, fake_dense_index, real_embed
     assert hits[0].doc_id == "q-1"
 
 
-def test_ingest_recreates_collection_when_asked(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
+def test_ingest_recreates_collection_when_asked(
+    whole_doc_chunker, fake_dense_index, real_embedder
+) -> None:
     """Asserts ensure_collection(recreate=True) clears before ingest."""
     fake_dense_index.upsert(["stale"], [[0.1] * 16], [{"doc_id": "stale"}])
     fake_dense_index.ensure_collection(recreate=True)
     assert fake_dense_index.count() == 0
 
 
-def test_second_ingest_overwrites_deterministic_ids(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
+def test_second_ingest_overwrites_deterministic_ids(
+    whole_doc_chunker, fake_dense_index, real_embedder
+) -> None:
     """Asserts re-ingesting the same corpus does not grow the index."""
     embedder = real_embedder
     bm25 = BM25Index()
@@ -285,23 +322,25 @@ def test_second_ingest_overwrites_deterministic_ids(whole_doc_chunker, fake_dens
     assert fake_dense_index.count() == first
 
 
-def test_stats_report_documents_and_seconds(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
+def test_stats_report_documents_and_seconds(
+    whole_doc_chunker, fake_dense_index, real_embedder
+) -> None:
     """Asserts ingest stats include document count and elapsed seconds."""
     bm25 = BM25Index()
     documents = [Document(doc_id="s-1", title="t", text="stats text")]
-    stats = CorpusIngestor(whole_doc_chunker, real_embedder, fake_dense_index, bm25).ingest(documents)
+    stats = CorpusIngestor(whole_doc_chunker, real_embedder, fake_dense_index, bm25).ingest(
+        documents
+    )
     assert stats.documents == 1
     assert stats.seconds >= 0
 
 
-def test_exact_count_small_corpus(token_chunker, fake_dense_index, real_embedder, mini_corpus) -> None:
+def test_exact_count_small_corpus(
+    token_chunker, fake_dense_index, real_embedder, mini_corpus
+) -> None:
     """Asserts the mini corpus indexes exactly as many chunks as produced."""
-    from src.ingest.loader import Document
-
     bm25 = BM25Index()
-    documents = [
-        Document(doc_id=doc_id, title=doc_id, text=text) for doc_id, text in mini_corpus
-    ]
+    documents = [Document(doc_id=doc_id, title=doc_id, text=text) for doc_id, text in mini_corpus]
     ingestor = CorpusIngestor(token_chunker, real_embedder, fake_dense_index, bm25)
     stats = ingestor.ingest(documents)
     expected = sum(
@@ -313,8 +352,6 @@ def test_exact_count_small_corpus(token_chunker, fake_dense_index, real_embedder
 
 def test_exact_count_seven_documents(token_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts a seven-document corpus indexes exactly seven chunks."""
-    from src.ingest.loader import Document as SmokeDocument
-
     bm25 = BM25Index()
     documents = [
         SmokeDocument(doc_id=f"seven-{index}", title="t", text=f"clause {index} text")
@@ -326,10 +363,10 @@ def test_exact_count_seven_documents(token_chunker, fake_dense_index, real_embed
     assert stats.chunks == expected
 
 
-def test_bm25_ids_match_dense_ids(token_chunker, fake_dense_index, real_embedder, mini_corpus) -> None:
+def test_bm25_ids_match_dense_ids(
+    token_chunker, fake_dense_index, real_embedder, mini_corpus
+) -> None:
     """Asserts sparse and dense indexes hold the same chunk ids."""
-    from src.ingest.loader import Document as SmokeDocument
-
     bm25 = BM25Index()
     documents = [
         SmokeDocument(doc_id=doc_id, title="t", text=text) for doc_id, text in mini_corpus[:5]
@@ -347,8 +384,6 @@ def test_real_embedder_deterministic_per_text(real_embedder) -> None:
 
 def test_load_corpus_skips_non_text_files(tmp_path) -> None:
     """Asserts the corpus loader ignores non-text files."""
-    from src.ingest.loader import load_corpus
-
     (tmp_path / "keep.txt").write_text("keep me", encoding="utf-8")
     (tmp_path / "skip.bin").write_bytes(b"\x00\x01")
     documents = load_corpus(tmp_path)
@@ -357,8 +392,6 @@ def test_load_corpus_skips_non_text_files(tmp_path) -> None:
 
 def test_load_corpus_skips_empty_files(tmp_path) -> None:
     """Asserts the corpus loader skips empty text files."""
-    from src.ingest.loader import load_corpus
-
     (tmp_path / "empty.txt").write_text("   ", encoding="utf-8")
     (tmp_path / "full.txt").write_text("content", encoding="utf-8")
     documents = load_corpus(tmp_path)
@@ -367,8 +400,6 @@ def test_load_corpus_skips_empty_files(tmp_path) -> None:
 
 def test_load_corpus_sorts_by_filename(tmp_path) -> None:
     """Asserts the corpus loader returns documents in filename order."""
-    from src.ingest.loader import load_corpus
-
     for name in ("b-doc", "a-doc", "c-doc"):
         (tmp_path / f"{name}.txt").write_text(f"text {name}", encoding="utf-8")
     documents = load_corpus(tmp_path)
@@ -377,8 +408,6 @@ def test_load_corpus_sorts_by_filename(tmp_path) -> None:
 
 def test_ingest_jsonl_corpus(tmp_path, whole_doc_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts a jsonl corpus file loads and ingests end to end."""
-    from src.ingest.loader import load_corpus
-
     target = tmp_path / "corpus.jsonl"
     target.write_text(
         '{"doc_id": "j-1", "text": "Clause 9.1 jsonl document text."}\n'
@@ -398,7 +427,9 @@ def test_document_metadata_passthrough(whole_doc_chunker, fake_dense_index, real
     embedder = real_embedder
     bm25 = BM25Index()
     documents = [
-        Document(doc_id="meta", title="meta", text="clause 8.1 meta text", metadata={"source": "legal"})
+        Document(
+            doc_id="meta", title="meta", text="clause 8.1 meta text", metadata={"source": "legal"}
+        )
     ]
     CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
     assert fake_dense_index.count() == 1

@@ -8,7 +8,10 @@ Contains:
     test_in_memory_miss_returns_none(): asserts a miss returns None
 """
 
+import redis
+
 from src.api.cache import InMemoryQueryCache, RedisQueryCache
+from src.api.routers.retrieve import RetrieveRequest, cache_key
 
 
 class FakeRedis:
@@ -77,8 +80,6 @@ class FakeRedis:
     def _maybe_fail(self) -> None:
         """Raises a Redis error when failure mode is on."""
         if self._fail:
-            import redis
-
             raise redis.RedisError("simulated redis outage")
 
 
@@ -112,8 +113,6 @@ def test_redis_backed_roundtrip() -> None:
 
 def test_cache_key_covers_request_shape() -> None:
     """Asserts the endpoint cache key covers query, pagination, and filters."""
-    from src.api.routers.retrieve import RetrieveRequest, cache_key
-
     first = cache_key(RetrieveRequest(query="clause"))
     second = cache_key(RetrieveRequest(query="clause", page=2))
     third = cache_key(RetrieveRequest(query="clause"))

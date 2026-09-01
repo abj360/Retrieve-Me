@@ -10,8 +10,14 @@ Contains:
     test_judge_unparseable_scores_zero(): asserts garbage replies score zero
 """
 
-from src.eval.judge import EvalQuery, LLMJudge
+import json
+from dataclasses import FrozenInstanceError
+
+import pytest
+
+from src.eval.judge import EvalQuery, JudgeVerdict, LLMJudge, load_eval_dataset, summarize
 from src.generation.generate import GeneratedAnswer
+from src.retrieval.fusion import RankedResult
 
 CANNED_REPLY = """relevance: 0.9
 faithfulness: 1.0
@@ -95,18 +101,12 @@ def test_verdict_is_frozen() -> None:
     """Asserts verdicts are immutable."""
     judge = LLMJudge(CannedJudgeClient())
     verdict = judge.judge_answer(make_eval_query(), make_answer(), [])
-    try:
-        verdict.relevance = 0.1  # noqa: frozen dataclass guard
-    except Exception:
-        pass
-    else:
-        raise AssertionError("expected frozen dataclass")
+    with pytest.raises(FrozenInstanceError):
+        verdict.relevance = 0.1
 
 
 def test_judge_batch_one_verdict_per_query() -> None:
     """Asserts the batch returns verdicts in input order."""
-    from src.eval.judge import EvalQuery
-
     judge = LLMJudge(CannedJudgeClient())
     queries = [
         EvalQuery(query_id=f"q-{index}", query="q?", relevant_doc_ids=set(), reference_answer="")
@@ -118,8 +118,6 @@ def test_judge_batch_one_verdict_per_query() -> None:
 
 def test_summarize_means() -> None:
     """Asserts summarize averages the scores."""
-    from src.eval.judge import JudgeVerdict, summarize
-
     verdicts = [
         JudgeVerdict("q-1", 0.8, 1.0, "ok"),
         JudgeVerdict("q-2", 0.4, 0.5, "ok"),
@@ -131,13 +129,9 @@ def test_summarize_means() -> None:
 
 def test_judge_prompt_has_rubric_and_contexts() -> None:
     """Asserts the judge prompt carries the rubric, query, answer, contexts."""
-    from src.retrieval.fusion import RankedResult
-
     client = CannedJudgeClient()
     judge = LLMJudge(client)
-    contexts = [
-        RankedResult("c-1", "doc-1", "Section 3.1 clause text.", 0.9, "fused")
-    ]
+    contexts = [RankedResult("c-1", "doc-1", "Section 3.1 clause text.", 0.9, "fused")]
     judge.judge_answer(make_eval_query(), make_answer(), contexts)
     prompt = client.prompts[0]
     assert "relevance" in prompt and "faithfulness" in prompt
@@ -146,13 +140,14 @@ def test_judge_prompt_has_rubric_and_contexts() -> None:
 
 def test_load_eval_dataset_parses_jsonl(tmp_path) -> None:
     """Asserts the dataset loader parses JSONL into EvalQuery objects."""
-    from src.eval.judge import load_eval_dataset
-
     target = tmp_path / "queries.jsonl"
-    target.write_text(
-        '{"query_id": "q-1", "query": "text?", "relevant_doc_ids": ["doc-a"], "reference_answer": "ans"}\n',
-        encoding="utf-8",
-    )
+    record = {
+        "query_id": "q-1",
+        "query": "text?",
+        "relevant_doc_ids": ["doc-a"],
+        "reference_answer": "ans",
+    }
+    target.write_text(json.dumps(record) + "\n", encoding="utf-8")
     (query,) = load_eval_dataset(target)
     assert query.query_id == "q-1"
     assert query.relevant_doc_ids == {"doc-a"}
@@ -160,8 +155,6 @@ def test_load_eval_dataset_parses_jsonl(tmp_path) -> None:
 
 def test_load_eval_dataset_skips_blank_lines(tmp_path) -> None:
     """Asserts blank JSONL lines are skipped."""
-    from src.eval.judge import load_eval_dataset
-
     target = tmp_path / "queries.jsonl"
     target.write_text(
         '{"query_id": "q-1", "query": "text?", "relevant_doc_ids": [], "reference_answer": ""}\n\n',
@@ -193,8 +186,6 @@ def test_batch_empty_queries_returns_empty() -> None:
 
 def test_summarize_empty_returns_zeros() -> None:
     """Asserts summarizing no verdicts yields zeroed means."""
-    from src.eval.judge import summarize
-
     assert summarize([]) == {"relevance": 0.0, "faithfulness": 0.0}
 
 
@@ -267,12 +258,8 @@ def test_rationale_is_returned_trimmed() -> None:
 
 def test_batch_preserves_individual_scores() -> None:
     """Asserts batch verdicts keep their per-query scores."""
-    from src.eval.judge import EvalQuery
-
     judge = LLMJudge(CannedJudgeClient())
-    queries = [
-        EvalQuery(query_id="q-x", query="q?", relevant_doc_ids=set(), reference_answer="")
-    ]
+    queries = [EvalQuery(query_id="q-x", query="q?", relevant_doc_ids=set(), reference_answer="")]
     (verdict,) = judge.judge_batch(queries, lambda _q: make_answer(), lambda _q: [])
     assert verdict.relevance == 0.9
 

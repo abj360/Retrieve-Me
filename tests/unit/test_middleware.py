@@ -7,6 +7,8 @@ Contains:
     test_request_id_echoed_when_provided(): asserts a provided id round-trips
 """
 
+import logging
+
 from fastapi.testclient import TestClient
 
 from src.api.main import create_app
@@ -26,8 +28,6 @@ def test_request_id_echoed_when_provided() -> None:
 
 def test_health_probe_not_logged_at_info(caplog) -> None:
     """Asserts health probes skip request logging once quiet paths land."""
-    import logging
-
     with caplog.at_level(logging.INFO, logger="retrieval.http"):
         TestClient(create_app()).get("/healthz")
     assert not [record for record in caplog.records if "/healthz" in record.getMessage()]
@@ -41,8 +41,6 @@ def test_generated_request_id_is_twelve_chars() -> None:
 
 def test_server_error_logged_at_error(caplog) -> None:
     """Asserts 5xx responses are logged at error level."""
-    import logging
-
     with caplog.at_level(logging.INFO, logger="retrieval.http"):
         TestClient(create_app()).get("/missing-path")
     assert any(record.levelname == "WARNING" for record in caplog.records)
@@ -50,8 +48,6 @@ def test_server_error_logged_at_error(caplog) -> None:
 
 def test_normal_request_logged_at_info(caplog) -> None:
     """Asserts ordinary requests emit one info log line with a request id."""
-    import logging
-
     with caplog.at_level(logging.INFO, logger="retrieval.http"):
         TestClient(create_app()).post("/retrieve", json={"query": "clause"})
     messages = [record.getMessage() for record in caplog.records]

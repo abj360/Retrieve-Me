@@ -8,8 +8,15 @@ Contains:
     test_dense_leg_returns_scored_hits(): asserts dense search returns scores
 """
 
-from src.retrieval.fusion import FusionConfig, ResultFuser
-
+from src.ingest.bm25_index import BM25Index
+from src.ingest.loader import CorpusIngestor, Document
+from src.retrieval.fusion import FusionConfig, RankedResult, ResultFuser
+from src.retrieval.strategies import (
+    DenseRetrievalStrategy,
+    HybridRetriever,
+    SparseRetrievalStrategy,
+)
+from src.retrieval.tracing import LatencyTracer
 
 
 def test_exact_clause_doc_wins_fused_ranking(indexed_stores, stub_embedder) -> None:
@@ -17,11 +24,14 @@ def test_exact_clause_doc_wins_fused_ranking(indexed_stores, stub_embedder) -> N
     bm25, dense = indexed_stores
     query = "Section 3.1 indemnify vendor"
     sparse_hits = bm25.search(query, top_k=4)
-    from src.retrieval.fusion import RankedResult
 
     sparse = [
         RankedResult(
-            chunk_id=hit.chunk_id, doc_id=hit.doc_id, text=hit.text, score=hit.score, source="sparse"
+            chunk_id=hit.chunk_id,
+            doc_id=hit.doc_id,
+            text=hit.text,
+            score=hit.score,
+            source="sparse",
         )
         for hit in sparse_hits
     ]
@@ -60,7 +70,6 @@ def test_dense_leg_returns_scored_hits(indexed_stores, stub_embedder) -> None:
 def test_fusion_is_deterministic(indexed_stores, stub_embedder) -> None:
     """Asserts repeated fusion of the same lists yields the same order."""
     bm25, dense = indexed_stores
-    from src.retrieval.fusion import FusionConfig, RankedResult, ResultFuser
 
     query = "indemnify"
     sparse = [
@@ -109,7 +118,6 @@ def test_bm25_ranks_exact_clause_first(indexed_stores) -> None:
 def test_fused_results_carry_source(indexed_stores, stub_embedder) -> None:
     """Asserts fused results are labelled with the fused source."""
     bm25, dense = indexed_stores
-    from src.retrieval.fusion import FusionConfig, RankedResult, ResultFuser
 
     query = "batch upserts"
     sparse = [
@@ -127,12 +135,15 @@ def test_fused_results_carry_source(indexed_stores, stub_embedder) -> None:
 def test_reranker_reorders_by_overlap(indexed_stores, stub_reranker) -> None:
     """Asserts the stub reranker lifts the highest-overlap candidate."""
     bm25, _dense = indexed_stores
-    from src.retrieval.fusion import RankedResult
 
     query = "problem details HTTP APIs"
     sparse = [
         RankedResult(
-            chunk_id=hit.chunk_id, doc_id=hit.doc_id, text=hit.text, score=hit.score, source="sparse"
+            chunk_id=hit.chunk_id,
+            doc_id=hit.doc_id,
+            text=hit.text,
+            score=hit.score,
+            source="sparse",
         )
         for hit in bm25.search(query, top_k=3)
     ]
@@ -201,14 +212,6 @@ def test_dense_no_filters_returns_all(indexed_stores, stub_embedder) -> None:
 
 def test_tracer_summary_totals(indexed_stores, stub_embedder, stub_reranker) -> None:
     """Asserts the tracer summary reports one total per span name."""
-    from src.retrieval.fusion import FusionConfig, ResultFuser
-    from src.retrieval.strategies import (
-        DenseRetrievalStrategy,
-        HybridRetriever,
-        SparseRetrievalStrategy,
-    )
-    from src.retrieval.tracing import LatencyTracer
-
     bm25, dense = indexed_stores
     tracer = LatencyTracer()
     pipeline = HybridRetriever(
@@ -226,14 +229,6 @@ def test_tracer_summary_totals(indexed_stores, stub_embedder, stub_reranker) -> 
 
 def test_hybrid_retriever_records_stage_spans(indexed_stores, stub_embedder, stub_reranker) -> None:
     """Asserts the hybrid pipeline records a span per retrieval stage."""
-    from src.retrieval.fusion import FusionConfig, ResultFuser
-    from src.retrieval.strategies import (
-        DenseRetrievalStrategy,
-        HybridRetriever,
-        SparseRetrievalStrategy,
-    )
-    from src.retrieval.tracing import LatencyTracer
-
     bm25, dense = indexed_stores
     tracer = LatencyTracer()
     pipeline = HybridRetriever(
@@ -251,13 +246,6 @@ def test_hybrid_retriever_records_stage_spans(indexed_stores, stub_embedder, stu
 
 def test_retrieve_respects_top_k(indexed_stores, stub_embedder, stub_reranker) -> None:
     """Asserts the pipeline returns at most top_k results."""
-    from src.retrieval.fusion import FusionConfig, ResultFuser
-    from src.retrieval.strategies import (
-        DenseRetrievalStrategy,
-        HybridRetriever,
-        SparseRetrievalStrategy,
-    )
-
     bm25, dense = indexed_stores
     pipeline = HybridRetriever(
         SparseRetrievalStrategy(bm25),
@@ -274,11 +262,10 @@ def test_bm25_fixture_is_queryable(bm25_index) -> None:
     assert hits[0].doc_id == "license-agreement"
 
 
-def test_ingest_writes_every_chunk(sample_documents, token_chunker, real_embedder, fake_dense_index) -> None:
+def test_ingest_writes_every_chunk(
+    sample_documents, token_chunker, real_embedder, fake_dense_index
+) -> None:
     """Asserts the full pipeline ingests and indexes every produced chunk."""
-    from src.ingest.bm25_index import BM25Index
-    from src.ingest.loader import CorpusIngestor, Document
-
     bm25 = BM25Index()
     documents = [
         Document(doc_id=doc_id, title=doc_id, text=text) for doc_id, text in sample_documents

@@ -18,6 +18,8 @@ logger = logging.getLogger("retrieval.http")
 
 REQUEST_ID_HEADER = "X-Request-ID"
 QUIET_PATHS = frozenset({"/healthz", "/readyz", "/"})
+SERVER_ERROR_STATUS = 500
+CLIENT_ERROR_STATUS = 400
 
 
 class RequestLoggingMiddleware(BaseHTTPMiddleware):
@@ -44,9 +46,9 @@ class RequestLoggingMiddleware(BaseHTTPMiddleware):
         response.headers[REQUEST_ID_HEADER] = request_id
         log = (
             logger.error
-            if response.status_code >= 500
+            if response.status_code >= SERVER_ERROR_STATUS
             else logger.warning
-            if response.status_code >= 400
+            if response.status_code >= CLIENT_ERROR_STATUS
             else logger.debug
             if request.url.path in QUIET_PATHS
             else logger.info

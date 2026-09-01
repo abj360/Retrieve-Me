@@ -146,7 +146,10 @@ def build_pipeline(settings: Settings) -> HybridRetriever:
     """
     config = load_pipeline_config(settings.pipeline_config_path)
     embedder = SentenceTransformerEmbedder(
-        EmbeddingConfig(model_name=config.embedder.model_name, batch_size=config.embedder.batch_size)
+        EmbeddingConfig(
+            model_name=config.embedder.model_name,
+            batch_size=config.embedder.batch_size,
+        )
     )
     sparse = SparseRetrievalStrategy(BM25Index())
     dense_index = DenseIndex(

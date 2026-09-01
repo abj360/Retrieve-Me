@@ -8,7 +8,13 @@ Contains:
     test_empty_summary(): asserts an empty tracer summarizes to {}
 """
 
-from src.retrieval.tracing import LatencyTracer
+from src.retrieval.fusion import FusionConfig, ResultFuser
+from src.retrieval.strategies import (
+    DenseRetrievalStrategy,
+    HybridRetriever,
+    SparseRetrievalStrategy,
+)
+from src.retrieval.tracing import LatencyTracer, percentile
 
 
 def test_span_records_duration() -> None:
@@ -41,9 +47,8 @@ def test_empty_summary() -> None:
 def test_nested_spans_record_both() -> None:
     """Asserts nested spans record inner and outer stages."""
     tracer = LatencyTracer()
-    with tracer.span("outer"):
-        with tracer.span("inner"):
-            pass
+    with tracer.span("outer"), tracer.span("inner"):
+        pass
     assert [span.name for span in tracer.spans] == ["inner", "outer"]
 
 
@@ -70,13 +75,6 @@ def test_span_names_arbitrary() -> None:
 
 def test_tracer_in_pipeline_records_stages(indexed_stores, stub_embedder, stub_reranker) -> None:
     """Asserts the hybrid pipeline emits one span per stage."""
-    from src.retrieval.fusion import FusionConfig, ResultFuser
-    from src.retrieval.strategies import (
-        DenseRetrievalStrategy,
-        HybridRetriever,
-        SparseRetrievalStrategy,
-    )
-
     bm25, dense = indexed_stores
     tracer = LatencyTracer()
     pipeline = HybridRetriever(
@@ -93,22 +91,16 @@ def test_tracer_in_pipeline_records_stages(indexed_stores, stub_embedder, stub_r
 
 def test_percentile_of_empty_is_zero() -> None:
     """Asserts an empty value list percentiles to zero."""
-    from src.retrieval.tracing import percentile
-
     assert percentile([], 95) == 0.0
 
 
 def test_percentile_interpolates() -> None:
     """Asserts percentile interpolates between neighbors."""
-    from src.retrieval.tracing import percentile
-
     assert percentile([10.0, 20.0], 50) == 15.0
 
 
 def test_percentile_single_value() -> None:
     """Asserts a single value is its own percentile."""
-    from src.retrieval.tracing import percentile
-
     assert percentile([42.0], 95) == 42.0
 
 

@@ -4,6 +4,10 @@ strategies.py --- pluggable retrieval strategy interface and legs
 
 Contains:
     RetrievalStrategy: protocol all retrieval strategies implement
+    QueryEmbedder: protocol for the embedder the dense leg injects
+    VectorIndex: protocol for the vector store the dense leg searches
+    Fuser: protocol for the fusion step the hybrid retriever injects
+    Reranker: protocol for the rerank step the hybrid retriever injects
     SparseRetrievalStrategy: BM25 leg of the hybrid pipeline
     DenseRetrievalStrategy: dense vector leg of the hybrid pipeline
     HybridRetriever: orchestrates legs, fusion, and rerank into one call
@@ -13,10 +17,81 @@ Contains:
 import logging
 from typing import Protocol
 
+import numpy as np
+
 from src.ingest.bm25_index import BM25Index
+from src.ingest.dense_index import DenseHit
 from src.retrieval.fusion import RankedResult
+from src.retrieval.tracing import LatencyTracer
 
 logger = logging.getLogger(__name__)
+
+
+class QueryEmbedder(Protocol):
+    """Encodes query text into a dense vector."""
+
+    def encode_query(self, query: str) -> np.ndarray:
+        """Encodes one query into a dense vector.
+
+        Args:
+            query: Raw query text.
+
+        Returns:
+            vector: Dense vector for the query.
+        """
+
+
+class VectorIndex(Protocol):
+    """Searches stored vectors for the nearest neighbours of a query."""
+
+    def search(
+        self,
+        vector: list[float],
+        top_k: int,
+        filters: dict[str, str] | None = None,
+        score_threshold: float | None = None,
+    ) -> list[DenseHit]:
+        """Returns the nearest stored vectors to the query vector.
+
+        Args:
+            vector: Query vector.
+            top_k: Maximum number of hits to return.
+            filters: Optional exact-match payload filters.
+            score_threshold: Minimum score for a hit to be returned.
+
+        Returns:
+            hits: Scored dense hits, best first.
+        """
+
+
+class Fuser(Protocol):
+    """Merges the sparse and dense legs into one ranking."""
+
+    def fuse(self, sparse: list[RankedResult], dense: list[RankedResult]) -> list[RankedResult]:
+        """Merges two ranked lists into one fused ranking.
+
+        Args:
+            sparse: Ranked results from the BM25 leg.
+            dense: Ranked results from the dense leg.
+
+        Returns:
+            fused: Deduplicated results in fused rank order.
+        """
+
+
+class Reranker(Protocol):
+    """Re-scores fused candidates against the query."""
+
+    def rerank(self, query: str, candidates: list[RankedResult]) -> list[RankedResult]:
+        """Re-scores candidates and returns them best first.
+
+        Args:
+            query: Raw query text.
+            candidates: Fused candidates to re-score.
+
+        Returns:
+            reranked: Re-scored candidates, best first.
+        """
 
 
 class RetrievalStrategy(Protocol):
@@ -85,7 +160,7 @@ class DenseRetrievalStrategy:
         embedder: Embedder used to vectorize queries.
     """
 
-    def __init__(self, index, embedder) -> None:
+    def __init__(self, index: VectorIndex, embedder: QueryEmbedder) -> None:
         """Stores the dense index and embedder.
 
         Args:
@@ -108,7 +183,7 @@ class DenseRetrievalStrategy:
         Returns:
             results: Dense hits mapped to ranked results.
         """
-        query_vector = self.embedder.encode_query(query)
+        query_vector = [float(value) for value in self.embedder.encode_query(query)]
         return [
             RankedResult(
                 chunk_id=hit.chunk_id,
@@ -132,10 +207,10 @@ class HybridRetriever:
         self,
         sparse: SparseRetrievalStrategy,
         dense: DenseRetrievalStrategy,
-        fuser,
-        reranker,
+        fuser: Fuser,
+        reranker: Reranker,
         candidate_k: int = 50,
-        tracer=None,
+        tracer: LatencyTracer | None = None,
     ) -> None:
         """Stores the pipeline stages.
 
