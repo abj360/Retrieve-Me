@@ -36,9 +36,9 @@ def test_ingest_smoke_writes_chunks(smoke_documents, token_chunker, fake_dense_i
     assert stats.chunks == expected
 
 
-def test_ingest_crlf_document(whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_crlf_document(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts CRLF line endings ingest without issues."""
-    embedder = MockEmbedder()
+    embedder = real_embedder
     bm25 = BM25Index()
     documents = [Document(doc_id="crlf", title="crlf", text="Clause 3.1 First line.\r\nSecond line.")]
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
@@ -46,9 +46,9 @@ def test_ingest_crlf_document(whole_doc_chunker, fake_dense_index) -> None:
     assert fake_dense_index.count() == 1
 
 
-def test_ingest_markdown_document(whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_markdown_document(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts markdown-formatted text ingests without issues."""
-    embedder = MockEmbedder()
+    embedder = real_embedder
     bm25 = BM25Index()
     documents = [Document(doc_id="md", title="md", text="# Heading\n\n- item one\n- item two")]
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
@@ -56,9 +56,9 @@ def test_ingest_markdown_document(whole_doc_chunker, fake_dense_index) -> None:
     assert fake_dense_index.count() == 1
 
 
-def test_ingest_bullet_list_document(whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_bullet_list_document(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts bullet-list text ingests without issues."""
-    embedder = MockEmbedder()
+    embedder = real_embedder
     bm25 = BM25Index()
     text = "\n".join(f"- obligation {index}" for index in range(20))
     documents = [Document(doc_id="bullets", title="bullets", text=text)]
@@ -67,9 +67,9 @@ def test_ingest_bullet_list_document(whole_doc_chunker, fake_dense_index) -> Non
     assert fake_dense_index.count() == 1
 
 
-def test_ingest_numbered_clauses_document(whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_numbered_clauses_document(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts numbered-clause text ingests without issues."""
-    embedder = MockEmbedder()
+    embedder = real_embedder
     bm25 = BM25Index()
     text = " ".join(f"Clause {index}.1 obligation {index}." for index in range(10))
     documents = [Document(doc_id="clauses", title="clauses", text=text)]
@@ -78,9 +78,9 @@ def test_ingest_numbered_clauses_document(whole_doc_chunker, fake_dense_index) -
     assert fake_dense_index.count() == 1
 
 
-def test_ingest_long_document(whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_long_document(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts a long document ingests without issues."""
-    embedder = MockEmbedder()
+    embedder = real_embedder
     bm25 = BM25Index()
     text = "The quick brown fox jumps over the lazy dog. " * 400
     documents = [Document(doc_id="long", title="long", text=text)]
@@ -89,9 +89,11 @@ def test_ingest_long_document(whole_doc_chunker, fake_dense_index) -> None:
     assert fake_dense_index.count() == 1
 
 
-def test_ingest_embedder_called_once_per_small_corpus(whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_embedder_called_once_per_small_corpus(
+    whole_doc_chunker, fake_dense_index, counting_embedder
+) -> None:
     """Asserts a small corpus triggers one embed call per batch."""
-    embedder = MockEmbedder()
+    embedder = counting_embedder
     bm25 = BM25Index()
     documents = [Document(doc_id=f"d-{index}", title="t", text=f"text {index}") for index in range(5)]
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
@@ -99,29 +101,29 @@ def test_ingest_embedder_called_once_per_small_corpus(whole_doc_chunker, fake_de
     assert embedder.calls == 1
 
 
-def test_ingest_chunk_ids_unique(whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_chunk_ids_unique(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts ingested chunks get distinct ids."""
-    embedder = MockEmbedder()
+    embedder = real_embedder
     bm25 = BM25Index()
     documents = [Document(doc_id=f"doc-{index}", title="t", text=f"unique text {index}") for index in range(4)]
     CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
     assert fake_dense_index.count() == 4
 
 
-def test_ingest_single_sentence_document(whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_single_sentence_document(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts a one-sentence document ingests as a single chunk."""
-    embedder = MockEmbedder()
+    embedder = real_embedder
     bm25 = BM25Index()
     documents = [Document(doc_id="tiny", title="tiny", text="Clause 1.1 Short.")]
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
     ingested = ingestor.ingest(documents)
-    assert ingested == 1
+    assert ingested.chunks == 1
     assert fake_dense_index.count() == 1
 
 
-def test_ingest_handles_unicode(whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_handles_unicode(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts unicode text ingests without errors."""
-    embedder = MockEmbedder()
+    embedder = real_embedder
     bm25 = BM25Index()
     documents = [Document(doc_id="uni", title="uni", text="Clause 2.1 — café “smart” ünicode.")]
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
@@ -129,9 +131,9 @@ def test_ingest_handles_unicode(whole_doc_chunker, fake_dense_index) -> None:
     assert fake_dense_index.count() == 1
 
 
-def test_ingest_unicode_quotes_and_emoji(whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_unicode_quotes_and_emoji(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts emoji and smart quotes ingest without issues."""
-    embedder = MockEmbedder()
+    embedder = real_embedder
     bm25 = BM25Index()
     documents = [Document(doc_id="emoji", title="emoji", text="Clause 4.1 ship it 🚀 “done”")]
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
@@ -139,9 +141,9 @@ def test_ingest_unicode_quotes_and_emoji(whole_doc_chunker, fake_dense_index) ->
     assert fake_dense_index.count() == 1
 
 
-def test_ingest_long_token_stream(whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_long_token_stream(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts a long single-token stream does not hang ingest."""
-    embedder = MockEmbedder()
+    embedder = real_embedder
     bm25 = BM25Index()
     documents = [Document(doc_id="token", title="token", text="x" * 5000)]
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
@@ -149,9 +151,9 @@ def test_ingest_long_token_stream(whole_doc_chunker, fake_dense_index) -> None:
     assert fake_dense_index.count() == 1
 
 
-def test_ingest_duplicate_doc_ids_both_written(whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_duplicate_doc_ids_both_written(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts duplicate doc ids both index (dedupe not implemented yet)."""
-    embedder = MockEmbedder()
+    embedder = real_embedder
     bm25 = BM25Index()
     documents = [
         Document(doc_id="dup", title="dup", text="first copy"),
@@ -161,21 +163,21 @@ def test_ingest_duplicate_doc_ids_both_written(whole_doc_chunker, fake_dense_ind
     assert fake_dense_index.count() >= 1
 
 
-def test_ingest_whitespace_text_still_counts(whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_whitespace_text_still_counts(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts a whitespace-only doc does not crash ingest."""
-    embedder = MockEmbedder()
+    embedder = real_embedder
     bm25 = BM25Index()
     documents = [Document(doc_id="ws", title="ws", text="   ")]
     CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
     assert fake_dense_index.count() <= 1
 
 
-def test_ingest_empty_document_list(whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_empty_document_list(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts ingesting zero documents writes zero chunks."""
-    embedder = MockEmbedder()
+    embedder = real_embedder
     bm25 = BM25Index()
     ingested = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest([])
-    assert ingested == 0
+    assert ingested.chunks == 0
     assert fake_dense_index.count() == 0
 
 
@@ -208,9 +210,9 @@ def test_semantic_tail_chunk_merged(token_chunker) -> None:
     assert all(chunk.token_count >= 5 for chunk in chunks)
 
 
-def test_ingest_exactly_one_batch(whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_exactly_one_batch(whole_doc_chunker, fake_dense_index, counting_embedder) -> None:
     """Asserts a 100-chunk corpus ingests in exactly one batch."""
-    embedder = MockEmbedder()
+    embedder = counting_embedder
     bm25 = BM25Index()
     documents = [
         Document(doc_id=f"exact-{index:03d}", title="t", text=f"clause {index} text")
@@ -220,9 +222,9 @@ def test_ingest_exactly_one_batch(whole_doc_chunker, fake_dense_index) -> None:
     assert embedder.calls == 1
 
 
-def test_ingest_batch_boundary_corpus(whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_batch_boundary_corpus(whole_doc_chunker, fake_dense_index, counting_embedder) -> None:
     """Asserts a corpus spanning multiple batches ingests without errors."""
-    embedder = MockEmbedder()
+    embedder = counting_embedder
     bm25 = BM25Index()
     documents = [
         Document(doc_id=f"bulk-{index:03d}", title=f"bulk-{index:03d}", text=f"Clause {index}.1 bulk text.")
@@ -233,9 +235,9 @@ def test_ingest_batch_boundary_corpus(whole_doc_chunker, fake_dense_index) -> No
     assert embedder.calls >= 2
 
 
-def test_ingest_two_hundred_fifty_chunks(whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_two_hundred_fifty_chunks(whole_doc_chunker, fake_dense_index, counting_embedder) -> None:
     """Asserts a 250-chunk corpus ingests across three batches."""
-    embedder = MockEmbedder()
+    embedder = counting_embedder
     bm25 = BM25Index()
     documents = [
         Document(doc_id=f"bulk-{index:03d}", title="t", text=f"clause {index} text")
@@ -245,18 +247,18 @@ def test_ingest_two_hundred_fifty_chunks(whole_doc_chunker, fake_dense_index) ->
     assert embedder.calls == 3
 
 
-def test_ingest_returns_positive_count(whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_returns_positive_count(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts ingest reports a positive chunk count for a small corpus."""
-    embedder = MockEmbedder()
+    embedder = real_embedder
     bm25 = BM25Index()
     documents = [Document(doc_id=f"r-{index}", title="t", text=f"text {index}") for index in range(3)]
     ingested = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
-    assert ingested > 0
+    assert ingested.chunks > 0
 
 
-def test_bm25_built_after_ingest(whole_doc_chunker, fake_dense_index) -> None:
+def test_bm25_built_after_ingest(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts the sparse index is queryable after ingest."""
-    embedder = MockEmbedder()
+    embedder = real_embedder
     bm25 = BM25Index()
     documents = [Document(doc_id="q-1", title="t", text="clause 7.1 queryable text")]
     CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)
@@ -264,16 +266,16 @@ def test_bm25_built_after_ingest(whole_doc_chunker, fake_dense_index) -> None:
     assert hits[0].doc_id == "q-1"
 
 
-def test_ingest_recreates_collection_when_asked(whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_recreates_collection_when_asked(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts ensure_collection(recreate=True) clears before ingest."""
     fake_dense_index.upsert(["stale"], [[0.1] * 16], [{"doc_id": "stale"}])
     fake_dense_index.ensure_collection(recreate=True)
     assert fake_dense_index.count() == 0
 
 
-def test_second_ingest_overwrites_deterministic_ids(whole_doc_chunker, fake_dense_index) -> None:
+def test_second_ingest_overwrites_deterministic_ids(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts re-ingesting the same corpus does not grow the index."""
-    embedder = MockEmbedder()
+    embedder = real_embedder
     bm25 = BM25Index()
     documents = [Document(doc_id="redo", title="t", text="redo text here")]
     ingestor = CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25)
@@ -391,9 +393,9 @@ def test_ingest_jsonl_corpus(tmp_path, whole_doc_chunker, fake_dense_index, real
     assert fake_dense_index.count() == 2
 
 
-def test_document_metadata_passthrough(whole_doc_chunker, fake_dense_index) -> None:
+def test_document_metadata_passthrough(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts document metadata reaches the dense payload."""
-    embedder = MockEmbedder()
+    embedder = real_embedder
     bm25 = BM25Index()
     documents = [
         Document(doc_id="meta", title="meta", text="clause 8.1 meta text", metadata={"source": "legal"})
@@ -402,9 +404,9 @@ def test_document_metadata_passthrough(whole_doc_chunker, fake_dense_index) -> N
     assert fake_dense_index.count() == 1
 
 
-def test_ingest_empty_title_document(whole_doc_chunker, fake_dense_index) -> None:
+def test_ingest_empty_title_document(whole_doc_chunker, fake_dense_index, real_embedder) -> None:
     """Asserts a document with an empty title still ingests."""
-    embedder = MockEmbedder()
+    embedder = real_embedder
     bm25 = BM25Index()
     documents = [Document(doc_id="no-title", title="", text="clause 9.9 untitled text")]
     CorpusIngestor(whole_doc_chunker, embedder, fake_dense_index, bm25).ingest(documents)

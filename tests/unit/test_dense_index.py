@@ -12,6 +12,7 @@ Contains:
 import time
 
 import pytest
+from qdrant_client.http.exceptions import UnexpectedResponse
 
 from src.ingest.dense_index import (
     PoolExhaustedError,
@@ -96,6 +97,7 @@ class FakeQdrantClient:
         """Creates an empty fake with one collection."""
         self.points = []
         self.upsert_calls = 0
+        self.dropped = False
 
     def collection_exists(self, collection: str) -> bool:
         """Returns whether the fake collection exists.
@@ -129,6 +131,34 @@ class FakeQdrantClient:
             result: Object with a count attribute.
         """
         return type("CountResult", (), {"count": len(self.points)})()
+
+    def delete_collection(self, collection: str) -> None:
+        """Drops the fake collection and everything in it.
+
+        Args:
+            collection: Collection name to drop.
+        """
+        self.points.clear()
+        self.dropped = True
+
+    def query_points(self, collection_name: str, query, limit: int, **kwargs):
+        """Answers a search, raising like Qdrant when the collection is gone.
+
+        Args:
+            collection_name: Collection being searched.
+            query: Query vector.
+            limit: Maximum number of points to return.
+            **kwargs: Filter and threshold arguments the fake ignores.
+
+        Returns:
+            response: Object exposing the matched points.
+
+        Raises:
+            UnexpectedResponse: When the collection does not exist.
+        """
+        if not self.collection_exists(collection_name):
+            raise UnexpectedResponse(404, "Not Found", b"collection not found", {})
+        return type("QueryResponse", (), {"points": self.points[:limit]})()
 
     def get_collections(self) -> list:
         """Returns a stub collections listing.
@@ -204,91 +234,6 @@ def test_point_ids_are_deterministic() -> None:
     assert client.points[1].id == first_id
 
 
-class FakeQdrantClient:
-    """Records upsert calls and answers collection queries in memory."""
-
-    def __init__(self) -> None:
-        """Creates an empty fake with one collection."""
-        self.points = []
-        self.upsert_calls = 0
-
-    def collection_exists(self, collection: str) -> bool:
-        """Returns whether the fake collection exists.
-
-        Args:
-            collection: Collection name to check.
-
-        Returns:
-            exists: Always True for the fake.
-        """
-        return True
-
-    def upsert(self, collection_name: str, points: list, wait: bool = True) -> None:
-        """Records one upsert call.
-
-        Args:
-            collection_name: Target collection.
-            points: Points being written.
-            wait: Whether to wait for indexing; ignored.
-        """
-        self.upsert_calls += 1
-        self.points.extend(points)
-
-    def count(self, collection: str):
-        """Counts stored fake points.
-
-        Args:
-            collection: Collection name to count.
-
-        Returns:
-            result: Object with a count attribute.
-        """
-        return type("CountResult", (), {"count": len(self.points)})()
-
-    def get_collections(self) -> list:
-        """Returns a stub collections listing.
-
-        Returns:
-            collections: Empty list.
-        """
-        return []
-
-
-class FakePool:
-    """Yields one fake client with the pool acquire protocol."""
-
-    def __init__(self, client: FakeQdrantClient) -> None:
-        """Stores the fake client to yield.
-
-        Args:
-            client: Fake client yielded on every acquire.
-        """
-        self._client = client
-
-    def acquire(self):
-        """Yields the fake client as a context manager."""
-        from contextlib import contextmanager
-
-        @contextmanager
-        def _acquire():
-            yield self._client
-
-        return _acquire()
-
-
-def make_index(client: FakeQdrantClient):
-    """Builds a DenseIndex over a fake client.
-
-    Args:
-        client: Fake client the index talks to.
-
-    Returns:
-        index: DenseIndex wired to the fake.
-    """
-    from src.ingest.dense_index import DenseIndex, QdrantConfig
-
-    return DenseIndex(QdrantConfig(), FakePool(client))
-
 
 def test_upsert_writes_in_batches() -> None:
     """Asserts a 250-point upsert lands as three batch calls of 100/100/50."""
@@ -301,91 +246,6 @@ def test_upsert_writes_in_batches() -> None:
     assert client.upsert_calls == 3
     assert len(client.points) == 250
 
-
-class FakeQdrantClient:
-    """Records upsert calls and answers collection queries in memory."""
-
-    def __init__(self) -> None:
-        """Creates an empty fake with one collection."""
-        self.points = []
-        self.upsert_calls = 0
-
-    def collection_exists(self, collection: str) -> bool:
-        """Returns whether the fake collection exists.
-
-        Args:
-            collection: Collection name to check.
-
-        Returns:
-            exists: Always True for the fake.
-        """
-        return True
-
-    def upsert(self, collection_name: str, points: list, wait: bool = True) -> None:
-        """Records one upsert call.
-
-        Args:
-            collection_name: Target collection.
-            points: Points being written.
-            wait: Whether to wait for indexing; ignored.
-        """
-        self.upsert_calls += 1
-        self.points.extend(points)
-
-    def count(self, collection: str):
-        """Counts stored fake points.
-
-        Args:
-            collection: Collection name to count.
-
-        Returns:
-            result: Object with a count attribute.
-        """
-        return type("CountResult", (), {"count": len(self.points)})()
-
-    def get_collections(self) -> list:
-        """Returns a stub collections listing.
-
-        Returns:
-            collections: Empty list.
-        """
-        return []
-
-
-class FakePool:
-    """Yields one fake client with the pool acquire protocol."""
-
-    def __init__(self, client: FakeQdrantClient) -> None:
-        """Stores the fake client to yield.
-
-        Args:
-            client: Fake client yielded on every acquire.
-        """
-        self._client = client
-
-    def acquire(self):
-        """Yields the fake client as a context manager."""
-        from contextlib import contextmanager
-
-        @contextmanager
-        def _acquire():
-            yield self._client
-
-        return _acquire()
-
-
-def make_index(client: FakeQdrantClient):
-    """Builds a DenseIndex over a fake client.
-
-    Args:
-        client: Fake client the index talks to.
-
-    Returns:
-        index: DenseIndex wired to the fake.
-    """
-    from src.ingest.dense_index import DenseIndex, QdrantConfig
-
-    return DenseIndex(QdrantConfig(), FakePool(client))
 
 
 def test_build_filter_maps_exact_matches() -> None:
