@@ -167,8 +167,8 @@ def test_pipeline_failure_returns_502() -> None:
             """Raises a backend failure for the contract test."""
             raise RuntimeError("backend down")
 
-    app.dependency_overrides[get_pipeline] = lambda: FailingPipeline()
-    app.dependency_overrides[get_query_cache] = lambda: InMemoryQueryCache()
+    app.dependency_overrides[get_pipeline] = FailingPipeline
+    app.dependency_overrides[get_query_cache] = InMemoryQueryCache
     response = TestClient(app).post("/retrieve", json={"query": "clause"})
     assert response.status_code == 502
     assert response.json()["detail"] == "retrieval backend unavailable"
@@ -286,8 +286,8 @@ def test_502_detail_is_string() -> None:
             """Raises a backend failure for the contract test."""
             raise RuntimeError("backend down")
 
-    app.dependency_overrides[get_pipeline] = lambda: FailingPipeline()
-    app.dependency_overrides[get_query_cache] = lambda: InMemoryQueryCache()
+    app.dependency_overrides[get_pipeline] = FailingPipeline
+    app.dependency_overrides[get_query_cache] = InMemoryQueryCache
     response = TestClient(app).post("/retrieve", json={"query": "clause"})
     assert isinstance(response.json()["detail"], str)
 

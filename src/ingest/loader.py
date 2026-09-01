@@ -18,7 +18,9 @@ import time
 from dataclasses import dataclass, field
 from functools import partial
 from pathlib import Path
+from typing import Any
 
+from src.api.dependencies import get_qdrant_pool, get_settings
 from src.ingest.bm25_index import BM25Index
 from src.ingest.chunking import Chunker, SemanticClauseChunker
 from src.ingest.dense_index import DenseIndex, QdrantConfig, retry_with_backoff
@@ -45,7 +47,7 @@ class Document:
     doc_id: str
     title: str
     text: str
-    metadata: dict = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(frozen=True)
@@ -112,14 +114,19 @@ class CorpusIngestor:
             for document in documents
             for chunk in self.chunker.split(document.text, document.doc_id)
         ]
-        logger.info("ingesting %d docs as %d chunks (batch=%d)", len(documents), len(chunks), self.batch_size)
+        logger.info(
+            "ingesting %d docs as %d chunks (batch=%d)",
+            len(documents),
+            len(chunks),
+            self.batch_size,
+        )
         self.dense_index.ensure_collection()
         total = len(chunks)
         for start in range(0, total, self.batch_size):  # sequential batches keep memory flat
             end = min(start + self.batch_size, total)
             batch = chunks[start:end]
             batch_texts = [chunk.text for chunk in batch]  # embed once, reuse for payload
-            vectors = self.embedder.encode(batch_texts)
+            vectors = [row.tolist() for row in self.embedder.encode(batch_texts)]
             retry_with_backoff(
                 partial(
                     self.dense_index.upsert,
@@ -214,9 +221,7 @@ def main() -> None:
     if args.corpus is None and not args.benchmark:
         parser.error("pass --corpus DIR or --benchmark")
     logging.basicConfig(level=logging.INFO)
-    documents = (
-        load_benchmark_corpus() if args.benchmark else load_corpus(args.corpus)
-    )
+    documents = load_benchmark_corpus() if args.benchmark else load_corpus(args.corpus)
     stats = _build_ingestor().ingest(documents)
     logger.info(
         "done: %d documents, %d chunks in %.1fs",
@@ -232,8 +237,6 @@ def _build_ingestor() -> CorpusIngestor:
     Returns:
         ingestor: Ingestor backed by Qdrant, Redis-free BM25, and the embedder.
     """
-    from src.api.dependencies import get_qdrant_pool, get_settings
-
     settings = get_settings()
     config = QdrantConfig(url=settings.qdrant_url, collection=settings.qdrant_collection)
     dense_index = DenseIndex(config, get_qdrant_pool(settings))

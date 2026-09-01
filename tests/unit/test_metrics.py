@@ -10,7 +10,14 @@ Contains:
     test_citation_faithfulness_all_grounded(): asserts grounded citations score 1.0
 """
 
-from src.eval.metrics import citation_faithfulness, mrr, ndcg_at_k, recall_at_k
+from src.eval.metrics import (
+    citation_faithfulness,
+    mean,
+    mrr,
+    ndcg_at_k,
+    precision_at_k,
+    recall_at_k,
+)
 
 
 def test_ndcg_perfect_ranking() -> None:
@@ -45,8 +52,6 @@ def test_citation_faithfulness_vacuous_when_no_citations() -> None:
 
 def test_precision_at_k() -> None:
     """Asserts precision counts relevant hits in the top-k."""
-    from src.eval.metrics import precision_at_k
-
     assert precision_at_k(["a", "x", "b"], {"a", "b"}, k=3) == 2 / 3
 
 
@@ -57,7 +62,5 @@ def test_citation_faithfulness_partial() -> None:
 
 def test_mean_helper() -> None:
     """Asserts the mean helper averages and handles empty."""
-    from src.eval.metrics import mean
-
     assert mean([0.4, 0.8]) == 0.6
     assert mean([]) == 0.0

@@ -15,7 +15,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from src.ingest.bm25_index import BM25Index, tokenize
+from src.ingest.bm25_index import BM25Index, token_count, tokenize
 
 
 def make_chunk(chunk_id: str, text: str) -> SimpleNamespace:
@@ -28,7 +28,7 @@ def make_chunk(chunk_id: str, text: str) -> SimpleNamespace:
     Returns:
         chunk: Object exposing chunk_id, doc_id, and text.
     """
-    return SimpleNamespace(chunk_id=chunk_id, doc_id=chunk_id.split("-")[0], text=text)
+    return SimpleNamespace(chunk_id=chunk_id, doc_id=chunk_id.split("-", maxsplit=1)[0], text=text)
 
 
 def test_tokenize_lowercases_and_keeps_hyphens() -> None:
@@ -62,8 +62,6 @@ def test_tokenize_empty_string() -> None:
 
 def test_save_load_roundtrip(tmp_path) -> None:
     """Asserts a pickled index keeps ranking after a round trip."""
-    from pathlib import Path
-
     index = BM25Index()
     index.build([make_chunk("a-0", "alpha beta gamma"), make_chunk("b-0", "delta epsilon")])
     target = tmp_path / "bm25.pkl"
@@ -103,6 +101,4 @@ def test_stats_reports_chunk_count() -> None:
 
 def test_token_count_matches_tokenize_length() -> None:
     """Asserts token_count agrees with len(tokenize())."""
-    from src.ingest.bm25_index import token_count
-
     assert token_count("one two three") == len(tokenize("one two three"))

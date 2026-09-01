@@ -3,6 +3,7 @@
 generate.py --- citation-grounded generation over retrieved chunks (with retry)
 
 Contains:
+    CompletionClient: protocol for the LLM client the generator injects
     Citation: one grounded citation back to a retrieved chunk (chunk, doc, quote)
     GeneratedAnswer: an answer with its grounded citations
     CitationGenerator: generates citation-grounded answers
@@ -14,11 +15,29 @@ Prompt templates live in src/generation/prompts/citation.py.
 import logging
 import re
 from dataclasses import dataclass
+from typing import Protocol
 
+from src.eval.metrics import citation_faithfulness
 from src.generation.prompts.citation import build_citation_prompt
 from src.retrieval.fusion import RankedResult
 
 logger = logging.getLogger(__name__)
+
+
+class CompletionClient(Protocol):
+    """Returns completion text for a prompt."""
+
+    def __call__(self, prompt: str, max_tokens: int) -> str:
+        """Completes one prompt.
+
+        Args:
+            prompt: Assembled prompt text.
+            max_tokens: Maximum tokens to generate.
+
+        Returns:
+            completion: Raw completion text.
+        """
+
 
 # matches the [n] markers the citation prompt asks the model to emit
 CITATION_PATTERN = re.compile(r"\[(\d+)\]")
@@ -59,7 +78,7 @@ class CitationGenerator:
         max_tokens: Maximum tokens per generated answer.
     """
 
-    def __init__(self, llm_client, max_tokens: int = 512) -> None:
+    def __init__(self, llm_client: CompletionClient, max_tokens: int = 512) -> None:
         """Stores the LLM client and token budget.
 
         Args:
@@ -143,8 +162,6 @@ class CitationGenerator:
         Returns:
             score: Fraction of citations that map to retrieved chunks.
         """
-        from src.eval.metrics import citation_faithfulness
-
         return citation_faithfulness(
             [citation.chunk_id for citation in answer.citations],
             {result.chunk_id for result in results},

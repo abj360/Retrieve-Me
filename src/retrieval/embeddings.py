@@ -79,8 +79,14 @@ class SentenceTransformerEmbedder:
 
         Returns:
             dimension: Vector dimension reported by the model.
+
+        Raises:
+            RuntimeError: When the loaded model does not report a dimension.
         """
-        return self._load_model().get_sentence_embedding_dimension()
+        dimension = self._load_model().get_sentence_embedding_dimension()
+        if dimension is None:
+            raise RuntimeError(f"{self.config.model_name} reports no embedding dimension")
+        return dimension
 
     def encode(self, texts: list[str]) -> np.ndarray:
         """Encodes texts into a 2D array of dense vectors.
@@ -105,7 +111,7 @@ class SentenceTransformerEmbedder:
                     convert_to_numpy=True,
                 )
             )
-        return np.concatenate(vectors)
+        return np.concatenate(vectors).astype(np.float32)
 
     def _load_model(self) -> SentenceTransformer:
         """Loads the model on first use.
@@ -114,7 +120,11 @@ class SentenceTransformerEmbedder:
             model: Loaded sentence-transformers model.
         """
         if self._model is None:
-            logger.info("loading embedding model %s onto device %s", self.config.model_name, self.config.device)
+            logger.info(
+                "loading embedding model %s onto device %s",
+                self.config.model_name,
+                self.config.device,
+            )
             self._model = SentenceTransformer(self.config.model_name, device=self.config.device)
         return self._model
 
@@ -136,7 +146,8 @@ class SentenceTransformerEmbedder:
         Returns:
             vector: Dense vector for the query.
         """
-        return self.encode([query])[0]
+        vector: np.ndarray = self.encode([query])[0]
+        return vector
 
     def encode_documents(self, documents: list[str]) -> np.ndarray:
         """Encodes document texts into dense vectors.
@@ -185,7 +196,7 @@ class DeterministicEmbedder:
         Returns:
             vectors: One deterministic vector per input text.
         """
-        vectors = np.zeros((len(texts), self._dimension), dtype=np.float32)
+        vectors: np.ndarray = np.zeros((len(texts), self._dimension), dtype=np.float32)
         for row, text in enumerate(texts):
             digest = hashlib.sha256(text.encode("utf-8")).digest()
             repeats = (self._dimension + len(digest) - 1) // len(digest)
@@ -193,7 +204,7 @@ class DeterministicEmbedder:
             vectors[row] = (values.astype(np.float32) - 128.0) / 128.0
         if self._normalize:
             norms = np.linalg.norm(vectors, axis=1, keepdims=True)
-            vectors = vectors / np.where(norms == 0, 1.0, norms)
+            vectors = (vectors / np.where(norms == 0, 1.0, norms)).astype(np.float32)
         return vectors
 
     def encode_query(self, query: str) -> np.ndarray:
@@ -205,7 +216,8 @@ class DeterministicEmbedder:
         Returns:
             vector: Deterministic vector for the query.
         """
-        return self.encode([query])[0]
+        vector: np.ndarray = self.encode([query])[0]
+        return vector
 
     def encode_documents(self, documents: list[str]) -> np.ndarray:
         """Encodes documents into deterministic vectors.
