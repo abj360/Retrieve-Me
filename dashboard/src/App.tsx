@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 
 import { getBenchmarkRuns, getHealth, postRetrieve } from "./api/client";
 import { BenchmarkTable } from "./components/BenchmarkTable";
+import { LatencyRecallChart } from "./components/LatencyRecallChart";
 import { QueryInspector } from "./components/QueryInspector";
 import type { BenchmarkRun, RetrievedChunk } from "./types";
 
@@ -64,7 +65,6 @@ export function App() {
         setInspectionResults(response.results);
         setInspectionTookMs(response.tookMs);
         setIsInspecting(false);
-        setInspectionTookMs(null);
       })
       .catch((error: unknown) => {
         setInspectError(error instanceof Error ? error.message : "retrieval request failed");
@@ -146,6 +146,9 @@ export function App() {
           )}
           {!isLoading && loadError === null && <BenchmarkTable runs={runs} />}
         </section>
+        )}
+        {activeTab === "benchmarks" && !isLoading && loadError === null && (
+          <LatencyRecallChart runs={runs} />
         )}
       </main>
       <footer className="app-footer">

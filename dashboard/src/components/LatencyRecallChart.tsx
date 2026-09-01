@@ -56,8 +56,17 @@ function toChartPoints(runs: BenchmarkRun[]): ChartPoint[] {
  * @returns element - Chart element.
  */
 export function LatencyRecallChart({ runs }: LatencyRecallChartProps) {
-  const latest = runs[runs.length - 1];
+  const latest = runs.at(-1);
   const points = toChartPoints(runs);
+
+  if (latest === undefined) {
+    return (
+      <section className="panel chart-container" aria-label="latency and recall chart">
+        <h2>Latency vs recall (per run)</h2>
+        <p className="status-line">No benchmark runs yet — run the eval harness to populate this chart.</p>
+      </section>
+    );
+  }
 
   return (
     <section className="panel chart-container" aria-label="latency and recall chart">
@@ -84,7 +93,7 @@ export function LatencyRecallChart({ runs }: LatencyRecallChartProps) {
           label="p95 target"
         />
         <Bar yAxisId="left" dataKey="p95Ms" name="p95 latency (ms)" fill="var(--chart-bar)" />
-        <Bar yAxisId="left" dataKey="recallAt50" name="recall@50" fill="var(--chart-bar-alt)" />
+        <Bar yAxisId="right" dataKey="recallAt50" name="recall@50" fill="var(--chart-bar-alt)" />
         <Line yAxisId="right" dataKey="ndcgAt10" name="nDCG@10" stroke="var(--chart-line)" />
         </ComposedChart>
       </ResponsiveContainer>
