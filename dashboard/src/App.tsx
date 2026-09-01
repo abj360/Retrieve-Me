@@ -1,4 +1,3 @@
-#!/usr/bin/env ts-node
 /**
  * App.tsx --- root component of the retrieval-core benchmark dashboard
  *

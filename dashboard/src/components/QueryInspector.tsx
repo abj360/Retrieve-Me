@@ -1,4 +1,3 @@
-#!/usr/bin/env ts-node
 /**
  * QueryInspector.tsx --- inspection view for ad-hoc retrieval queries
  *
