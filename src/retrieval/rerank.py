@@ -87,6 +87,30 @@ class CrossEncoderReranker:
         rescored.sort(key=lambda candidate: (-candidate.score, candidate.chunk_id))  # stable ties
         return rescored[: self.config.top_k]
 
+    def _score_pairs(self, pairs: list[tuple[str, str]]) -> list[float]:
+        """Scores (query, text) pairs in config-sized batches.
+
+        Args:
+            pairs: (query, text) pairs to score.
+
+        Returns:
+            scores: One cross-encoder score per pair.
+        """
+        model = self._load_model()
+        scores: list[float] = []
+        for start in range(0, len(pairs), self.config.batch_size):
+            batch = pairs[start : start + self.config.batch_size]
+            scores.extend(
+                float(score)
+                for score in model.predict(batch, batch_size=self.config.batch_size)
+            )
+        return scores
+
+    def warmup(self) -> None:  # call at startup, not on the query path
+        """Loads the reranker up front so the first query is not cold."""
+        self._load_model()
+        self._score_pairs([("warmup", "warmup probe text")])
+
     def _load_model(self) -> CrossEncoder:
         """Loads the cross-encoder on first use.
 
@@ -176,24 +200,6 @@ class RerankerTuner:  # offline tool; never on the query path
         best = max(rows, key=lambda row: row.ndcg_at_10)  # ties go to the smaller top_k
         return TuningReport(rows=rows, best_top_k=best.top_k)
 
-
-    def _score_pairs(self, pairs: list[tuple[str, str]]) -> list[float]:
-        """Scores (query, text) pairs in config-sized batches.
-
-        Args:
-            pairs: (query, text) pairs to score.
-
-        Returns:
-            scores: One cross-encoder score per pair.
-        """
-        model = self._load_model()
-        scores: list[float] = []
-        for start in range(0, len(pairs), self.config.batch_size):
-            batch = pairs[start : start + self.config.batch_size]
-            scores.extend(float(score) for score in model.predict(batch, batch_size=self.config.batch_size))
-        return scores
-
-
     def render_report(self, report: TuningReport) -> str:
         """Renders a tuning report as a plain-text table.
 
@@ -208,7 +214,6 @@ class RerankerTuner:  # offline tool; never on the query path
             marker = " *" if row.top_k == report.best_top_k else ""
             lines.append(f"{row.top_k:>6} | {row.ndcg_at_10:.4f}{marker}")
         return "\n".join(lines)
-
 
     def threshold_sweep(
         self,
@@ -245,9 +250,3 @@ class RerankerTuner:  # offline tool; never on the query path
                 )
             sweep.append((threshold, sum(scores) / len(scores) if scores else 0.0))
         return sweep
-
-
-    def warmup(self) -> None:  # call at startup, not on the query path
-        """Loads the reranker up front so the first query is not cold."""
-        self._load_model()
-        self._score_pairs([("warmup", "warmup probe text")])
