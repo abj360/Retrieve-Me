@@ -20,6 +20,7 @@ import uuid
 from collections.abc import Callable, Iterator
 from contextlib import contextmanager
 from dataclasses import dataclass
+from functools import partial
 from typing import TypeVar
 
 from qdrant_client import QdrantClient
@@ -73,6 +74,7 @@ def retry_with_backoff(operation: Callable[[], T], retries: int = MAX_RETRIES) -
             time.sleep(delay)
     raise RuntimeError("retry loop exited unexpectedly")
 
+
 @dataclass(frozen=True)
 class QdrantConfig:
     """Carries connection and collection settings for the dense index (frozen).
@@ -82,7 +84,6 @@ class QdrantConfig:
         collection: Name of the collection that stores chunk vectors.
         vector_size: Dimensionality of the stored vectors.
         timeout: Per-request timeout in seconds.
-        distance: Distance metric used by the collection.
         distance: Distance metric used by the collection.
     """
 
@@ -299,7 +300,8 @@ class DenseIndex:
             for start in range(0, len(points), batch_size):
                 batch = points[start : start + batch_size]
                 retry_with_backoff(
-                    lambda: client.upsert(
+                    partial(
+                        client.upsert,
                         collection_name=self.config.collection,
                         points=batch,
                         wait=True,
@@ -322,7 +324,8 @@ class DenseIndex:
         try:
             with self.pool.acquire() as client:
                 client.get_collections()
-        except Exception:
+        except (PoolExhaustedError, UnexpectedResponse, OSError) as exc:
+            logger.warning("qdrant health check failed: %s", exc)
             return False
         return True
 
@@ -344,13 +347,11 @@ class DenseIndex:
         Returns:
             hits: Scored dense hits, best first.
         """
-        if self.is_empty():
-            logger.debug("dense search skipped: collection empty")
-            return []
         with self.pool.acquire() as client:
             try:
                 response = retry_with_backoff(
-                    lambda: client.query_points(
+                    partial(
+                        client.query_points,
                         collection_name=self.config.collection,
                         query=vector,
                         limit=top_k,
