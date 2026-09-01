@@ -274,3 +274,34 @@ def test_top_k_larger_than_candidates() -> None:
     """Asserts top_k above the candidate count returns all candidates."""
     candidates = [make_candidate("only", "one candidate")]
     assert len(make_reranker(top_k=20).rerank("query", candidates)) == 1
+
+
+def golden_queries() -> list[EvalQuery]:
+    """Returns a one-query golden set for tuner tests.
+
+    Returns:
+        queries: Single evaluation query with no relevant documents.
+    """
+    return [
+        EvalQuery(query_id="q", query="text query", relevant_doc_ids=set(), reference_answer="")
+    ]
+
+
+def test_grid_search_restores_the_config_it_borrowed() -> None:
+    """Asserts tuning leaves the reranker on the config it started with."""
+    reranker = make_reranker(top_k=12, min_score=-3.0)
+    tuner = RerankerTuner(reranker)
+    tuner.grid_search(golden_queries(), lambda _query: [make_candidate("c-1", "text")], [4, 8])
+    assert reranker.config.top_k == 12
+    assert reranker.config.min_score == -3.0
+
+
+def test_threshold_sweep_restores_the_config_it_borrowed() -> None:
+    """Asserts a threshold sweep does not leave the reranker retuned."""
+    reranker = make_reranker(top_k=12, min_score=None)
+    tuner = RerankerTuner(reranker)
+    tuner.threshold_sweep(
+        golden_queries(), lambda _query: [make_candidate("c-1", "text")], [0.1, 0.5]
+    )
+    assert reranker.config.top_k == 12
+    assert reranker.config.min_score is None
