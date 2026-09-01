@@ -237,7 +237,11 @@ class HybridRetriever:
         self.tracer = tracer
 
     def retrieve(
-        self, query: str, top_k: int = 10, filters: dict[str, str] | None = None
+        self,
+        query: str,
+        top_k: int = 10,
+        filters: dict[str, str] | None = None,
+        candidate_k: int | None = None,
     ) -> list[RankedResult]:
         """Runs the full hybrid pipeline for one query.
 
@@ -245,19 +249,21 @@ class HybridRetriever:
             query: Raw query text.
             top_k: Final number of results to return.
             filters: Optional exact-match metadata filters.
+            candidate_k: Candidate pool size for this query, or the default.
 
         Returns:
             results: Reranked results, best first, at most top_k.
         """
+        pool_size = self.candidate_k if candidate_k is None else candidate_k
         if self.tracer is None:
-            sparse_hits = self.sparse.retrieve(query, self.candidate_k)
-            dense_hits = self.dense.retrieve(query, self.candidate_k, filters)
+            sparse_hits = self.sparse.retrieve(query, pool_size)
+            dense_hits = self.dense.retrieve(query, pool_size, filters)
             fused = self.fuser.fuse(sparse_hits, dense_hits)
             return self.reranker.rerank(query, fused)[:top_k]
         with self.tracer.span("sparse"):
-            sparse_hits = self.sparse.retrieve(query, self.candidate_k)
+            sparse_hits = self.sparse.retrieve(query, pool_size)
         with self.tracer.span("dense"):
-            dense_hits = self.dense.retrieve(query, self.candidate_k, filters)
+            dense_hits = self.dense.retrieve(query, pool_size, filters)
         with self.tracer.span("fuse"):
             fused = self.fuser.fuse(sparse_hits, dense_hits)  # legs normalized inside fuse
         with self.tracer.span("rerank"):
@@ -296,13 +302,7 @@ class HybridRetriever:
         Returns:
             results: Reranked results, best first, at most top_k.
         """
-        original = self.candidate_k
-        if candidate_k is not None:
-            self.candidate_k = candidate_k
-        try:
-            return self.retrieve(query, top_k=top_k, filters=filters)
-        finally:
-            self.candidate_k = original  # restore even on failure
+        return self.retrieve(query, top_k=top_k, filters=filters, candidate_k=candidate_k)
 
 
 STRATEGY_REGISTRY: dict[str, type] = {

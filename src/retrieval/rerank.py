@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 
 from sentence_transformers import CrossEncoder
 
-from src.eval.metrics import ndcg_at_k
+from src.eval.metrics import mean, ndcg_at_k
 from src.retrieval.fusion import RankedResult
 
 if TYPE_CHECKING:
@@ -189,19 +189,25 @@ class RerankerTuner:  # offline tool; never on the query path
         Returns:
             report: Grid rows plus the winning top_k.
         """
+        baseline = self.reranker.config
         rows: list[TuningRow] = []
-        for top_k in top_k_grid:
-            scores = []
-            for query in queries:
-                candidates = candidates_fn(query)
-                self.reranker.config = replace(self.reranker.config, top_k=top_k)
-                ranked = self.reranker.rerank(query.query, candidates)
-                scores.append(
-                    ndcg_at_k([hit.doc_id for hit in ranked], query.relevant_doc_ids, k=10)
-                )
-            rows.append(
-                TuningRow(top_k=top_k, ndcg_at_10=sum(scores) / len(scores) if scores else 0.0)
-            )
+        try:
+            for top_k in top_k_grid:
+                self.reranker.config = replace(baseline, top_k=top_k)
+                scores = [
+                    ndcg_at_k(
+                        [
+                            hit.doc_id
+                            for hit in self.reranker.rerank(query.query, candidates_fn(query))
+                        ],
+                        query.relevant_doc_ids,
+                        k=10,
+                    )
+                    for query in queries
+                ]
+                rows.append(TuningRow(top_k=top_k, ndcg_at_10=mean(scores)))
+        finally:
+            self.reranker.config = baseline  # a sweep must not leave the reranker retuned
         best = max(rows, key=lambda row: row.ndcg_at_10)  # ties go to the smaller top_k
         return TuningReport(rows=rows, best_top_k=best.top_k)
 
@@ -238,14 +244,23 @@ class RerankerTuner:  # offline tool; never on the query path
         Returns:
             sweep: (threshold, mean nDCG@10) pairs.
         """
+        baseline = self.reranker.config
         sweep: list[tuple[float, float]] = []
-        for threshold in min_score_grid:
-            self.reranker.config = replace(self.reranker.config, min_score=threshold, top_k=top_k)
-            scores = []
-            for query in queries:
-                ranked = self.reranker.rerank(query.query, candidates_fn(query))
-                scores.append(
-                    ndcg_at_k([hit.doc_id for hit in ranked], query.relevant_doc_ids, k=10)
-                )
-            sweep.append((threshold, sum(scores) / len(scores) if scores else 0.0))
+        try:
+            for threshold in min_score_grid:
+                self.reranker.config = replace(baseline, min_score=threshold, top_k=top_k)
+                scores = [
+                    ndcg_at_k(
+                        [
+                            hit.doc_id
+                            for hit in self.reranker.rerank(query.query, candidates_fn(query))
+                        ],
+                        query.relevant_doc_ids,
+                        k=10,
+                    )
+                    for query in queries
+                ]
+                sweep.append((threshold, mean(scores)))
+        finally:
+            self.reranker.config = baseline
         return sweep
