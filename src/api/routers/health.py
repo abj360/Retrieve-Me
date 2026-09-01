@@ -15,7 +15,7 @@ import os
 import redis
 from fastapi import APIRouter, HTTPException
 from qdrant_client import QdrantClient
-from qdrant_client.http.exceptions import UnexpectedResponse
+from qdrant_client.http.exceptions import ResponseHandlingException, UnexpectedResponse
 
 from src.api.dependencies import Settings, get_settings
 
@@ -54,7 +54,7 @@ def check_qdrant(settings: Settings) -> str:
     """
     try:
         QdrantClient(url=settings.qdrant_url, timeout=PING_TIMEOUT_SECONDS).get_collections()
-    except (OSError, UnexpectedResponse, ValueError) as exc:
+    except (OSError, ResponseHandlingException, UnexpectedResponse, ValueError) as exc:
         logger.warning("qdrant readiness probe failed: %s", exc)
         return "unreachable"
     return "ok"
