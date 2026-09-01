@@ -142,7 +142,7 @@ def retrieve(
     if cached is not None:
         logger.debug("cache hit for %s", key)
         response.headers["X-Cache"] = "HIT"
-        return cached
+        return RetrieveResponse.model_validate_json(cached)
     response.headers["X-Cache"] = "MISS"
     logger.info("retrieve q=%r top_k=%d page=%d", payload.query, payload.top_k, payload.page)
     try:
@@ -161,7 +161,7 @@ def retrieve(
         for hit in ranked
     ]
     page_results = paginate(matches, payload.page, payload.page_size)
-    response = RetrieveResponse(
+    body = RetrieveResponse(
         query=payload.query,
         results=page_results,
         total=len(matches),
@@ -171,5 +171,5 @@ def retrieve(
         has_next=payload.page * payload.page_size < len(matches),
         took_ms=(time.perf_counter() - started) * 1000,
     )
-    cache.set(key, response)
-    return response
+    cache.set(key, body.model_dump_json())
+    return body

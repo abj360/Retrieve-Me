@@ -14,8 +14,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.middleware import RequestLoggingMiddleware
 from src.api.dependencies import get_settings
+from src.api.middleware import RequestLoggingMiddleware
 from src.api.routers import health, retrieve
 
 
@@ -57,7 +57,11 @@ def create_app() -> FastAPI:
         Returns:
             metadata: Service name and documentation pointer.
         """
-        return {"service": "retrieval-core", "version": "1.1.0", "docs": "/docs"}
+        return {
+            "service": settings.app_title,
+            "version": settings.app_version,
+            "docs": "/docs",
+        }
 
     return app
 
