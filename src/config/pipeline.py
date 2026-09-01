@@ -27,6 +27,9 @@ import yaml
 logger = logging.getLogger(__name__)
 
 REQUIRED_SECTIONS = ("embedder", "sparse", "dense", "fusion", "reranker")
+OPTIONAL_SECTIONS = frozenset(
+    {"pipeline", "chunking", "cache", "strategy", "generation", "eval", "logging"}
+)
 
 
 class ConfigError(ValueError):
@@ -98,10 +101,14 @@ class RerankerSection:
     Attributes:
         model_name: Cross-encoder model identifier.
         top_k: Candidates kept after reranking.
+        batch_size: Pairs scored per forward pass.
+        min_score: Minimum cross-encoder score to keep a candidate, or None.
     """
 
     model_name: str
     top_k: int = 20
+    batch_size: int = 32
+    min_score: float | None = None
 
 
 @dataclass(frozen=True)
@@ -217,7 +224,7 @@ def load_pipeline_config(path: str | Path) -> PipelineConfig:
     missing = [section for section in REQUIRED_SECTIONS if section not in raw]
     if missing:
         raise ConfigError(f"pipeline config at {path} is missing sections: {missing}")
-    known = set(REQUIRED_SECTIONS) | {"pipeline", "chunking", "cache", "strategy", "generation", "eval", "logging"}
+    known = set(REQUIRED_SECTIONS) | OPTIONAL_SECTIONS
     unknown = sorted(set(raw) - known)
     if unknown:
         logger.warning("ignoring unknown pipeline config sections: %s", unknown)
