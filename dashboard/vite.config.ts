@@ -1,4 +1,3 @@
-#!/usr/bin/env ts-node
 /**
  * vite.config.ts --- Vite configuration for the benchmark dashboard
  *

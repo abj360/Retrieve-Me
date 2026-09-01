@@ -15,6 +15,7 @@ import type { BenchmarkRun, RetrieveResponse } from "../types";
 
 const API_BASE = "/api";
 const REQUEST_TIMEOUT_MS = 8_000;
+const RETRY_DELAY_MS = 1_000;
 
 /**
  * Error carrying the HTTP status of a failed API request.
@@ -132,7 +133,8 @@ export async function withRetry<T>(request: () => Promise<T>): Promise<T> {
   try {
     return await request();
   } catch (error) {
-    await new Promise((resolve) => window.setTimeout(resolve, 1000));
+    console.warn("request failed, retrying once:", error);
+    await new Promise((resolve) => window.setTimeout(resolve, RETRY_DELAY_MS));
     return request();
   }
 }
