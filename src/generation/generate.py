@@ -20,7 +20,8 @@ from src.retrieval.fusion import RankedResult
 
 logger = logging.getLogger(__name__)
 
-CITATION_PATTERN = re.compile  # matches [n] markers the prompt asks for(r"\[(\d+)\]")
+# matches the [n] markers the citation prompt asks the model to emit
+CITATION_PATTERN = re.compile(r"\[(\d+)\]")
 
 
 @dataclass(frozen=True)
@@ -108,7 +109,7 @@ class CitationGenerator:
         seen: set[int] = set()
         for match in CITATION_PATTERN.finditer(answer):
             index = int(match.group(1)) - 1
-            if index >= len(results) or index in seen:
+            if index < 0 or index >= len(results) or index in seen:
                 continue
             seen.add(index)
             result = results[index]
