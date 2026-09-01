@@ -15,8 +15,8 @@ Contains:
 import logging
 import pickle
 import re
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
 
 from rank_bm25 import BM25Okapi
 
@@ -85,6 +85,7 @@ class BM25Index:
         self._k1 = k1
         self._b = b
         self._index: BM25Okapi | None = None
+        self._is_built = False
 
     def build(self, chunks: list) -> int:
         """Builds the sparse index from chunk objects.
@@ -98,6 +99,11 @@ class BM25Index:
         logger.info("building BM25 index over %d chunks (k1=%.2f b=%.2f)", len(chunks), self._k1, self._b)
         self._chunks = list(chunks)
         self.chunk_ids = [chunk.chunk_id for chunk in chunks]
+        self._is_built = True
+        if not self._chunks:
+            # BM25Okapi divides by the corpus size while computing avgdl
+            self._index = None
+            return 0
         self._index = BM25Okapi(
             [tokenize(chunk.text) for chunk in chunks], k1=self._k1, b=self._b
         )
@@ -113,9 +119,9 @@ class BM25Index:
         Returns:
             hits: Scored sparse hits with chunk text, best first.
         """
-        if self._index is None:
+        if not self._is_built:
             raise RuntimeError("BM25Index.search called before build()")
-        if not self.chunk_ids or not query.strip():
+        if self._index is None or not query.strip():
             logger.debug("bm25 search skipped: empty index or blank query")
             return []
         scores = self._index.get_scores(tokenize(query))
@@ -136,11 +142,11 @@ class BM25Index:
         Returns:
             stats: Chunk count and average token count per chunk.
         """
-        if self._index is None:
-            return {"chunks": 0, "avg_tokens": 0.0}
+        if self._index is None or not self._chunks:
+            return {"chunks": 0.0, "avg_tokens": 0.0}
         lengths = [len(tokenize(chunk.text)) for chunk in self._chunks]
         return {
-            "chunks": len(self.chunk_ids),
+            "chunks": float(len(self.chunk_ids)),
             "avg_tokens": sum(lengths) / len(lengths) if lengths else 0.0,
         }
 
@@ -150,7 +156,7 @@ class BM25Index:
         Args:
             path: Destination file for the pickled index.
         """
-        if self._index is None:
+        if not self._is_built:
             raise RuntimeError("BM25Index.save called before build()")
         state = {"chunk_ids": self.chunk_ids, "chunks": self._chunks, "index": self._index}
         with path.open("wb") as handle:
@@ -167,3 +173,4 @@ class BM25Index:
         self.chunk_ids = state["chunk_ids"]
         self._chunks = state["chunks"]
         self._index = state["index"]
+        self._is_built = True

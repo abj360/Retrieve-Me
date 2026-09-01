@@ -16,12 +16,13 @@ import json
 import logging
 import time
 from dataclasses import dataclass, field
+from functools import partial
 from pathlib import Path
 
 from src.ingest.bm25_index import BM25Index
-from src.ingest.chunking import Chunker
-from src.ingest.dense_index import DenseIndex, retry_with_backoff
-from src.retrieval.embeddings import SentenceTransformerEmbedder
+from src.ingest.chunking import Chunker, SemanticClauseChunker
+from src.ingest.dense_index import DenseIndex, QdrantConfig, retry_with_backoff
+from src.retrieval.embeddings import EmbeddingConfig, SentenceTransformerEmbedder
 
 logger = logging.getLogger(__name__)
 
@@ -120,7 +121,8 @@ class CorpusIngestor:
             batch_texts = [chunk.text for chunk in batch]  # embed once, reuse for payload
             vectors = self.embedder.encode(batch_texts)
             retry_with_backoff(
-                lambda: self.dense_index.upsert(
+                partial(
+                    self.dense_index.upsert,
                     [chunk.chunk_id for chunk in batch],
                     vectors,
                     [
@@ -206,9 +208,11 @@ def load_benchmark_corpus(path: Path | None = None) -> list[Document]:
 def main() -> None:
     """Runs a one-off ingestion run from the command line."""
     parser = argparse.ArgumentParser(description="Ingest a corpus into Retrieve-Me")
-    parser.add_argument("--corpus", required=True, type=Path, help="corpus directory")
+    parser.add_argument("--corpus", type=Path, help="corpus directory")
     parser.add_argument("--benchmark", action="store_true", help="ingest the benchmark set")
     args = parser.parse_args()
+    if args.corpus is None and not args.benchmark:
+        parser.error("pass --corpus DIR or --benchmark")
     logging.basicConfig(level=logging.INFO)
     documents = (
         load_benchmark_corpus() if args.benchmark else load_corpus(args.corpus)
@@ -228,10 +232,7 @@ def _build_ingestor() -> CorpusIngestor:
     Returns:
         ingestor: Ingestor backed by Qdrant, Redis-free BM25, and the embedder.
     """
-    from src.api.dependencies import get_settings, get_qdrant_pool
-    from src.ingest.chunking import SemanticClauseChunker
-    from src.ingest.dense_index import DenseIndex, QdrantConfig
-    from src.retrieval.embeddings import EmbeddingConfig
+    from src.api.dependencies import get_qdrant_pool, get_settings
 
     settings = get_settings()
     config = QdrantConfig(url=settings.qdrant_url, collection=settings.qdrant_collection)
