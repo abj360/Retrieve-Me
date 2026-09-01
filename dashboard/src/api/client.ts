@@ -1,4 +1,3 @@
-#!/usr/bin/env ts-node
 /**
  * client.ts --- thin API client for the Retrieve-Me backend
  *
