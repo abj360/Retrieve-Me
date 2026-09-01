@@ -8,6 +8,10 @@ Contains:
     test_dense_leg_passes_filters(): asserts filters flow to the index
 """
 
+import logging
+
+from tests.conftest import FakeDenseIndex
+
 from src.ingest.bm25_index import BM25Index
 from src.retrieval.fusion import FusionConfig, ResultFuser
 from src.retrieval.strategies import (
@@ -157,3 +161,71 @@ def test_hybrid_normalized_legs_share_scale(indexed_stores, stub_embedder, stub_
     )
     results = pipeline.retrieve("indemnify", top_k=4)
     assert all(result.score >= 0 for result in results)
+
+
+class FlakyWarmupModel:
+    """Records warmup attempts and can fail them on demand.
+
+    Attributes:
+        warmed: Number of successful warmup calls.
+    """
+
+    def __init__(self, fails: bool = False) -> None:
+        """Stores whether warmup should raise.
+
+        Args:
+            fails: Whether warmup raises instead of succeeding.
+        """
+        self._fails = fails
+        self.warmed = 0
+
+    def warmup(self) -> None:
+        """Records the call, or raises when configured to fail.
+
+        Raises:
+            RuntimeError: When the model was configured to fail warmup.
+        """
+        if self._fails:
+            raise RuntimeError("model download failed")
+        self.warmed += 1
+
+
+def build_retriever(embedder: FlakyWarmupModel, reranker: FlakyWarmupModel) -> HybridRetriever:
+    """Builds a hybrid retriever around two warmup-only doubles.
+
+    Args:
+        embedder: Stand-in for the dense leg's embedder.
+        reranker: Stand-in for the cross-encoder reranker.
+
+    Returns:
+        retriever: Retriever wired to the given doubles.
+    """
+    dense = DenseRetrievalStrategy(FakeDenseIndex(), embedder)
+    return HybridRetriever(
+        SparseRetrievalStrategy(BM25Index()),
+        dense,
+        ResultFuser(FusionConfig()),
+        reranker,
+    )
+
+
+def test_warmup_loads_both_models() -> None:
+    """Asserts startup warmup touches the embedder and the reranker."""
+    embedder, reranker = FlakyWarmupModel(), FlakyWarmupModel()
+    build_retriever(embedder, reranker).warmup()
+    assert (embedder.warmed, reranker.warmed) == (1, 1)
+
+
+def test_warmup_failure_does_not_stop_startup() -> None:
+    """Asserts a failed model load is tolerated rather than raised."""
+    embedder, reranker = FlakyWarmupModel(fails=True), FlakyWarmupModel()
+    build_retriever(embedder, reranker).warmup()
+    assert reranker.warmed == 1
+
+
+def test_warmup_failure_is_logged(caplog) -> None:
+    """Asserts a failed warmup leaves a warning naming the stage."""
+    embedder, reranker = FlakyWarmupModel(fails=True), FlakyWarmupModel()
+    with caplog.at_level(logging.WARNING):
+        build_retriever(embedder, reranker).warmup()
+    assert "embedder warmup failed" in caplog.text

@@ -3,30 +3,37 @@
 main.py --- FastAPI application entrypoint for the retrieval service
 
 Contains:
-    lifespan(): stores shared settings on app state across the app lifetime
+    lifespan(): stores shared settings and warms the models at startup
     create_app(): builds and configures the FastAPI application
     root(): returns basic service metadata
 """
 
+import logging
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.api.dependencies import get_settings
+from src.api.dependencies import get_pipeline, get_settings
 from src.api.middleware import RequestLoggingMiddleware
 from src.api.routers import health, retrieve
+
+logger = logging.getLogger("retrieval.startup")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
-    """Stores shared settings on app state for the whole app lifetime.
+    """Stores shared settings and warms the models for the app's lifetime.
 
     Args:
         app: Application instance the lifespan is bound to.
     """
-    app.state.settings = get_settings()
+    settings = get_settings()
+    app.state.settings = settings
+    if settings.warmup_on_startup:
+        logger.info("warming retrieval models before accepting traffic")
+        get_pipeline().warmup()
     yield
 
 
