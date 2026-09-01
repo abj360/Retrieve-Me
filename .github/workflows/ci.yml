@@ -1,7 +1,12 @@
 name: CI
 
+# push runs guard the default branch; everything else is covered by its PR.
+# An unscoped push trigger fires once per branch, which on a repo that keeps
+# its merged branches means one run per branch on every bulk push.
 on:
   push:
+    branches: [main]
+    tags: ["v*"]
   pull_request:
   workflow_dispatch:
 
