@@ -152,7 +152,7 @@ export function App() {
         )}
       </main>
       <footer className="app-footer">
-        <span>retrieval-core dashboard v0.2.0</span>
+        <span>retrieval-core dashboard v0.0.2</span>
       </footer>
     </div>
   );
