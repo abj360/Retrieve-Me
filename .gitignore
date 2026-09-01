@@ -9,6 +9,8 @@ __pycache__/
 .ruff_cache/
 .mypy_cache/
 data/benchmark/
+# built by ingest, rebuilt per deploy — not source
+data/*.pkl
 *.local
 # local env overrides
 .DS_Store
