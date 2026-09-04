@@ -2,10 +2,14 @@
 
 <img src="docs/media/wordmark.png" alt="Retrieve-Me" width="560" />
 
-[![ci](https://github.com/abj360/Retrieve-Me/actions/workflows/ci.yml/badge.svg)](https://github.com/abj360/Retrieve-Me/actions/workflows/ci.yml)
-[![python](https://img.shields.io/badge/python-3.12+-e11d48)](pyproject.toml)
-[![node](https://img.shields.io/badge/node-20-e11d48)](dashboard/package.json)
-[![license](https://img.shields.io/badge/license-MIT-e11d48)](LICENSE)
+[![python 3.12+](https://img.shields.io/badge/Python%203.12+-3776AB?logo=python&logoColor=white)](pyproject.toml)
+[![fastapi](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)](src/)
+[![qdrant](https://img.shields.io/badge/Qdrant-DC244C?logo=qdrant&logoColor=white)](src/)
+[![redis](https://img.shields.io/badge/Redis-FF4438?logo=redis&logoColor=white)](docker/)
+[![react](https://img.shields.io/badge/React-61DAFB?logo=react&logoColor=black)](dashboard/package.json)
+[![vite](https://img.shields.io/badge/Vite-646CFF?logo=vite&logoColor=white)](dashboard/vite.config.ts)
+[![docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white)](docker/)
+[![mit](https://img.shields.io/badge/MIT-e11d48?logo=opensourceinitiative&logoColor=white)](LICENSE)
 
 Retrieve-Me is a hybrid retrieval engine that fuses BM25 and dense vector search
 with Reciprocal Rank Fusion, reranks the merged candidates with a cross-encoder, and
