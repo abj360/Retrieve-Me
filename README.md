@@ -21,27 +21,6 @@ before it ships.
 
 </div>
 
-## How you use it
-
-1. **Bring the stack up** — `cp .env.example .env`, then
-   `docker compose -f docker/docker-compose.yml up --build`.
-2. **Ingest your corpus**:
-   ```bash
-   docker compose -f docker/docker-compose.yml exec api python -m src.ingest.loader --corpus data/docs/
-   ```
-3. **Query it from your application** — one `POST /retrieve` call:
-   ```bash
-   curl -s -X POST http://localhost:8000/retrieve \
-     -H 'Content-Type: application/json' \
-     -d '{"query": "Section 3.1 indemnification", "top_k": 5}'
-   ```
-   See [Using the API](#using-the-api) for filters, pagination and caching.
-4. **Diagnose a bad ranking** in the query inspector on `:5173`: each hit is labelled
-   with the stage that produced it, so you can see whether the exact-term match came
-   from BM25, the paraphrase from the vector index, or the top hit from the fusion.
-5. **Measure before you ship a change** — run the eval harness and read the gain
-   against the latency it cost in [Evaluation](#evaluation).
-
 ## Why hybrid?
 
 Pure dense retrieval fails the moment someone searches for an exact document number,
@@ -64,6 +43,27 @@ latency budget per stage.
 
 Every tuning run is recorded, so the nDCG gain and the latency it cost are visible
 side by side rather than argued from memory.
+
+## How you use it
+
+1. **Bring the stack up** — `cp .env.example .env`, then
+   `docker compose -f docker/docker-compose.yml up --build`.
+2. **Ingest your corpus**:
+   ```bash
+   docker compose -f docker/docker-compose.yml exec api python -m src.ingest.loader --corpus data/docs/
+   ```
+3. **Query it from your application** — one `POST /retrieve` call:
+   ```bash
+   curl -s -X POST http://localhost:8000/retrieve \
+     -H 'Content-Type: application/json' \
+     -d '{"query": "Section 3.1 indemnification", "top_k": 5}'
+   ```
+   See [Using the API](#using-the-api) for filters, pagination and caching.
+4. **Diagnose a bad ranking** in the query inspector on `:5173`: each hit is labelled
+   with the stage that produced it, so you can see whether the exact-term match came
+   from BM25, the paraphrase from the vector index, or the top hit from the fusion.
+5. **Measure before you ship a change** — run the eval harness and read the gain
+   against the latency it cost in [Evaluation](#evaluation).
 
 ## Quickstart (one command, fully dockerized)
 
