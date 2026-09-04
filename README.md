@@ -32,8 +32,8 @@ Fusion, then reranks the merged candidate set with a cross-encoder.
 
 ## Results
 
-**+27% nDCG@10** over dense-only retrieval (0.41 → 0.68 on the legal/tech benchmark
-corpus), for a **+90 ms p95 latency cost** (30 ms → 91 ms), dominated by the
+**+0.27 nDCG@10** over dense-only retrieval (0.41 → 0.68 on the legal/tech benchmark
+corpus), for a **+61 ms p95 latency cost** (30 ms → 91 ms), dominated by the
 cross-encoder rerank stage. See `docs/adr/ADR-001.md` for the full evaluation and the
 latency budget per stage.
 
