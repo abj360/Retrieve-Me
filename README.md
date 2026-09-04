@@ -17,7 +17,7 @@ with Reciprocal Rank Fusion, reranks the merged candidates with a cross-encoder,
 scores the result against an LLM-as-judge harness so every ranking change is measured
 before it ships.
 
-<img src="docs/media/query-inspector.png" alt="The query inspector: one query with each result labelled by the stage that produced it" width="940" />
+<img src="docs/media/dashboard.gif" alt="Uploading documents into the index, then searching them with each result labelled by the stage that produced it" width="940" />
 
 </div>
 
@@ -48,7 +48,14 @@ side by side rather than argued from memory.
 
 1. **Bring the stack up** — `cp .env.example .env`, then
    `docker compose -f docker/docker-compose.yml up --build`.
-2. **Ingest your corpus**:
+2. **Add your documents.** Drop `.txt` or `.md` files onto the **Documents** tab of
+   the dashboard and they are chunked, embedded and indexed on the spot:
+
+   <p align="center">
+     <img src="docs/media/document-upload.png" alt="The Documents tab: files dropped in, indexed into chunks, with unsupported files reported" width="900" />
+   </p>
+
+   For a whole corpus at once, the CLI does the same thing:
    ```bash
    docker compose -f docker/docker-compose.yml exec api python -m src.ingest.loader --corpus data/docs/
    ```
@@ -100,6 +107,20 @@ curl -s -X POST http://localhost:8000/retrieve \
 (`total`, `page`, `page_size`, `has_next`, `took_ms`). Interactive docs live at
 `/docs`; health probes at `/healthz` and `/readyz` (fail-closed: 503 when Qdrant or
 Redis is unreachable).
+
+### Adding documents
+
+`POST /documents` accepts a multipart upload and indexes it immediately:
+
+```bash
+curl -s -X POST http://localhost:8000/documents \
+  -F 'files=@contract.md' -F 'files=@appendix.txt'
+```
+
+`.txt` and `.md` are indexed; anything else comes back under `skipped` with the
+reason, so one unreadable file does not lose the rest of the batch. Files over 5 MB
+are rejected the same way. The response carries the documents indexed, the chunks
+written, and how long it took.
 
 ## Architecture
 
