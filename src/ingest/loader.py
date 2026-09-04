@@ -9,6 +9,7 @@ Contains:
     CorpusIngestor._persist_sparse_index(): writes the sparse index for the service
     load_corpus(): loads all supported documents from a directory
     load_benchmark_corpus(): loads the 500-doc legal/tech benchmark set
+    build_ingestor(): builds an ingestor wired to the live stores
     main(): CLI entrypoint that ingests into the live stores
 """
 
@@ -239,7 +240,7 @@ def main() -> None:
         parser.error("pass --corpus DIR or --benchmark")
     logging.basicConfig(level=logging.INFO)
     documents = load_benchmark_corpus() if args.benchmark else load_corpus(args.corpus)
-    stats = _build_ingestor().ingest(documents)
+    stats = build_ingestor().ingest(documents)
     logger.info(
         "done: %d documents, %d chunks in %.1fs",
         stats.documents,
@@ -248,7 +249,7 @@ def main() -> None:
     )
 
 
-def _build_ingestor() -> CorpusIngestor:
+def build_ingestor() -> CorpusIngestor:
     """Builds a CorpusIngestor wired to the configured live stores.
 
     Returns:

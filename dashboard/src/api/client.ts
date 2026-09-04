@@ -10,7 +10,7 @@
  *   withRetry: retries a request once after a short delay
  */
 
-import type { BenchmarkRun, RetrieveResponse } from "../types";
+import type { BenchmarkRun, RetrieveResponse, UploadResult } from "../types";
 
 const API_BASE = "/api";
 const REQUEST_TIMEOUT_MS = 8_000;
@@ -39,8 +39,11 @@ async function apiFetch<T>(path: string, init?: RequestInit): Promise<T> {
   const controller = new AbortController();
   const timeoutHandle = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
   try {
-    const response = await fetch(path, { ...init, signal: controller.signal,
-    credentials: "same-origin", });
+    const response = await fetch(path, {
+      ...init,
+      signal: controller.signal,
+      credentials: "same-origin",
+    });
     if (!response.ok) {
       throw new ApiError(path, response.status);
     }
@@ -139,3 +142,37 @@ export async function withRetry<T>(request: () => Promise<T>): Promise<T> {
 }
 
 export { API_BASE, REQUEST_TIMEOUT_MS };
+
+interface ApiUploadResponse {
+  documents: { doc_id: string; title: string; bytes: number }[];
+  chunks: number;
+  skipped: Record<string, string>;
+  took_ms: number;
+}
+
+/**
+ * Uploads documents to be chunked, embedded and indexed.
+ *
+ * @param files - Files chosen or dropped by the user.
+ * @returns result - What was indexed, mapped to camelCase fields.
+ */
+export async function postDocuments(files: File[]): Promise<UploadResult> {
+  const body = new FormData();
+  for (const file of files) {
+    body.append("files", file);
+  }
+  const payload = await apiFetch<ApiUploadResponse>(`${API_BASE}/documents`, {
+    method: "POST",
+    body,
+  });
+  return {
+    documents: payload.documents.map((doc) => ({
+      docId: doc.doc_id,
+      title: doc.title,
+      bytes: doc.bytes,
+    })),
+    chunks: payload.chunks,
+    skipped: payload.skipped,
+    tookMs: payload.took_ms,
+  };
+}

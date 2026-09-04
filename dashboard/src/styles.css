@@ -76,9 +76,15 @@ body {
   font-weight: 600;
 }
 
-.source-sparse { background: #23407a; }
-.source-dense { background: #3d2a72; }
-.source-fused { background: #1f4d3a; }
+.source-sparse {
+  background: #23407a;
+}
+.source-dense {
+  background: #3d2a72;
+}
+.source-fused {
+  background: #1f4d3a;
+}
 
 .pagination {
   display: flex;
@@ -131,9 +137,15 @@ body {
   margin-top: 8px;
 }
 
-.health-dot.ok { background: #3ddc97; }
-.health-dot.down { background: #e05c5c; }
-.health-dot.unknown { background: #9aa5bd; }
+.health-dot.ok {
+  background: #3ddc97;
+}
+.health-dot.down {
+  background: #e05c5c;
+}
+.health-dot.unknown {
+  background: #9aa5bd;
+}
 
 :root {
   --text-muted: #aeb8cf;
@@ -175,4 +187,84 @@ select:focus-visible {
   .app-footer {
     font-size: 12px;
   }
+}
+
+.panel-subtitle {
+  margin: 0 0 1rem;
+  color: var(--muted, #8b93a1);
+  font-size: 0.9rem;
+  max-width: 46rem;
+}
+
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 2.4rem 1rem;
+  border: 1.5px dashed #3a4353;
+  border-radius: 0.6rem;
+  background: rgba(225, 29, 72, 0.03);
+  cursor: pointer;
+  transition:
+    border-color 120ms ease,
+    background 120ms ease;
+}
+
+.dropzone:hover,
+.dropzone.is-over {
+  border-color: #e11d48;
+  background: rgba(225, 29, 72, 0.08);
+}
+
+.dropzone.is-busy {
+  cursor: progress;
+  opacity: 0.75;
+}
+
+.dropzone-title {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.dropzone-hint {
+  font-size: 0.85rem;
+  color: var(--muted, #8b93a1);
+}
+
+.upload-result {
+  margin-top: 1.1rem;
+}
+
+.upload-list {
+  list-style: none;
+  margin: 0.6rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.upload-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.4rem 0.7rem;
+  border: 1px solid #2a3140;
+  border-radius: 0.4rem;
+  font-size: 0.88rem;
+}
+
+.upload-name {
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+.upload-size {
+  color: var(--muted, #8b93a1);
+}
+
+.upload-skipped li {
+  border-style: dashed;
+  opacity: 0.8;
 }

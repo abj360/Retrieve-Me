@@ -6,6 +6,8 @@
  *   RetrievedChunk: one scored chunk returned by the retrieval API
  *   RetrieveResponse: retrieval API response payload
  *   StageBreakdown: per-source result counts derived from a response
+ *   UploadedDocument: one document accepted by an upload
+ *   UploadResult: outcome of one document upload
  */
 
 export interface BenchmarkRun {
@@ -53,4 +55,23 @@ export interface StageBreakdown {
   dense: number;
   fused: number;
   total?: number;
+}
+
+/**
+ * UploadedDocument: one document accepted by an upload.
+ */
+export interface UploadedDocument {
+  docId: string;
+  title: string;
+  bytes: number;
+}
+
+/**
+ * UploadResult: outcome of one document upload.
+ */
+export interface UploadResult {
+  documents: UploadedDocument[];
+  chunks: number;
+  skipped: Record<string, string>;
+  tookMs: number;
 }
