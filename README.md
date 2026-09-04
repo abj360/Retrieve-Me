@@ -1,7 +1,20 @@
-# Retrieve-Me
+<div align="center">
 
-Production-grade hybrid retrieval engine: BM25 + dense vector search + cross-encoder
-reranking, with an LLM-as-judge evaluation harness and a live benchmark dashboard.
+<img src="docs/media/wordmark.png" alt="Retrieve-Me" width="560" />
+
+[![ci](https://github.com/abj360/Retrieve-Me/actions/workflows/ci.yml/badge.svg)](https://github.com/abj360/Retrieve-Me/actions/workflows/ci.yml)
+[![python](https://img.shields.io/badge/python-3.12+-e11d48)](pyproject.toml)
+[![node](https://img.shields.io/badge/node-20-e11d48)](dashboard/package.json)
+[![license](https://img.shields.io/badge/license-MIT-e11d48)](LICENSE)
+
+Retrieve-Me is a hybrid retrieval engine that fuses BM25 and dense vector search
+with Reciprocal Rank Fusion, reranks the merged candidates with a cross-encoder, and
+scores the result against an LLM-as-judge harness so every ranking change is measured
+before it ships.
+
+<img src="docs/media/query-inspector.png" alt="The query inspector: one query with each result labelled by the stage that produced it" width="940" />
+
+</div>
 
 ## Why hybrid?
 
@@ -18,6 +31,13 @@ Fusion, then reranks the merged candidate set with a cross-encoder.
 corpus), for a **+90 ms p95 latency cost** (30 ms → 91 ms), dominated by the
 cross-encoder rerank stage. See `docs/adr/ADR-001.md` for the full evaluation and the
 latency budget per stage.
+
+<p align="center">
+  <img src="docs/media/benchmarks.png" alt="Benchmark runs from the dense-only baseline through to the hybrid rerank candidate" width="940" />
+</p>
+
+Every tuning run is recorded, so the nDCG gain and the latency it cost are visible
+side by side rather than argued from memory.
 
 ## Quickstart (one command, fully dockerized)
 
