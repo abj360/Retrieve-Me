@@ -18,7 +18,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from src.api.dependencies import get_pipeline, get_settings
 from src.api.middleware import RequestLoggingMiddleware
-from src.api.routers import health, retrieve
+from src.api.routers import documents, health, retrieve
 
 logger = logging.getLogger("retrieval.startup")
 
@@ -54,9 +54,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """
     settings = get_settings()
     app.state.settings = settings
-    logger.info(
-        "Retrieve-Me %s starting at log level %s", settings.app_version, settings.log_level
-    )
+    logger.info("Retrieve-Me %s starting at log level %s", settings.app_version, settings.log_level)
     if settings.warmup_on_startup:
         logger.info("warming retrieval models before accepting traffic")
         get_pipeline().warmup()
@@ -80,6 +78,7 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
     app.include_router(retrieve.router)
+    app.include_router(documents.router)
     app.include_router(health.router)
 
     @app.get("/", include_in_schema=False)
