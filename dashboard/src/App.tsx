@@ -7,11 +7,12 @@
 
 import { useEffect, useState } from "react";
 
-import { getBenchmarkRuns, getHealth, postRetrieve } from "./api/client";
+import { getBenchmarkRuns, getHealth, postDocuments, postRetrieve } from "./api/client";
 import { BenchmarkTable } from "./components/BenchmarkTable";
+import { DocumentUpload } from "./components/DocumentUpload";
 import { LatencyRecallChart } from "./components/LatencyRecallChart";
 import { QueryInspector } from "./components/QueryInspector";
-import type { BenchmarkRun, RetrievedChunk } from "./types";
+import type { BenchmarkRun, RetrievedChunk, UploadResult } from "./types";
 
 const BENCHMARK_RUNS: BenchmarkRun[] = [
   {
@@ -43,7 +44,7 @@ const BENCHMARK_RUNS: BenchmarkRun[] = [
  *
  * @returns element - Root application element.
  */
-type DashboardTab = "benchmarks" | "inspector";
+type DashboardTab = "benchmarks" | "inspector" | "documents";
 
 export function App() {
   const [activeTab, setActiveTab] = useState<DashboardTab>("benchmarks");
@@ -55,6 +56,9 @@ export function App() {
   const [inspectError, setInspectError] = useState<string | null>(null);
   const [isHealthy, setIsHealthy] = useState<boolean | null>(null);
   const [inspectionTookMs, setInspectionTookMs] = useState<number | null>(null);
+  const [uploadResult, setUploadResult] = useState<UploadResult | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const handleInspect = (query: string) => {
     setIsInspecting(true);
@@ -101,16 +105,29 @@ export function App() {
     };
   }, []);
 
+  const handleUpload = async (files: File[]) => {
+    setIsUploading(true);
+    setUploadError(null);
+    try {
+      setUploadResult(await postDocuments(files));
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : String(error));
+      setUploadResult(null);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <div className="app-shell">
       <header className="app-header">
         <h1>Retrieve-Me</h1>
         <p>Hybrid retrieval benchmarks: BM25 + dense + cross-encoder rerank</p>
         <span
-          className={
-            `health-dot ${isHealthy === null ? "unknown" : isHealthy ? "ok" : "down"}`
+          className={`health-dot ${isHealthy === null ? "unknown" : isHealthy ? "ok" : "down"}`}
+          title={
+            isHealthy === null ? "checking api…" : isHealthy ? "api healthy" : "api unreachable"
           }
-          title={isHealthy === null ? "checking api…" : isHealthy ? "api healthy" : "api unreachable"}
         />
       </header>
       <nav className="tabs">
@@ -126,9 +143,22 @@ export function App() {
         >
           Query inspector
         </button>
+        <button
+          className={activeTab === "documents" ? "tab active" : "tab"}
+          onClick={() => setActiveTab("documents")}
+        >
+          Documents
+        </button>
       </nav>
       <main>
-        {activeTab === "inspector" ? (
+        {activeTab === "documents" ? (
+          <DocumentUpload
+            onUpload={handleUpload}
+            result={uploadResult}
+            isUploading={isUploading}
+            error={uploadError}
+          />
+        ) : activeTab === "inspector" ? (
           <QueryInspector
             onInspect={handleInspect}
             results={inspectionResults}
@@ -137,14 +167,14 @@ export function App() {
             error={inspectError}
           />
         ) : (
-        <section className="panel">
-          <h2>Benchmark runs</h2>
-          {isLoading && <p className="status-line">Loading benchmark runs…</p>}
-          {loadError !== null && (
-            <p className="error-banner">Could not load benchmark runs: {loadError}</p>
-          )}
-          {!isLoading && loadError === null && <BenchmarkTable runs={runs} />}
-        </section>
+          <section className="panel">
+            <h2>Benchmark runs</h2>
+            {isLoading && <p className="status-line">Loading benchmark runs…</p>}
+            {loadError !== null && (
+              <p className="error-banner">Could not load benchmark runs: {loadError}</p>
+            )}
+            {!isLoading && loadError === null && <BenchmarkTable runs={runs} />}
+          </section>
         )}
         {activeTab === "benchmarks" && !isLoading && loadError === null && (
           <LatencyRecallChart runs={runs} />
